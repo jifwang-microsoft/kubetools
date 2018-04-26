@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kubeperf-compute
+  labels:
+    purpose: demonstrate-kuberenetes-compute-performance
+spec:
+  containers:
+  - name: kubeperf
+    image: msazurestackdocker/kubetools:latest
+    env:
+    - name: SCRIPT_NAME
+      value: "run.sh"
+    - name: SCRIPT_URL
+      value: "https://raw.githubusercontent.com/msazurestackworkloads/kubetools/master/perf/scripts/run.sh"
+    - name: SCRIPT_PARAM1
+      value: "STORAGEURL"
+    - name: SCRIPT_PARAM2
+      value: "STORAGEKEY"
+    - name: SCRIPT_PARAM3
+      value: "azure"
