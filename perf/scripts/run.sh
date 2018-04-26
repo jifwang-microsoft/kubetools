@@ -1,5 +1,8 @@
 storageuri=${1}
 storagekey=${2}
+name1=${3}
+name2=${4}
+name3=${5}
 epoch=$(date +%s)
 hostname=$(hostname)
 foldername=$hostname$epoch
@@ -22,4 +25,4 @@ wget -O azcopy.tar.gz https://aka.ms/downloadazcopyprlinux
 tar -xf azcopy.tar.gz
 sudo sh install.sh
 
-azcopy --source /geekbench.log --destination "$storageuri"/"$foldername".geekbench.log --dest-key $storagekey
+azcopy --source /geekbench.log --destination "$storageuri"/"$foldername"/"$name1"/"$name2"/"$name3".geekbench.log --dest-key $storagekey
