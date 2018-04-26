@@ -23,6 +23,6 @@ sudo apt-get -y update
 sudo apt-get -y install dotnet-sdk-2.0.2
 wget -O azcopy.tar.gz https://aka.ms/downloadazcopyprlinux
 tar -xf azcopy.tar.gz
-sudo sh install.sh
+./install.sh
 
 azcopy --source /geekbench.log --destination "$storageuri"/"$foldername"/"$name1"/"$name2"/"$name3".geekbench.log --dest-key $storagekey
