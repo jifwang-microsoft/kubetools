@@ -22,10 +22,4 @@ wget -O azcopy.tar.gz https://aka.ms/downloadazcopyprlinux
 tar -xf azcopy.tar.gz
 sudo sh install.sh
 
-sudo chmod -R ugo+rw /var/log/azurestack
-sudo cp -r /geekbench.log /var/log/azurestack/"$foldername"
-sudo tar -zcvf /var/log/azurestack/$foldername.tar.gz /var/log/azurestack/"$foldername"
-
-
-azcopy --source /var/log/azurestack/$foldername.tar.gz --destination "$storageuri"/"$foldername".tar.gz --dest-key $storagekey
-sudo rm -Rf /var/log/azurestack/"$foldername"
+azcopy --source /geekbench.log --destination "$storageuri"/"$foldername".geekbench.log --dest-key $storagekey
