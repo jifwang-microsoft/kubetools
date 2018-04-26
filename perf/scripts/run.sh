@@ -5,7 +5,7 @@ hostname=$(hostname)
 foldername=$hostname$epoch
 
 wget -O - http://cdn.primatelabs.com/Geekbench-4.1.0-Linux.tar.gz | tar zx --strip-components=2
-sudo bash Geekbench-4.1.0-Linux/geekbench4 > geekbench.log
+sudo ./Geekbench-4.1.0-Linux/geekbench4 > geekbench.log
 
 sudo rm -Rf /var/log/azurestack/"$foldername"
 mkdir -p  /var/log/azurestack/"$foldername"
