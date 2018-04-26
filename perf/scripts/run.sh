@@ -4,8 +4,7 @@ name1=${3}
 name2=${4}
 name3=${5}
 epoch=$(date +%s)
-hostname=$(hostname)
-foldername=$hostname$epoch
+foldername=$epoch
 
 wget -O - http://cdn.primatelabs.com/Geekbench-4.1.0-Linux.tar.gz | tar zx --strip-components=2
 sudo ./Geekbench-4.1.0-Linux/geekbench4 > geekbench.log
@@ -25,4 +24,4 @@ wget -O azcopy.tar.gz https://aka.ms/downloadazcopyprlinux
 tar -xf azcopy.tar.gz
 ./install.sh
 
-azcopy --source /geekbench.log --destination "$storageuri"/"$foldername"/"$name1"/"$name2"/"$name3".geekbench.log --dest-key $storagekey
+azcopy --source /geekbench.log --destination "$storageuri"/"$name1"/"$name2"/"$name3"/"$foldername".geekbench.log --dest-key $storagekey
