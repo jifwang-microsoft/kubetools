@@ -49,15 +49,15 @@ echo "user: $AZUREUSER"
 # Pushing up a single script should make things easier to read/understand, review and maintain.
 
 # Install Helm chart
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "curl -O https://raw.githubusercontent.com/LingyunSu/AzureStack-QuickStart-Templates/master/k8s-post-deployment-validation/install_helm_test.sh; sudo chmod 744 install_helm_test.sh;fi;"
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "curl -O https://raw.githubusercontent.com/LingyunSu/AzureStack-QuickStart-Templates/master/k8s-post-deployment-validation/install_helm_test.sh; sudo chmod 744 install_helm_test.sh;"
 ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./install_helm_test.sh;"
 
 # Install Wordpress app
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "curl -O https://raw.githubusercontent.com/Bhuvaneswari-Santharam/AzureStack-QuickStart-Templates/master/k8s-post-deployment-validation/install_wordpress_on_kubernete_in_helm_test.sh; sudo chmod 744 install_wordpress_on_kubernete_in_helm_test.sh;fi;"
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "curl -O https://raw.githubusercontent.com/Bhuvaneswari-Santharam/AzureStack-QuickStart-Templates/master/k8s-post-deployment-validation/install_wordpress_on_kubernete_in_helm_test.sh; sudo chmod 744 install_wordpress_on_kubernete_in_helm_test.sh;"
 ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./install_wordpress_on_kubernete_in_helm_test.sh;"
 
 # Install Hello world
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "curl -O https://raw.githubusercontent.com/LingyunSu/AzureStack-QuickStart-Templates/master/k8s-post-deployment-validation/helm_create_helloworld_chart_test.sh; sudo chmod 744 helm_create_helloworld_chart_test.sh;fi;"
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "curl -O https://raw.githubusercontent.com/LingyunSu/AzureStack-QuickStart-Templates/master/k8s-post-deployment-validation/helm_create_helloworld_chart_test.sh; sudo chmod 744 helm_create_helloworld_chart_test.sh;"
 ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./helm_create_helloworld_chart_test.sh;"
 
 FOLDERNAME=$(dirname $FILENAME)

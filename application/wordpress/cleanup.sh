@@ -46,13 +46,25 @@ echo "host: $HOST"
 echo "user: $AZUREUSER"
 
 # Cleanup wordpress and mariadb deployment.
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "wordpress=$(kubectl get svc -o name | grep wordpress); kubectl delete $wordpress"
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "mariadb=$(kubectl get svc -o name | grep mariadb); kubectl delete $mariadb"
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "wordpress=$(kubectl get deployment -o name | grep wordpress); kubectl delete $wordpress"
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "mariadb=$(kubectl get statefulset.apps -o name | grep mariadb); kubectl delete $mariadb"
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST 'echo "wordpress=$(kubectl get svc -o name | grep wordpress); kubectl delete \$wordpress" >file.sh; chmod 744 file.sh;'
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./file.sh;"
+
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST 'echo "mariadb=$(kubectl get svc -o name | grep mariadb); kubectl delete \$mariadb" >file.sh; chmod 744 file.sh;'
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./file.sh;"
+
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST 'echo "wordpress=$(kubectl get deployment -o name | grep wordpress); kubectl delete \$wordpress" >file.sh; chmod 744 file.sh;'
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./file.sh;"
+
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST 'echo "mariadb=$(kubectl get statefulset.apps -o name | grep mariadb); kubectl delete \$mariadb" >file.sh; chmod 744 file.sh;'
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./file.sh;"
 
 # Cleanup hello world app deployment.
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "helloworld=$(kubectl get deployment -o name | grep helloworld); kubectl delete $helloworld"
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "helloworld=$(kubectl get svc -o name | grep helloworld); kubectl delete $helloworld"
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST 'echo "helloworld=$(kubectl get deployment -o name | grep helloworld); kubectl delete \$helloworld" >file.sh; chmod 744 file.sh;'
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./file.sh;"
+
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST 'echo "helloworld=$(kubectl get svc -o name | grep helloworld); kubectl delete \$helloworld" >file.sh; chmod 744 file.sh;'
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./file.sh;"
+
+sleep 30
 
 echo "Wordpress and hello world cleanup done."
