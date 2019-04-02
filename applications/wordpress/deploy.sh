@@ -53,14 +53,14 @@ echo "user: $AZUREUSER \n" >> $LOGFILENAME
 echo "FolderName: $OUTPUTFOLDER \n" >> $LOGFILENAME
 
 # Install Helm chart
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "curl -O https://raw.githubusercontent.com/msazurestackworkloads/kubetools/master/applications/wordpress/install_helm_test.sh; sudo chmod 744 install_helm_test.sh;" >> $LOGFILENAME
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "curl -O https://raw.githubusercontent.com/msazurestackworkloads/kubetools/master/applications/wordpress/install_helm.sh; sudo chmod 744 install_helm.sh;" >> $LOGFILENAME
 
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./install_helm_test.sh;" >> $LOGFILENAME
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./install_helm.sh;" >> $LOGFILENAME
 
 # Install Wordpress app
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "curl -O https://raw.githubusercontent.com/msazurestackworkloads/kubetools/master/applications/wordpress/install_wordpress_on_kubernete_in_helm_test.sh; sudo chmod 744 install_wordpress_on_kubernete_in_helm_test.sh;" >> $LOGFILENAME
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "curl -O https://raw.githubusercontent.com/msazurestackworkloads/kubetools/master/applications/wordpress/install_wordpress_using_helm.sh; sudo chmod 744 install_wordpress_using_helm.sh;" >> $LOGFILENAME
 
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./install_wordpress_on_kubernete_in_helm_test.sh;" >> $LOGFILENAME
+ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./install_wordpress_using_helm.sh;" >> $LOGFILENAME
 
 
 
