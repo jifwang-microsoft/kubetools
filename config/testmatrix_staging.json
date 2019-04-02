@@ -33,7 +33,8 @@
 		"githubBranch": "master",
 		"applications": [{
 			"name": "wordpress",
-			"deploymentScript": "deployment.sh",
+			"deploymentScript": "deploy.sh",
+			"validationScript": "validate.sh",
 			"cleanupScript": "cleanup.sh"
 		}]
 	}
