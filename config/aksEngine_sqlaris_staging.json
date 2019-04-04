@@ -8,19 +8,12 @@
 			"githubRepo": "msazurestackworkloads/aks-engine",
 			"githubBranch": "azsmaster"
 		},
-		"deploymentMatrix": [{
-				"agentPoolProfileCount": 3,
-				"agentPoolProfilevmSize": "Standard_D2_v2",
-				"masterPoolProfileCount": 1,
-				"masterPoolProfilevmSize": "Standard_D2_v2",
-				"storageProfile": "BlobDisk",
-				"hyperkubeImagesVersion": "1.11"
-			},
+		"deploymentMatrix": [
 			{
 				"agentPoolProfileCount": 3,
-				"agentPoolProfilevmSize": "Standard_D2_v2",
-				"masterPoolProfileCount": 3,
-				"masterPoolProfilevmSize": "Standard_D2_v2",
+				"agentPoolProfilevmSize": "Standard_D5_v2",
+				"masterPoolProfileCount": 1,
+				"masterPoolProfilevmSize": "Standard_D5_v2",
 				"storageProfile": "ManagedDisk",
 				"hyperkubeImagesVersion": "1.11"
 			}
@@ -31,24 +24,27 @@
 		"githubBranch": "master",
 		"folderPath": "diagnosis",
 		"filename": "getkuberneteslogs.sh"
-	},	
+	},
 	"testSuite": {
 		"githubRepo": "msazurestackworkloads/kubetools",
 		"githubBranch": "master",
-		"applications": [{
-			"name": "wordpress",
-			"deployment": {
-				"scriptName" : "deploy.sh",
-				"summaryFile" : "deploy.json"
-			},
-			"validation": {
-				"scriptName" : "validate.sh",
-				"summaryFile" : "validate.json"
-			},
-			"cleanup": {
-				"scriptName" : "cleanup.sh",
-				"summaryFile" : "cleanup.json"
+		"applications": [
+			{
+				"name": "sqlaris",
+				"deploymentVMType": "dvm",
+				"deployment": {
+					"scriptName": "run_deploy.sh",
+					"summaryFile": "deploy.json"
+				},
+				"validation": {
+					"scriptName": "run_parse.sh",
+					"summaryFile": "validate.json"
+				},
+				"cleanup": {
+					"scriptName": "run_clean.sh",
+					"summaryFile": "cleanup.json"
+				}
 			}
-		}]
+		]
 	}
 }
