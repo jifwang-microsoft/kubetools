@@ -8,7 +8,8 @@
 			"githubRepo": "msazurestackworkloads/aks-engine",
 			"githubBranch": "azsmaster"
 		},
-		"deploymentMatrix": [{
+		"deploymentMatrix": [
+			{
 				"agentPoolProfileCount": 3,
 				"agentPoolProfilevmSize": "Standard_D2_v2",
 				"masterPoolProfileCount": 1,
@@ -31,24 +32,26 @@
 		"githubBranch": "master",
 		"folderPath": "diagnosis",
 		"filename": "getkuberneteslogs.sh"
-	},	
+	},
 	"testSuite": {
 		"githubRepo": "msazurestackworkloads/kubetools",
 		"githubBranch": "master",
-		"applications": [{
-			"name": "wordpress",
-			"deployment": {
-				"scriptName" : "deploy.sh",
-				"summaryFile" : "deploy.json"
-			},
-			"validation": {
-				"scriptName" : "validate.sh",
-				"summaryFile" : "validate.json"
-			},
-			"cleanup": {
-				"scriptName" : "cleanup.sh",
-				"summaryFile" : "cleanup.json"
+		"applications": [
+			{
+				"name": "wordpress",
+				"deployment": {
+					"scriptName": "deploy.sh",
+					"summaryFile": "deploy.json"
+				},
+				"validation": {
+					"scriptName": "validate.sh",
+					"summaryFile": "validate.json"
+				},
+				"cleanup": {
+					"scriptName": "cleanup.sh",
+					"summaryFile": "cleanup.json"
+				}
 			}
-		}]
+		]
 	}
 }

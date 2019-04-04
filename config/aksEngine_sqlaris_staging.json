@@ -24,25 +24,27 @@
 		"githubBranch": "master",
 		"folderPath": "diagnosis",
 		"filename": "getkuberneteslogs.sh"
-	},	
+	},
 	"testSuite": {
 		"githubRepo": "msazurestackworkloads/kubetools",
 		"githubBranch": "master",
-		"applications": [{
-            "name": "sqlaris",
-            "deploymentVMType":"dvm",
-			"deployment": {
-				"scriptName" : "run_deploy.sh",
-				"summaryFile" : "deploy.json"
-			},
-			"validation": {
-				"scriptName" : "run_parse.sh",
-				"summaryFile" : "validate.json"
-			},
-			"cleanup": {
-				"scriptName" : "run_clean.sh",
-				"summaryFile" : "cleanup.json"
+		"applications": [
+			{
+				"name": "sqlaris",
+				"deploymentVMType": "dvm",
+				"deployment": {
+					"scriptName": "run_deploy.sh",
+					"summaryFile": "deploy.json"
+				},
+				"validation": {
+					"scriptName": "run_parse.sh",
+					"summaryFile": "validate.json"
+				},
+				"cleanup": {
+					"scriptName": "run_clean.sh",
+					"summaryFile": "cleanup.json"
+				}
 			}
-		}]
+		]
 	}
 }
