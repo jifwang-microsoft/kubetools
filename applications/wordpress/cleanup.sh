@@ -8,7 +8,7 @@ function printUsage
     echo "            -i, --identity-file                         RSA Private Key file to connect kubernetes master VM, it starts with -----BEGIN RSA PRIVATE KEY-----"
     echo "            -m, --master                                Public ip of Kubernetes cluster master VM. Normally VM name starts with k8s-master- "
     echo "            -u, --user                                  User Name of Kubernetes cluster master VM "
-    echo "            -o, --output                                OutputFolder where all the log files will be put"
+    echo "            -o, --output-file                           Summary file providing result status of the deployment."
     exit 1
 }
 
@@ -26,8 +26,8 @@ do
         -u|--user)
             AZUREUSER="$2"
         ;;
-        -o|--output)
-            OUTPUTFOLDER="$2"
+        -o|--output-file)
+            OUTPUT_SUMMARYFILE="$2"
         ;;
         *)
             echo ""
@@ -45,12 +45,12 @@ do
     fi
 done
 
-LOGFILENAME=$OUTPUTFOLDER/cleanup.log
+LOGFILENAME="$(dirname $OUTPUT_SUMMARYFILE)/cleanup.log"
 
 echo "identity-file: $IDENTITYFILE \n" > $LOGFILENAME
 echo "host: $HOST \n" >> $LOGFILENAME
 echo "user: $AZUREUSER \n" >> $LOGFILENAME
-echo "FolderName: $OUTPUTFOLDER \n" >> $LOGFILENAME
+echo "SUMMARYFILE: $OUTPUT_SUMMARYFILE \n" >> $LOGFILENAME
 
 # Cleanup Word press app.
 ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST 'echo "wordpress=$(kubectl get svc -o name | grep wordpress); kubectl delete \$wordpress" >file.sh; chmod 744 file.sh;'
@@ -71,3 +71,7 @@ ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "tar -zcvf var_log.tar.gz var_log;" >> 
 
 scp -r -i $IDENTITYFILE $AZUREUSER@$HOST:/home/$AZUREUSER/var_log.tar.gz $OUTPUTFOLDER
 echo "Logs are copied into $OUTPUTFOLDER"
+
+result="pass"
+ # Todo Add a check by query to Kube cluster that cleanup went through fine.
+printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE

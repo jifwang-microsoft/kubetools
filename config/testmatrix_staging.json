@@ -1,9 +1,13 @@
 {
 	"clusterARMTemplate": {
 		"githubRepo": "msazurestackworkloads/azurestack-gallery",
-		"githubBranch": "master",
+		"githubBranch": "ci-test",
 		"folderPath": "kubernetes/template/DeploymentTemplates",
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
+		"aksEngine": {
+			"githubRepo": "msazurestackworkloads/aks-engine",
+			"githubBranch": "azsmaster"
+		},
 		"deploymentMatrix": [{
 				"agentPoolProfileCount": 3,
 				"agentPoolProfilevmSize": "Standard_D2_v2",
@@ -27,15 +31,24 @@
 		"githubBranch": "master",
 		"folderPath": "diagnosis",
 		"filename": "getkuberneteslogs.sh"
-	},
+	},	
 	"testSuite": {
 		"githubRepo": "msazurestackworkloads/kubetools",
 		"githubBranch": "master",
 		"applications": [{
 			"name": "wordpress",
-			"deploymentScript": "deploy.sh",
-			"validationScript": "validate.sh",
-			"cleanupScript": "cleanup.sh"
+			"deployment": {
+				"scriptName" : "deploy.sh",
+				"summaryFile" : "deploy.json"
+			},
+			"validation": {
+				"scriptName" : "validate.sh",
+				"summaryFile" : "validate.json"
+			},
+			"cleanup": {
+				"scriptName" : "cleanup.sh",
+				"summaryFile" : "cleanup.json"
+			}
 		}]
 	}
 }
