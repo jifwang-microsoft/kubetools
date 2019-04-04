@@ -4,18 +4,18 @@
 
 set -e
 
-log_level() 
-{ 
+log_level()
+{
     echo "#####################################################################################"
     case "$1" in
-       -e) echo "$(date) [Error]  : " ${@:2}
-          ;;
-       -w) echo "$(date) [Warning]: " ${@:2}
-          ;;       
-       -i) echo "$(date) [Info]   : " ${@:2}
-          ;;
-       *)  echo "$(date) [Verbose]: " ${@:2}
-          ;;
+        -e) echo "$(date) [Error]  : " ${@:2}
+        ;;
+        -w) echo "$(date) [Warning]: " ${@:2}
+        ;;
+        -i) echo "$(date) [Info]   : " ${@:2}
+        ;;
+        *)  echo "$(date) [Verbose]: " ${@:2}
+        ;;
     esac
     echo "#####################################################################################"
 }
@@ -72,40 +72,40 @@ done
 OUTPUTFOLDER=$(dirname $OUTPUT_SUMMARYFILE)
 LOGFILENAME=$OUTPUTFOLDER/clean.log
 {
-echo "identity-file: $IDENTITYFILE" 
-echo "host: $HOST" 
-echo "user: $AZUREUSER" 
-echo "FolderName: $OUTPUTFOLDER" 
-echo "ParameterFile: $PARAMETERFILE" 
-
-#Download assets to a location
-log_level -i "Downloading Assets"
-cd $OUTPUTFOLDER 
-
-#Read parameters from json files
-log_level -i "Reading Parameters from Json"
-TEST_DIRECTORY=`cat $PARAMETERFILE | jq -r '.dvmAssetsFolder'`
-CLEAN_DVM_LOG_FILE=`cat $PARAMETERFILE | jq -r '.cleanDVMLogFile'`
-
-echo "TEST_DIRECTORY: $TEST_DIRECTORY"  
-echo "CLEAN_DVM_LOG_FILE: $CLEAN_DVM_LOG_FILE"
-echo "JUNIT_FOLDER_LOCATION: $JUNIT_FOLDER_LOCATION"
-
-cd -
-
-IDENTITYFILEBACKUPPATH="/home/$AZUREUSER/IDENTITYFILEBACKUP" 
-
-log_level -i "Run Clean Test Script"
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "if [ -f /home/$AZUREUSER/.ssh/id_rsa ]; then cd $TEST_DIRECTORY; chmod +x ./clean_test.sh; ./clean_test.sh -t $TEST_DIRECTORY 2>&1 | tee $CLEAN_DVM_LOG_FILE; fi;"
-
-log_level -i "Copying over clean logs"
-scp -i $IDENTITYFILE $AZUREUSER@$HOST:/home/$AZUREUSER/$TEST_DIRECTORY/$CLEAN_DVM_LOG_FILE $LOCAL_DIRECTORY
-
-log_level -i "Remove test Folder"
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "if [ -f /home/$AZUREUSER/.ssh/id_rsa ]; then sudo rm -rf $TEST_DIRECTORY;fi;"
-
-result="pass"
-printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
-
+    echo "identity-file: $IDENTITYFILE"
+    echo "host: $HOST"
+    echo "user: $AZUREUSER"
+    echo "FolderName: $OUTPUTFOLDER"
+    echo "ParameterFile: $PARAMETERFILE"
+    
+    #Download assets to a location
+    log_level -i "Downloading Assets"
+    cd $OUTPUTFOLDER
+    
+    #Read parameters from json files
+    log_level -i "Reading Parameters from Json"
+    TEST_DIRECTORY=`cat $PARAMETERFILE | jq -r '.dvmAssetsFolder'`
+    CLEAN_DVM_LOG_FILE=`cat $PARAMETERFILE | jq -r '.cleanDVMLogFile'`
+    
+    echo "TEST_DIRECTORY: $TEST_DIRECTORY"
+    echo "CLEAN_DVM_LOG_FILE: $CLEAN_DVM_LOG_FILE"
+    echo "JUNIT_FOLDER_LOCATION: $JUNIT_FOLDER_LOCATION"
+    
+    cd -
+    
+    IDENTITYFILEBACKUPPATH="/home/$AZUREUSER/IDENTITYFILEBACKUP"
+    
+    log_level -i "Run Clean Test Script"
+    ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "if [ -f /home/$AZUREUSER/.ssh/id_rsa ]; then cd $TEST_DIRECTORY; chmod +x ./clean_test.sh; ./clean_test.sh -t $TEST_DIRECTORY 2>&1 | tee $CLEAN_DVM_LOG_FILE; fi;"
+    
+    log_level -i "Copying over clean logs"
+    scp -i $IDENTITYFILE $AZUREUSER@$HOST:/home/$AZUREUSER/$TEST_DIRECTORY/$CLEAN_DVM_LOG_FILE $LOCAL_DIRECTORY
+    
+    log_level -i "Remove test Folder"
+    ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "if [ -f /home/$AZUREUSER/.ssh/id_rsa ]; then sudo rm -rf $TEST_DIRECTORY;fi;"
+    
+    result="pass"
+    printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
+    
 } 2>&1 | tee $LOGFILENAME
 

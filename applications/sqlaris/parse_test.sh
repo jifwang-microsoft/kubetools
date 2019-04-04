@@ -1,20 +1,20 @@
 #merge junit test into one
-#Return Output 
+#Return Output
 
 set -e
 
-log_level() 
-{ 
+log_level()
+{
     echo "#####################################################################################"
     case "$1" in
-       -e) echo "$(date) [Error]  : " ${@:2}
-          ;;
-       -w) echo "$(date) [Warning]: " ${@:2}
-          ;;       
-       -i) echo "$(date) [Info]   : " ${@:2}
-          ;;
-       *)  echo "$(date) [Verbose]: " ${@:2}
-          ;;
+        -e) echo "$(date) [Error]  : " ${@:2}
+        ;;
+        -w) echo "$(date) [Warning]: " ${@:2}
+        ;;
+        -i) echo "$(date) [Info]   : " ${@:2}
+        ;;
+        *)  echo "$(date) [Verbose]: " ${@:2}
+        ;;
     esac
     echo "#####################################################################################"
 }
@@ -53,23 +53,23 @@ do
     fi
 done
 
-#Checking Variables 
+#Checking Variables
 
-if [ -z "$TEST_OUTPUT_DIRECTORY" ]; 
-then 
-   log_level -e "TEST_OUTPUT_DIRECTORY not set"
-   exit 1
+if [ -z "$TEST_OUTPUT_DIRECTORY" ];
+then
+    log_level -e "TEST_OUTPUT_DIRECTORY not set"
+    exit 1
 fi
 
-if [ -z "$TEST_DIRECTORY" ]; 
-then 
-   log_level -e "TEST_DIRECTORY not set"
-   exit 1
+if [ -z "$TEST_DIRECTORY" ];
+then
+    log_level -e "TEST_DIRECTORY not set"
+    exit 1
 fi
 
 log_level -i "Script Parameters"
-echo "TEST_DIRECTORY: $TEST_DIRECTORY" 
-echo "TEST_OUTPUT_DIRECTORY: $TEST_OUTPUT_DIRECTORY"  
+echo "TEST_DIRECTORY: $TEST_DIRECTORY"
+echo "TEST_OUTPUT_DIRECTORY: $TEST_OUTPUT_DIRECTORY"
 
 
 
@@ -89,13 +89,13 @@ log_level -i "Merge junit files"
 FILES=""
 for entry in *
 do
-if [ $entry == "merge_junit_results.py" ];
-then
-    echo Not Merging $entry
-else
-    echo Merging $entry
-    FILES="$FILES $entry"
-fi
+    if [ $entry == "merge_junit_results.py" ];
+    then
+        echo Not Merging $entry
+    else
+        echo Merging $entry
+        FILES="$FILES $entry"
+    fi
 done
 python merge_junit_results.py $FILES > results.xml
 

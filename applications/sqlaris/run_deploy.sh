@@ -4,18 +4,18 @@
 
 set -e
 
-log_level() 
-{ 
+log_level()
+{
     echo "#####################################################################################"
     case "$1" in
-       -e) echo "$(date) [Error]  : " ${@:2}
-          ;;
-       -w) echo "$(date) [Warning]: " ${@:2}
-          ;;       
-       -i) echo "$(date) [Info]   : " ${@:2}
-          ;;
-       *)  echo "$(date) [Verbose]: " ${@:2}
-          ;;
+        -e) echo "$(date) [Error]  : " ${@:2}
+        ;;
+        -w) echo "$(date) [Warning]: " ${@:2}
+        ;;
+        -i) echo "$(date) [Info]   : " ${@:2}
+        ;;
+        *)  echo "$(date) [Verbose]: " ${@:2}
+        ;;
     esac
     echo "#####################################################################################"
 }
@@ -72,61 +72,61 @@ done
 OUTPUTFOLDER=$(dirname $OUTPUT_SUMMARYFILE)
 LOGFILENAME=$OUTPUTFOLDER/deploy.log
 {
-echo "identity-file: $IDENTITYFILE" 
-echo "host: $HOST" 
-echo "user: $AZUREUSER" 
-echo "FolderName: $OUTPUTFOLDER" 
-echo "ParameterFile: $PARAMETERFILE" 
-
-#Download assets to a location
-log_level -i "Downloading Assets"
-cd $OUTPUTFOLDER 
-
-curl -O https://raw.githubusercontent.com/deaborch/azsqlaris/master/applications/sqlaris/clean_test.sh 
-curl -O https://raw.githubusercontent.com/deaborch/azsqlaris/master/applications/sqlaris/deploy_test.sh 
-curl -O https://raw.githubusercontent.com/deaborch/azsqlaris/master/applications/sqlaris/parse_test.sh 
-
-#Install jq
-log_level -i "Install jq"
-curl -O -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe
-mv jq-win64.exe /usr/bin/jq
-
-#Read parameters from json files
-log_level -i "Reading Parameters from Json"
-GITURL=`cat $PARAMETERFILE | jq -r '.gitUrl'`
-TEST_DIRECTORY=`cat $PARAMETERFILE | jq -r '.dvmAssetsFolder'`
-DEPLOY_DVM_LOG_FILE=`cat $PARAMETERFILE | jq -r '.deployDVMLogFile'`
-
-echo "TEST_DIRECTORY: $TEST_DIRECTORY" 
-echo "DEPLOY_DVM_LOG_FILE: $DEPLOY_DVM_LOG_FILE" 
-
-cd -
-
-IDENTITYFILEBACKUPPATH="/home/$AZUREUSER/IDENTITYFILEBACKUP" 
-
-log_level -i "Backing up identity files"
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "if [ -f /home/$AZUREUSER/.ssh/id_rsa ]; then mkdir -p $IDENTITYFILEBACKUPPATH;  sudo mv /home/$AZUREUSER/.ssh/id_rsa $IDENTITYFILEBACKUPPATH; fi;"
-
-log_level -i "Copying over new identity file"
-scp -i $IDENTITYFILE $IDENTITYFILE $AZUREUSER@$HOST:/home/$AZUREUSER/.ssh/id_rsa
-
-log_level -i "Create Test Directory"
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "mkdir $TEST_DIRECTORY"
-
-log_level -i "Copy Over Assets to Test Directory"
-scp -i $IDENTITYFILE $OUTPUTFOLDER/parse_test.sh $OUTPUTFOLDER/deploy_test.sh $OUTPUTFOLDER/clean_test.sh $AZUREUSER@$HOST:/home/$AZUREUSER/$TEST_DIRECTORY
-
-log_level -i "Install and Modify to unix format"
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "sudo apt install dos2unix; dos2unix $TEST_DIRECTORY/deploy_test.sh; dos2unix $TEST_DIRECTORY/parse_test.sh; dos2unix $TEST_DIRECTORY/clean_test.sh;"
-
-log_level -i "Run SQL Aris Deployment and Test"
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "cd $TEST_DIRECTORY; chmod +x ./deploy_test.sh; ./deploy_test.sh -u $GITURL -t $TEST_DIRECTORY 2>&1 | tee $DEPLOY_DVM_LOG_FILE;"
-
-log_level -i "Copying over deployment logs"
-scp -i $IDENTITYFILE $AZUREUSER@$HOST:/home/$AZUREUSER/$TEST_DIRECTORY/$DEPLOY_DVM_LOG_FILE $OUTPUTFOLDER
-
-result="pass"
-printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
-
+    echo "identity-file: $IDENTITYFILE"
+    echo "host: $HOST"
+    echo "user: $AZUREUSER"
+    echo "FolderName: $OUTPUTFOLDER"
+    echo "ParameterFile: $PARAMETERFILE"
+    
+    #Download assets to a location
+    log_level -i "Downloading Assets"
+    cd $OUTPUTFOLDER
+    
+    curl -O https://raw.githubusercontent.com/deaborch/azsqlaris/master/applications/sqlaris/clean_test.sh
+    curl -O https://raw.githubusercontent.com/deaborch/azsqlaris/master/applications/sqlaris/deploy_test.sh
+    curl -O https://raw.githubusercontent.com/deaborch/azsqlaris/master/applications/sqlaris/parse_test.sh
+    
+    #Install jq
+    log_level -i "Install jq"
+    curl -O -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe
+    mv jq-win64.exe /usr/bin/jq
+    
+    #Read parameters from json files
+    log_level -i "Reading Parameters from Json"
+    GITURL=`cat $PARAMETERFILE | jq -r '.gitUrl'`
+    TEST_DIRECTORY=`cat $PARAMETERFILE | jq -r '.dvmAssetsFolder'`
+    DEPLOY_DVM_LOG_FILE=`cat $PARAMETERFILE | jq -r '.deployDVMLogFile'`
+    
+    echo "TEST_DIRECTORY: $TEST_DIRECTORY"
+    echo "DEPLOY_DVM_LOG_FILE: $DEPLOY_DVM_LOG_FILE"
+    
+    cd -
+    
+    IDENTITYFILEBACKUPPATH="/home/$AZUREUSER/IDENTITYFILEBACKUP"
+    
+    log_level -i "Backing up identity files"
+    ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "if [ -f /home/$AZUREUSER/.ssh/id_rsa ]; then mkdir -p $IDENTITYFILEBACKUPPATH;  sudo mv /home/$AZUREUSER/.ssh/id_rsa $IDENTITYFILEBACKUPPATH; fi;"
+    
+    log_level -i "Copying over new identity file"
+    scp -i $IDENTITYFILE $IDENTITYFILE $AZUREUSER@$HOST:/home/$AZUREUSER/.ssh/id_rsa
+    
+    log_level -i "Create Test Directory"
+    ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "mkdir $TEST_DIRECTORY"
+    
+    log_level -i "Copy Over Assets to Test Directory"
+    scp -i $IDENTITYFILE $OUTPUTFOLDER/parse_test.sh $OUTPUTFOLDER/deploy_test.sh $OUTPUTFOLDER/clean_test.sh $AZUREUSER@$HOST:/home/$AZUREUSER/$TEST_DIRECTORY
+    
+    log_level -i "Install and Modify to unix format"
+    ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "sudo apt install dos2unix; dos2unix $TEST_DIRECTORY/deploy_test.sh; dos2unix $TEST_DIRECTORY/parse_test.sh; dos2unix $TEST_DIRECTORY/clean_test.sh;"
+    
+    log_level -i "Run SQL Aris Deployment and Test"
+    ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "cd $TEST_DIRECTORY; chmod +x ./deploy_test.sh; ./deploy_test.sh -u $GITURL -t $TEST_DIRECTORY 2>&1 | tee $DEPLOY_DVM_LOG_FILE;"
+    
+    log_level -i "Copying over deployment logs"
+    scp -i $IDENTITYFILE $AZUREUSER@$HOST:/home/$AZUREUSER/$TEST_DIRECTORY/$DEPLOY_DVM_LOG_FILE $OUTPUTFOLDER
+    
+    result="pass"
+    printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
+    
 } 2>&1 | tee $LOGFILENAME
 

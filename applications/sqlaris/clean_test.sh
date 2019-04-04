@@ -1,20 +1,20 @@
-#Clean The sql aris cluster 
-#Delete PVCS where posible 
+#Clean The sql aris cluster
+#Delete PVCS where posible
 #Return Output
 set -e
 
-log_level() 
-{ 
+log_level()
+{
     echo "#####################################################################################"
     case "$1" in
-       -e) echo "$(date) [Error]  : " ${@:2}
-          ;;
-       -w) echo "$(date) [Warning]: " ${@:2}
-          ;;       
-       -i) echo "$(date) [Info]   : " ${@:2}
-          ;;
-       *)  echo "$(date) [Verbose]: " ${@:2}
-          ;;
+        -e) echo "$(date) [Error]  : " ${@:2}
+        ;;
+        -w) echo "$(date) [Warning]: " ${@:2}
+        ;;
+        -i) echo "$(date) [Info]   : " ${@:2}
+        ;;
+        *)  echo "$(date) [Verbose]: " ${@:2}
+        ;;
     esac
     echo "#####################################################################################"
 }
@@ -49,15 +49,15 @@ do
     fi
 done
 
-#Checking Variables 
-if [ -z "$TEST_DIRECTORY" ]; 
-then 
-   log_level -e "TEST_DIRECTORY not set"
-   exit 1
+#Checking Variables
+if [ -z "$TEST_DIRECTORY" ];
+then
+    log_level -e "TEST_DIRECTORY not set"
+    exit 1
 fi
 
 log_level -i "Script Parameters"
-echo "TEST_DIRECTORY: $TEST_DIRECTORY"   
+echo "TEST_DIRECTORY: $TEST_DIRECTORY"
 
 log_level -i "Setting Kubectl config"
 export KUBECONFIG="$HOME/$TEST_DIRECTORY/kubeconfig.local.json"
