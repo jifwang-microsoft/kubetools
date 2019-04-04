@@ -8,6 +8,7 @@
 			"githubRepo": "msazurestackworkloads/aks-engine",
 			"githubBranch": "azsmaster"
 		},
+		"minNumberofAzsNodes": 4,
 		"deploymentMatrix": [
 			{
 				"agentPoolProfileCount": 3,
