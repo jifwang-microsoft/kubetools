@@ -6,18 +6,16 @@ set -e
 
 log_level()
 {
-    echo "#####################################################################################"
     case "$1" in
-        -e) echo "$(date) [Error]  : " ${@:2}
+        -e) echo "$(date) [Err]  " ${@:2}
         ;;
-        -w) echo "$(date) [Warning]: " ${@:2}
+        -w) echo "$(date) [Warn] " ${@:2}
         ;;
-        -i) echo "$(date) [Info]   : " ${@:2}
+        -i) echo "$(date) [Info] " ${@:2}
         ;;
-        *)  echo "$(date) [Verbose]: " ${@:2}
+        *)  echo "$(date) [Debug] " ${@:2}
         ;;
     esac
-    echo "#####################################################################################"
 }
 
 function printUsage
@@ -29,7 +27,7 @@ function printUsage
     echo "            -m, --master                                Public ip of Kubernetes cluster master VM. Normally VM name starts with k8s-master- "
     echo "            -u, --user                                  User Name of Kubernetes cluster master VM "
     echo "            -o, --output-file                           Summary file providing result status of the deployment."
-    echo "            -f, --parameterFile                         Parameter file for any extra parameters for the deployment"
+    echo "            -c, --configFile                            Parameter file for any extra parameters for the deployment"
     exit 1
 }
 
@@ -50,7 +48,7 @@ do
         -o|--output-file)
             OUTPUT_SUMMARYFILE="$2"
         ;;
-        -f|--parameterFile)
+        -c|--configfile)
             PARAMETERFILE="$2"
         ;;
         *)
