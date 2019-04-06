@@ -9,6 +9,7 @@ function printUsage
     echo "            -m, --master                                Public ip of Kubernetes cluster master VM. Normally VM name starts with k8s-master- "
     echo "            -u, --user                                  User Name of Kubernetes cluster master VM "
     echo "            -o, --output-file                           Summary file providing result status of the deployment."
+    
     exit 1
 }
 
@@ -25,6 +26,9 @@ do
         ;;
         -u|--user)
             AZUREUSER="$2"
+        ;;
+        -c|--configFile)
+            PARAMETERFILE="$2"
         ;;
         -o|--output-file)
             OUTPUT_SUMMARYFILE="$2"

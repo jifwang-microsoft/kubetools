@@ -29,6 +29,9 @@ do
         -o|--output-file)
             OUTPUT_SUMMARYFILE="$2"
         ;;
+        -c|--configFile)
+            PARAMETERFILE="$2"
+        ;;
         *)
             echo ""
             echo "Incorrect parameter $1"
