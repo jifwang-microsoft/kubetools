@@ -90,6 +90,10 @@ LOGFILENAME=$OUTPUTFOLDER/deploy.log
     mv jq-win64.exe /usr/bin/jq
     
     #Read parameters from json files
+    log_level -i "Converting Parameters file to unix format"
+    dos2unix.exe $PARAMETERFILE
+
+
     log_level -i "Reading Parameters from Json"
     GITURL=`cat $PARAMETERFILE | jq -r '.gitUrl'`
     TEST_DIRECTORY=`cat $PARAMETERFILE | jq -r '.dvmAssetsFolder'`
