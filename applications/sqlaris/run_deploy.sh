@@ -91,7 +91,7 @@ LOGFILENAME=$OUTPUTFOLDER/deploy.log
     
     #Read parameters from json files
     log_level -i "Converting Parameters file to unix format"
-    dos2unix.exe $PARAMETERFILE
+    dos2unix $PARAMETERFILE
 
 
     log_level -i "Reading Parameters from Json"
