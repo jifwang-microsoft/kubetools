@@ -86,13 +86,13 @@ done
         exit 1
     fi
     
-    if [ ! -z "$HOST" ];
+    if [ -z "$HOST" ];
     then
         log_level -e "Host IP is not set"
         exit 1
     fi
     
-    if [ ! -z "$AZUREUSER" ];
+    if [ -z "$AZUREUSER" ];
     then
         log_level -e "Host Username is not set"
         exit 1
