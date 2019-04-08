@@ -68,7 +68,7 @@ do
 done
 
 {
-        log_level -i "Checking script parameters"
+    log_level -i "Checking script parameters"
     
     if [ ! -f $PARAMETERFILE ]; then
         log_level -e "Parameter file does not exist"
@@ -101,8 +101,8 @@ done
     
     OUTPUTFOLDER=$(dirname $OUTPUT_SUMMARYFILE)
     LOGFILENAME=$OUTPUTFOLDER/parse.log
-
-
+    
+    
     echo "identity-file: $IDENTITYFILE"
     echo "host: $HOST"
     echo "user: $AZUREUSER"
