@@ -67,14 +67,47 @@ do
     fi
 done
 
-OUTPUTFOLDER=$(dirname $OUTPUT_SUMMARYFILE)
-LOGFILENAME=$OUTPUTFOLDER/deploy.log
 {
+    log_level -i "Checking script parameters"
+    
+    if [ ! -f $PARAMETERFILE ]; then
+        log_level -e "Parameter file does not exist"
+        exit 1
+    fi
+    
+    if [ ! -f $OUTPUT_SUMMARYFILE ]; then
+        log_level -e "Output does not exist"
+        exit 1
+    fi
+
+    if [ ! -f $IDENTITYFILE ];
+    then
+        log_level -e "Identity file does not exist"
+        exit 1
+    fi
+    
+    if [ ! -z "$HOST" ];
+    then
+        log_level -e "Host IP is not set"
+        exit 1
+    fi
+
+    if [ ! -z "$AZUREUSER" ];
+    then
+        log_level -e "Host Username is not set"
+        exit 1
+    fi
+    
+    
+    OUTPUTFOLDER=$(dirname $OUTPUT_SUMMARYFILE)
+    LOGFILENAME=$OUTPUTFOLDER/deploy.log
+    
     echo "identity-file: $IDENTITYFILE"
     echo "host: $HOST"
     echo "user: $AZUREUSER"
     echo "FolderName: $OUTPUTFOLDER"
     echo "ParameterFile: $PARAMETERFILE"
+    
     
     #Download assets to a location
     log_level -i "Downloading Assets"
@@ -92,8 +125,8 @@ LOGFILENAME=$OUTPUTFOLDER/deploy.log
     #Read parameters from json files
     log_level -i "Converting Parameters file to unix format"
     dos2unix $PARAMETERFILE
-
-
+    
+    
     log_level -i "Reading Parameters from Json"
     GITURL=`cat $PARAMETERFILE | jq -r '.gitUrl'`
     TEST_DIRECTORY=`cat $PARAMETERFILE | jq -r '.dvmAssetsFolder'`
