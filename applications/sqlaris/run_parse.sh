@@ -70,17 +70,17 @@ done
 {
     log_level -i "Checking script parameters"
     
-    if [ ! -f $PARAMETERFILE ]; then
+    if [ ! -f $PARAMETERFILE ] || [ -z "$PARAMETERFILE" ]; then
         log_level -e "Parameter file does not exist"
         exit 1
     fi
     
-    if [ ! -f $OUTPUT_SUMMARYFILE ]; then
+    if [ ! -f $OUTPUT_SUMMARYFILE ] || [ -z "$OUTPUT_SUMMARYFILE" ]; then
         log_level -e "Output does not exist"
         exit 1
     fi
     
-    if [ ! -f $IDENTITYFILE ];
+    if [ ! -f $IDENTITYFILE ] || [ -z "$IDENTITYFILE" ];
     then
         log_level -e "Identity file does not exist"
         exit 1
@@ -97,6 +97,8 @@ done
         log_level -e "Host Username is not set"
         exit 1
     fi
+    
+    log_level -i "Parameters passed"
     
     
     OUTPUTFOLDER=$(dirname $OUTPUT_SUMMARYFILE)
@@ -115,10 +117,10 @@ done
     
     #Read parameters from json files
     log_level -i "Reading Parameters from Json"
-    GITURL=`cat $PARAMETERFILE | jq -r '.gitUrl'`
-    TEST_DIRECTORY=`cat $PARAMETERFILE | jq -r '.dvmAssetsFolder'`
-    PARSE_DVM_LOG_FILE=`cat $PARAMETERFILE | jq -r '.parseDVMLogFile'`
-    JUNIT_FOLDER_LOCATION=`cat $PARAMETERFILE | jq -r '.junitFileLocation'`
+    GITURL=`cat "$PARAMETERFILE" | jq -r '.gitUrl'`
+    TEST_DIRECTORY=`cat "$PARAMETERFILE" | jq -r '.dvmAssetsFolder'`
+    PARSE_DVM_LOG_FILE=`cat "$PARAMETERFILE" | jq -r '.parseDVMLogFile'`
+    JUNIT_FOLDER_LOCATION=`cat "$PARAMETERFILE" | jq -r '.junitFileLocation'`
     
     echo "TEST_DIRECTORY: $TEST_DIRECTORY"
     echo "PARSE_DVM_LOG_FILE: $PARSE_DVM_LOG_FILE"

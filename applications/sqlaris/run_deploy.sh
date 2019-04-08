@@ -70,17 +70,17 @@ done
 {
     log_level -i "Checking script parameters"
     
-    if [ ! -f $PARAMETERFILE ]; then
+    if [ ! -f $PARAMETERFILE ] || [ -z "$PARAMETERFILE" ]; then
         log_level -e "Parameter file does not exist"
         exit 1
     fi
     
-    if [ ! -f $OUTPUT_SUMMARYFILE ]; then
+    if [ ! -f $OUTPUT_SUMMARYFILE ] || [ -z "$OUTPUT_SUMMARYFILE" ]; then
         log_level -e "Output does not exist"
         exit 1
     fi
-
-    if [ ! -f $IDENTITYFILE ];
+    
+    if [ ! -f $IDENTITYFILE ] || [ -z "$IDENTITYFILE" ];
     then
         log_level -e "Identity file does not exist"
         exit 1
@@ -91,12 +91,14 @@ done
         log_level -e "Host IP is not set"
         exit 1
     fi
-
+    
     if [ -z "$AZUREUSER" ];
     then
         log_level -e "Host Username is not set"
         exit 1
     fi
+    
+    log_level -i "Parameters passed"
     
     
     OUTPUTFOLDER=$(dirname $OUTPUT_SUMMARYFILE)
@@ -128,9 +130,9 @@ done
     
     
     log_level -i "Reading Parameters from Json"
-    GITURL=`cat $PARAMETERFILE | jq -r '.gitUrl'`
-    TEST_DIRECTORY=`cat $PARAMETERFILE | jq -r '.dvmAssetsFolder'`
-    DEPLOY_DVM_LOG_FILE=`cat $PARAMETERFILE | jq -r '.deployDVMLogFile'`
+    GITURL=`cat "$PARAMETERFILE" | jq -r '.gitUrl'`
+    TEST_DIRECTORY=`cat "$PARAMETERFILE" | jq -r '.dvmAssetsFolder'`
+    DEPLOY_DVM_LOG_FILE=`cat "$PARAMETERFILE" | jq -r '.deployDVMLogFile'`
     
     echo "TEST_DIRECTORY: $TEST_DIRECTORY"
     echo "DEPLOY_DVM_LOG_FILE: $DEPLOY_DVM_LOG_FILE"

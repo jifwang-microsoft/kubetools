@@ -70,17 +70,17 @@ done
 {
     log_level -i "Checking script parameters"
     
-    if [ ! -f $PARAMETERFILE ]; then
+    if [ ! -f $PARAMETERFILE ] || [ -z "$PARAMETERFILE" ]; then
         log_level -e "Parameter file does not exist"
         exit 1
     fi
     
-    if [ ! -f $OUTPUT_SUMMARYFILE ]; then
+    if [ ! -f $OUTPUT_SUMMARYFILE ] || [ -z "$OUTPUT_SUMMARYFILE" ]; then
         log_level -e "Output does not exist"
         exit 1
     fi
     
-    if [ ! -f $IDENTITYFILE ];
+    if [ ! -f $IDENTITYFILE ] || [ -z "$IDENTITYFILE" ];
     then
         log_level -e "Identity file does not exist"
         exit 1
@@ -98,6 +98,8 @@ done
         exit 1
     fi
     
+    log_level -i "Parameters passed"
+    
     
     OUTPUTFOLDER=$(dirname $OUTPUT_SUMMARYFILE)
     LOGFILENAME=$OUTPUTFOLDER/clean.log
@@ -114,8 +116,8 @@ done
     
     #Read parameters from json files
     log_level -i "Reading Parameters from Json"
-    TEST_DIRECTORY=`cat $PARAMETERFILE | jq -r '.dvmAssetsFolder'`
-    CLEAN_DVM_LOG_FILE=`cat $PARAMETERFILE | jq -r '.cleanDVMLogFile'`
+    TEST_DIRECTORY=`cat "$PARAMETERFILE" | jq -r '.dvmAssetsFolder'`
+    CLEAN_DVM_LOG_FILE=`cat "$PARAMETERFILE" | jq -r '.cleanDVMLogFile'`
     
     echo "TEST_DIRECTORY: $TEST_DIRECTORY"
     echo "CLEAN_DVM_LOG_FILE: $CLEAN_DVM_LOG_FILE"
