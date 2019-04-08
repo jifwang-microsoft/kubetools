@@ -128,9 +128,9 @@ done
     
     
     log_level -i "Reading Parameters from Json"
-    GITURL=`cat $PARAMETERFILE | jq -r '.gitUrl'`
-    TEST_DIRECTORY=`cat $PARAMETERFILE | jq -r '.dvmAssetsFolder'`
-    DEPLOY_DVM_LOG_FILE=`cat $PARAMETERFILE | jq -r '.deployDVMLogFile'`
+    GITURL=`cat "$PARAMETERFILE" | jq -r '.gitUrl'`
+    TEST_DIRECTORY=`cat "$PARAMETERFILE" | jq -r '.dvmAssetsFolder'`
+    DEPLOY_DVM_LOG_FILE=`cat "$PARAMETERFILE" | jq -r '.deployDVMLogFile'`
     
     echo "TEST_DIRECTORY: $TEST_DIRECTORY"
     echo "DEPLOY_DVM_LOG_FILE: $DEPLOY_DVM_LOG_FILE"

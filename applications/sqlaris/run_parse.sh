@@ -115,10 +115,10 @@ done
     
     #Read parameters from json files
     log_level -i "Reading Parameters from Json"
-    GITURL=`cat $PARAMETERFILE | jq -r '.gitUrl'`
-    TEST_DIRECTORY=`cat $PARAMETERFILE | jq -r '.dvmAssetsFolder'`
-    PARSE_DVM_LOG_FILE=`cat $PARAMETERFILE | jq -r '.parseDVMLogFile'`
-    JUNIT_FOLDER_LOCATION=`cat $PARAMETERFILE | jq -r '.junitFileLocation'`
+    GITURL=`cat "$PARAMETERFILE" | jq -r '.gitUrl'`
+    TEST_DIRECTORY=`cat "$PARAMETERFILE" | jq -r '.dvmAssetsFolder'`
+    PARSE_DVM_LOG_FILE=`cat "$PARAMETERFILE" | jq -r '.parseDVMLogFile'`
+    JUNIT_FOLDER_LOCATION=`cat "$PARAMETERFILE" | jq -r '.junitFileLocation'`
     
     echo "TEST_DIRECTORY: $TEST_DIRECTORY"
     echo "PARSE_DVM_LOG_FILE: $PARSE_DVM_LOG_FILE"

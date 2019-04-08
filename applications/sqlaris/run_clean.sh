@@ -114,8 +114,8 @@ done
     
     #Read parameters from json files
     log_level -i "Reading Parameters from Json"
-    TEST_DIRECTORY=`cat $PARAMETERFILE | jq -r '.dvmAssetsFolder'`
-    CLEAN_DVM_LOG_FILE=`cat $PARAMETERFILE | jq -r '.cleanDVMLogFile'`
+    TEST_DIRECTORY=`cat "$PARAMETERFILE" | jq -r '.dvmAssetsFolder'`
+    CLEAN_DVM_LOG_FILE=`cat "$PARAMETERFILE" | jq -r '.cleanDVMLogFile'`
     
     echo "TEST_DIRECTORY: $TEST_DIRECTORY"
     echo "CLEAN_DVM_LOG_FILE: $CLEAN_DVM_LOG_FILE"
