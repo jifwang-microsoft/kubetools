@@ -74,11 +74,7 @@ done
         log_level -e "Parameter file does not exist"
         exit 1
     fi
-    
-    if [ ! -f $OUTPUT_SUMMARYFILE ] || [ -z "$OUTPUT_SUMMARYFILE" ]; then
-        log_level -e "Output does not exist"
-        exit 1
-    fi
+
 
     if [ ! -f $IDENTITYFILE ] || [ -z "$IDENTITYFILE" ];
     then
