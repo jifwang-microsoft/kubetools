@@ -74,7 +74,6 @@ done
         log_level -e "Parameter file does not exist"
         exit 1
     fi
-
     if [ ! -f $IDENTITYFILE ] || [ -z "$IDENTITYFILE" ];
     then
         log_level -e "Identity file does not exist"
@@ -86,13 +85,13 @@ done
         log_level -e "Host IP is not set"
         exit 1
     fi
-
+    
     if [ -z "$AZUREUSER" ];
     then
         log_level -e "Host Username is not set"
         exit 1
     fi
-
+    
     log_level -i "Parameters passed"
     
     

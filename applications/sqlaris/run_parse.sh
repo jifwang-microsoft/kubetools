@@ -68,7 +68,7 @@ do
 done
 
 {
-        log_level -i "Checking script parameters"
+    log_level -i "Checking script parameters"
     
     if [ ! -f $PARAMETERFILE ] || [ -z "$PARAMETERFILE" ]; then
         log_level -e "Parameter file does not exist"
@@ -87,13 +87,13 @@ done
         log_level -e "Host IP is not set"
         exit 1
     fi
-
+    
     if [ -z "$AZUREUSER" ];
     then
         log_level -e "Host Username is not set"
         exit 1
     fi
-
+    
     log_level -i "Parameters passed"
     
     
