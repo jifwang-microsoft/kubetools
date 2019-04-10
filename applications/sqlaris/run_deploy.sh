@@ -67,6 +67,10 @@ do
     fi
 done
 
+OUTPUTFOLDER=$(dirname $OUTPUT_SUMMARYFILE)
+LOGFILENAME=$OUTPUTFOLDER/deploy.log
+touch $LOGFILENAME
+
 {
     log_level -i "Checking script parameters"
     
@@ -94,9 +98,6 @@ done
     
     log_level -i "Parameters passed"
     
-    
-    OUTPUTFOLDER=$(dirname $OUTPUT_SUMMARYFILE)
-    LOGFILENAME=$OUTPUTFOLDER/deploy.log
     
     echo "identity-file: $IDENTITYFILE"
     echo "host: $HOST"
@@ -156,8 +157,17 @@ done
     log_level -i "Copying over deployment logs"
     scp -i $IDENTITYFILE $AZUREUSER@$HOST:/home/$AZUREUSER/$TEST_DIRECTORY/$DEPLOY_DVM_LOG_FILE $OUTPUTFOLDER
     
-    result="pass"
-    printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
+    #Checking status of the deployment
+    DEPLOYMENTSTATUS=`awk '/./{line=$0} END{print line}' $OUTPUTFOLDER/$DEPLOY_DVM_LOG_FILE`
+
+    if [ "$DEPLOYMENTSTATUS" == "0" ];
+    then 
+        result="pass"
+        printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
+    else
+        result="fail"
+        printf '{"result":"%s","error":"%s"}\n' "$result" "$DEPLOYMENTSTATUS" > $OUTPUT_SUMMARYFILE
+    fi
     
 } 2>&1 | tee $LOGFILENAME
 
