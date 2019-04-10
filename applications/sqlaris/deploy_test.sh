@@ -95,7 +95,8 @@ log_level -i "Cloning the aris repo"
 git clone $GITURL
 
 log_level -i "Finding Kubeconfig"
-KUBE_CONFIG_LOCATION=`sudo find  /var/lib/waagent/custom-script/download/0/aks-engine/_output/ -type f -iname "kubeconfig*"`
+#There is a dependancy on the _output folder to use to connect to the cluster
+KUBE_CONFIG_LOCATION=`sudo find  /var/lib/waagent/custom-script/download/0/_output/ -type f -iname "kubeconfig*"`
 
 log_level -i "Copy kubeconfig to home"
 sudo cp $KUBE_CONFIG_LOCATION $HOME/$TEST_DIRECTORY
