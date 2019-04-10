@@ -98,8 +98,14 @@ log_level -i "Finding Kubeconfig"
 #There is a dependancy on the _output folder to use to connect to the cluster
 KUBE_CONFIG_LOCATION=`sudo find  /var/lib/waagent/custom-script/download/0/_output/ -type f -iname "kubeconfig*"`
 
-log_level -i "Copy kubeconfig to home"
+log_level -i "Copy kubeconfig($KUBE_CONFIG_LOCATION) to home directory"
 sudo cp $KUBE_CONFIG_LOCATION $HOME/$TEST_DIRECTORY
+
+if [[ ! -f $HOME/$TEST_DIRECTORY/kubeconfig.local.json ]]; then
+    log_level -e "File(kubeconfig.local.json) does not exist at $HOME/$TEST_DIRECTORY"
+else
+    log_level -i "File(kubeconfig.local.json) exist at $HOME/$TEST_DIRECTORY"
+fi
 
 log_level -i "Changing docker settings"
 sudo chmod a+rw /var/run/docker.sock

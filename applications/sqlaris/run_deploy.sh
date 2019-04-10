@@ -165,7 +165,7 @@ touch $LOGFILENAME
         result="pass"
         printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
     else
-        result="fail"
+        result="failed"
         printf '{"result":"%s","error":"%s"}\n' "$result" "$DEPLOYMENTSTATUS" > $OUTPUT_SUMMARYFILE
     fi
     
