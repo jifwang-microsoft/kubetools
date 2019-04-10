@@ -67,6 +67,10 @@ do
     fi
 done
 
+OUTPUTFOLDER=$(dirname $OUTPUT_SUMMARYFILE)
+LOGFILENAME=$OUTPUTFOLDER/clean.log
+touch $LOGFILENAME
+
 {
     log_level -i "Checking script parameters"
     
@@ -93,10 +97,6 @@ done
     fi
     
     log_level -i "Parameters passed"
-    
-    
-    OUTPUTFOLDER=$(dirname $OUTPUT_SUMMARYFILE)
-    LOGFILENAME=$OUTPUTFOLDER/clean.log
     
     echo "identity-file: $IDENTITYFILE"
     echo "host: $HOST"
@@ -125,13 +125,22 @@ done
     ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "if [ -f /home/$AZUREUSER/.ssh/id_rsa ]; then cd $TEST_DIRECTORY; chmod +x ./clean_test.sh; ./clean_test.sh -t $TEST_DIRECTORY 2>&1 | tee $CLEAN_DVM_LOG_FILE; fi;"
     
     log_level -i "Copying over clean logs"
-    scp -i $IDENTITYFILE $AZUREUSER@$HOST:/home/$AZUREUSER/$TEST_DIRECTORY/$CLEAN_DVM_LOG_FILE $LOCAL_DIRECTORY
+    scp -i $IDENTITYFILE $AZUREUSER@$HOST:/home/$AZUREUSER/$TEST_DIRECTORY/$CLEAN_DVM_LOG_FILE $OUTPUTFOLDER
     
     log_level -i "Remove test Folder"
     ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "if [ -f /home/$AZUREUSER/.ssh/id_rsa ]; then sudo rm -rf $TEST_DIRECTORY;fi;"
     
-    result="pass"
-    printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
+    #Checking status of the deployment
+    DEPLOYMENTSTATUS=`awk '/./{line=$0} END{print line}' $OUTPUTFOLDER/$CLEAN_DVM_LOG_FILE`
+
+    if [ "$DEPLOYMENTSTATUS" == "0" ];
+    then 
+        result="pass"
+        printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
+    else
+        result="fail"
+        printf '{"result":"%s","error":"%s"}\n' "$result" "$DEPLOYMENTSTATUS" > $OUTPUT_SUMMARYFILE
+    fi
     
 } 2>&1 | tee $LOGFILENAME
 

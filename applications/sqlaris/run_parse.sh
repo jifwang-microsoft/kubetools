@@ -67,6 +67,10 @@ do
     fi
 done
 
+OUTPUTFOLDER=$(dirname $OUTPUT_SUMMARYFILE)
+LOGFILENAME=$OUTPUTFOLDER/parse.log
+touch $LOGFILENAME
+
 {
     log_level -i "Checking script parameters"
     
@@ -95,10 +99,6 @@ done
     fi
     
     log_level -i "Parameters passed"
-    
-    
-    OUTPUTFOLDER=$(dirname $OUTPUT_SUMMARYFILE)
-    LOGFILENAME=$OUTPUTFOLDER/parse.log
     
     
     echo "identity-file: $IDENTITYFILE"
@@ -135,7 +135,16 @@ done
     log_level -i "Copying over test results"
     scp -r -i $IDENTITYFILE $AZUREUSER@$HOST:/home/$AZUREUSER/$TEST_DIRECTORY/$JUNIT_FOLDER_LOCATION $OUTPUTFOLDER
     
-    result="pass"
-    printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
+    #Checking status of the deployment
+    DEPLOYMENTSTATUS=`awk '/./{line=$0} END{print line}' $OUTPUTFOLDER/$PARSE_DVM_LOG_FILE`
+
+    if [ "$DEPLOYMENTSTATUS" == "0" ];
+    then 
+        result="pass"
+        printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
+    else
+        result="fail"
+        printf '{"result":"%s","error":"%s"}\n' "$result" "$DEPLOYMENTSTATUS" > $OUTPUT_SUMMARYFILE
+    fi
     
 } 2>&1 | tee $LOGFILENAME
