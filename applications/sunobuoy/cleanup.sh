@@ -49,9 +49,6 @@ do
         -o|--output-file)
             OUTPUT_FILE="$2"
         ;;
-        -c|--configFile)
-            PARAMETERFILE="$2"
-        ;;
         *)
             echo ""
             echo "Incorrect parameter $1"
@@ -69,7 +66,7 @@ do
 done
 
 OUTPUTFOLDER="$(dirname $OUTPUT_FILE)"
-LOGFILENAME="$OUTPUTFOLDER/validate.log"
+LOGFILENAME="$OUTPUTFOLDER/cleanup.log"
 touch $LOGFILENAME
 
 {
@@ -82,60 +79,33 @@ touch $LOGFILENAME
     log_level -i "User            : $AZUREUSER"
     log_level -i "------------------------------------------------------------------------"
     
-    # Check if pod is up and running
-    log_level -i "Validate if Pods are created and running."
-    wpRelease=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+'")
-    mariadbPodstatus=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo kubectl get pods --selector app=mariadb | grep 'Running'")
-    wdpressPodstatus=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo kubectl get pods --selector app=${wpRelease}-wordpress | grep 'Running'")
-    failedPods=""
-    if [ -z "$mariadbPodstatus" ]; then
-        failedPods="mariadb"
-    fi
+    log_level -i "Deleting Namespace for sonobuoy..."
+    ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "./sonobuoy delete;"
+    log_level -i "------------------------------------------------------------------------"
     
-    if [ -z "$wdpressPodstatus" ]; then
-        failedPods="wordpress, "$failedPods
-    fi
-    
-    if [ ! -z "$failedPods" ]; then
-        log_level -e "Validation failed because pods ($failedPods) not running."
-        exit 1
-    else
-        log_level -i "Wordpress and mariadb pods are up and running."
-    fi
-    
-    # Check if App got external IP
-    log_level -i "Validate if Pods got external IP address."
-    externalIp=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo kubectl get services ${wpRelease}-wordpress -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
-    if [ -z "$externalIp" ]; then
-        log_level -e "External IP not found for wordpress."
-        exit 1
-    else
-        log_level -i "Found external IP address ($externalIp)."
-    fi
-    
-    # Check portal status    
     i=0
-    while [ $i -lt 20 ];do
-        portalState="$(curl http://${externalIp} --head -s | grep '200 OK')"
-        if [ -z "$portalState" ]; then
-            log_level -w "Portal communication validation failed. We we will retry after some time."
+    while [ $i -lt 10 ];do
+        sonobuoyPod=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo kubectl get pods --all-namespaces | grep 'sonobuoy' || true")
+        if [ ! -z "$sonobuoyPod" ]; then
+            log_level -w "Sonobuoy app is still up and running($sonobuoyPod)."
             sleep 30s
         else
             break
         fi
+        
         let i=i+1
     done
     
-    if [ -z "$portalState" ]; then
-        log_level -e "Portal communication validation failed. Please check if app is up and running."
+    if [ ! -z "$sonobuoyPod" ]; then
+        log_level -e "Sonobuoy app is still up and running. Cleanup failed ($sonobuoyPod)."
+        exit 1
     else
-        log_level -i "Able to communicate wordpress portal. ($portalState)"
+        log_level -i "Sonobuoy app cleanup done."
     fi
-
+    
     result="pass"
     printf '{"result":"%s"}\n' "$result" > $OUTPUT_FILE
     
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
-    
 } 2>&1 | tee $LOGFILENAME

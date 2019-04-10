@@ -49,9 +49,6 @@ do
         -o|--output-file)
             OUTPUT_FILE="$2"
         ;;
-        -c|--configFile)
-            PARAMETERFILE="$2"
-        ;;
         *)
             echo ""
             echo "Incorrect parameter $1"
@@ -82,60 +79,66 @@ touch $LOGFILENAME
     log_level -i "User            : $AZUREUSER"
     log_level -i "------------------------------------------------------------------------"
     
-    # Check if pod is up and running
-    log_level -i "Validate if Pods are created and running."
-    wpRelease=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+'")
-    mariadbPodstatus=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo kubectl get pods --selector app=mariadb | grep 'Running'")
-    wdpressPodstatus=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo kubectl get pods --selector app=${wpRelease}-wordpress | grep 'Running'")
-    failedPods=""
-    if [ -z "$mariadbPodstatus" ]; then
-        failedPods="mariadb"
-    fi
     
-    if [ -z "$wdpressPodstatus" ]; then
-        failedPods="wordpress, "$failedPods
-    fi
-    
-    if [ ! -z "$failedPods" ]; then
-        log_level -e "Validation failed because pods ($failedPods) not running."
-        exit 1
-    else
-        log_level -i "Wordpress and mariadb pods are up and running."
-    fi
-    
-    # Check if App got external IP
-    log_level -i "Validate if Pods got external IP address."
-    externalIp=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo kubectl get services ${wpRelease}-wordpress -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
-    if [ -z "$externalIp" ]; then
-        log_level -e "External IP not found for wordpress."
-        exit 1
-    else
-        log_level -i "Found external IP address ($externalIp)."
-    fi
-    
-    # Check portal status    
     i=0
-    while [ $i -lt 20 ];do
-        portalState="$(curl http://${externalIp} --head -s | grep '200 OK')"
-        if [ -z "$portalState" ]; then
-            log_level -w "Portal communication validation failed. We we will retry after some time."
+    while [ $i -lt 10 ];do
+        sonobuoyPod=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo kubectl get pods --all-namespaces | grep 'sonobuoy' | grep 'Running' || true")
+        if [ -z "$sonobuoyPod" ]; then
+            log_level -w "Sonobuoy deployment failed or sonobuoy pod is not running."
             sleep 30s
         else
             break
         fi
+        
         let i=i+1
     done
     
-    if [ -z "$portalState" ]; then
-        log_level -e "Portal communication validation failed. Please check if app is up and running."
+    if [ -z "$sonobuoyPod" ]; then
+        log_level -e "Sonobuoy deployment failed or sonobuoy pod is not running."
+        exit 1
     else
-        log_level -i "Able to communicate wordpress portal. ($portalState)"
+        log_level -i "Sonobuoy deployment went through fine and it is running."
+    fi
+    
+    while true
+    do
+        runStatus=$(ssh -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "./sonobuoy status | grep running || true")
+        log_level -i "Status $runStatus"
+        if [ -z "$runStatus" ]; then
+            break
+        else
+            sleep 30
+        fi
+    done
+    
+    log_level -i "------------------------------------------------------------------------"
+    ssh -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "./sonobuoy retrieve;"
+    
+    tarfile=$(ssh -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP 'ls | grep _sonobuoy_ | sort -r | head -1')
+
+    if [ -z "$tarfile" ]; then
+        log_level -e "Sonobuoy retrieve failed. No tar file got created"
+        exit 1
+    else
+        log_level -i "Retriving run details from file ($tarfile)."
     fi
 
+    resultfolder="${tarfile%.*.*}"
+    
+    log_level -i "Copy tar file($tarfile) locally to $OUTPUTFOLDER"
+    scp -r -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP:/home/$AZUREUSER/$tarfile $OUTPUTFOLDER
+    
+    ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "mkdir $resultfolder"
+    ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo tar -xvf $tarfile -C ~/$resultfolder"
+    
+    log_level -i "Copy junit file(junit_01.xml) locally to $OUTPUTFOLDER"
+    scp -r -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP:/home/$AZUREUSER/$resultfolder/plugins/e2e/results/junit_01.xml $OUTPUTFOLDER
+    
+    # Todo Add a check by query to Kube cluster that app validate went through fine.
+    
     result="pass"
     printf '{"result":"%s"}\n' "$result" > $OUTPUT_FILE
     
     # Create result file, even if script ends with an error
-    #trap final_changes EXIT
-    
+    trap final_changes EXIT
 } 2>&1 | tee $LOGFILENAME

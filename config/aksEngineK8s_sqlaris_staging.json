@@ -9,6 +9,7 @@
 			"githubBranch": "azsmaster"
 		},
 		"minNumberofAzsNodes": 4,
+		"removeDeployment": "true",
 		"deploymentMatrix": [
 			{
 				"agentPoolProfileCount": 3,

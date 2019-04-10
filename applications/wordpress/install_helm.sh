@@ -26,9 +26,9 @@ if [[ -z $helmcmd ]]; then
     
     # Check again, if still not available, test fail
     helmcmd="$(helm)"
-    if [[ -z helmcmd ]]; then
+    if [[ -z "$helmcmd" ]]; then
         echo  -e "${RED}Validation failed. Unable to install helm client. ${NC}"
-        exit 3
+        exit 1
     fi
     
     echo -e "${GREEN}Helm client has been installed.${NC}"
@@ -52,7 +52,7 @@ while [ $i -lt 20 ]; do
     helmClientVer="$(helm version | grep -o 'Client: \(.*\)[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}')"
     helmServerVer="$(helm version | grep -o 'Server: \(.*\)[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}')"
     
-    if [[ -z $helmClientVer ]] || [[ -z $helmServerVer ]]; then
+    if [[ -z "$helmClientVer" ]] || [[ -z "$helmServerVer" ]]; then
         echo "Tracking helm status ..."
         sleep 10s
     else

@@ -49,9 +49,6 @@ do
         -o|--output-file)
             OUTPUT_FILE="$2"
         ;;
-        -c|--configFile)
-            PARAMETERFILE="$2"
-        ;;
         *)
             echo ""
             echo "Incorrect parameter $1"
@@ -69,10 +66,14 @@ do
 done
 
 OUTPUTFOLDER="$(dirname $OUTPUT_FILE)"
-LOGFILENAME="$OUTPUTFOLDER/validate.log"
+LOGFILENAME="$OUTPUTFOLDER/deploy.log"
 touch $LOGFILENAME
 
 {
+    # Github details.
+    GITREPROSITORY="${GITREPROSITORY:-msazurestackworkloads/kubetools}"
+    GITBRANCH="${GITBRANCH:-master}"
+    
     log_level -i "------------------------------------------------------------------------"
     log_level -i "Input Parameters"
     log_level -i "------------------------------------------------------------------------"
@@ -80,58 +81,53 @@ touch $LOGFILENAME
     log_level -i "Master IP       : $MASTERVMIP"
     log_level -i "OUTPUT_FILE     : $OUTPUT_FILE"
     log_level -i "User            : $AZUREUSER"
+    log_level -i "Git Repository  : $GITREPROSITORY"
+    log_level -i "Git Branch      : $GITBRANCH"
     log_level -i "------------------------------------------------------------------------"
     
-    # Check if pod is up and running
-    log_level -i "Validate if Pods are created and running."
-    wpRelease=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+'")
-    mariadbPodstatus=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo kubectl get pods --selector app=mariadb | grep 'Running'")
-    wdpressPodstatus=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo kubectl get pods --selector app=${wpRelease}-wordpress | grep 'Running'")
-    failedPods=""
-    if [ -z "$mariadbPodstatus" ]; then
-        failedPods="mariadb"
+    log_level -i "Get differnt version details."
+    KUBERNETES_VERSION=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP 'kubectl version -o json | jq -r .serverVersion.gitVersion | cut -c 2-')
+    KUBERNETES_MAJOR_VERSION="${KUBERNETES_VERSION%.*}"
+    
+    log_level -i "K8sVersion      : $KUBERNETES_VERSION"
+    log_level -i "K8sMajorVersion : $KUBERNETES_MAJOR_VERSION"
+    
+    if [ "$KUBERNETES_MAJOR_VERSION" == "1.11" ]; then
+        SONOBUOY_VERSION="0.13.0"
+    else
+        SONOBUOY_VERSION="0.14.0"
     fi
     
-    if [ -z "$wdpressPodstatus" ]; then
-        failedPods="wordpress, "$failedPods
-    fi
+    log_level -i "SONOBUOY Version : $SONOBUOY_VERSION"
+    log_level -i "------------------------------------------------------------------------"
     
-    if [ ! -z "$failedPods" ]; then
-        log_level -e "Validation failed because pods ($failedPods) not running."
+    curl -o $OUTPUTFOLDER/install_prerequisite.sh \
+    https://raw.githubusercontent.com/$GITREPROSITORY/$GITBRANCH/applications/sunobuoy/install_prerequisite.sh
+    if [ ! -f $OUTPUTFOLDER/install_prerequisite.sh ]; then
+        log_level -e "File(install_prerequisite.sh) failed to download."
         exit 1
-    else
-        log_level -i "Wordpress and mariadb pods are up and running."
-    fi
-    
-    # Check if App got external IP
-    log_level -i "Validate if Pods got external IP address."
-    externalIp=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo kubectl get services ${wpRelease}-wordpress -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
-    if [ -z "$externalIp" ]; then
-        log_level -e "External IP not found for wordpress."
-        exit 1
-    else
-        log_level -i "Found external IP address ($externalIp)."
-    fi
-    
-    # Check portal status    
-    i=0
-    while [ $i -lt 20 ];do
-        portalState="$(curl http://${externalIp} --head -s | grep '200 OK')"
-        if [ -z "$portalState" ]; then
-            log_level -w "Portal communication validation failed. We we will retry after some time."
-            sleep 30s
-        else
-            break
-        fi
-        let i=i+1
-    done
-    
-    if [ -z "$portalState" ]; then
-        log_level -e "Portal communication validation failed. Please check if app is up and running."
-    else
-        log_level -i "Able to communicate wordpress portal. ($portalState)"
     fi
 
+    log_level -i "Copy install file to master VM."
+    scp -i $IDENTITYFILE \
+    $OUTPUTFOLDER/install_prerequisite.sh \
+    $AZUREUSER@$MASTERVMIP:/home/$AZUREUSER/
+    
+    # Install Golang
+    ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo chmod 744 install_prerequisite.sh; "
+    ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "./install_prerequisite.sh;"
+    
+    log_level -i "------------------------------------------------------------------------"
+    
+    # Install sonobuoy
+    ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "wget https://github.com/heptio/sonobuoy/releases/download/v$SONOBUOY_VERSION/sonobuoy_$SONOBUOY_VERSION\_linux_amd64.tar.gz"
+    ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo tar -xvf sonobuoy_$SONOBUOY_VERSION\_linux_amd64.tar.gz"
+    
+    
+    # Start sonobuoy tests
+    #ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "./sonobuoy run --mode quick;"
+    ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "./sonobuoy run;"
+    
     result="pass"
     printf '{"result":"%s"}\n' "$result" > $OUTPUT_FILE
     

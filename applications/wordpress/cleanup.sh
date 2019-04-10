@@ -1,6 +1,20 @@
-#! /bin/bash
+#!/bin/bash -e
 
-function printUsage
+log_level()
+{
+    case "$1" in
+        -e) echo "$(date) [Err]  " ${@:2}
+        ;;
+        -w) echo "$(date) [Warn] " ${@:2}
+        ;;
+        -i) echo "$(date) [Info] " ${@:2}
+        ;;
+        *)  echo "$(date) [Debug] " ${@:2}
+        ;;
+    esac
+}
+
+printUsage()
 {
     echo "      Usage:"
     echo "      $FILENAME --identity-file id_rsa --master 192.168.102.34 --user azureuser"
@@ -13,6 +27,12 @@ function printUsage
     exit 1
 }
 
+function final_changes {
+    if [ ! -f "$OUTPUT_FILE" ]; then
+        printf '{"result":"%s"}\n' "fail" > $OUTPUT_FILE
+    fi
+}
+
 FILENAME=$0
 
 while [[ "$#" -gt 0 ]]
@@ -22,7 +42,7 @@ do
             IDENTITYFILE="$2"
         ;;
         -m|--master)
-            HOST="$2"
+            MASTERVMIP="$2"
         ;;
         -u|--user)
             AZUREUSER="$2"
@@ -31,7 +51,7 @@ do
             PARAMETERFILE="$2"
         ;;
         -o|--output-file)
-            OUTPUT_SUMMARYFILE="$2"
+            OUTPUT_FILE="$2"
         ;;
         *)
             echo ""
@@ -49,33 +69,62 @@ do
     fi
 done
 
-LOGFILENAME="$(dirname $OUTPUT_SUMMARYFILE)/cleanup.log"
+OUTPUTFOLDER="$(dirname $OUTPUT_FILE)"
+LOGFILENAME="$OUTPUTFOLDER/cleanup.log"
+touch $LOGFILENAME
 
-echo "identity-file: $IDENTITYFILE \n" > $LOGFILENAME
-echo "host: $HOST \n" >> $LOGFILENAME
-echo "user: $AZUREUSER \n" >> $LOGFILENAME
-echo "SUMMARYFILE: $OUTPUT_SUMMARYFILE \n" >> $LOGFILENAME
+{
+    log_level -i "------------------------------------------------------------------------"
+    log_level -i "Input Parameters"
+    log_level -i "------------------------------------------------------------------------"
+    log_level -i "Identity-file   : $IDENTITYFILE"
+    log_level -i "Master IP       : $MASTERVMIP"
+    log_level -i "OUTPUT_FILE     : $OUTPUT_FILE"
+    log_level -i "User            : $AZUREUSER"
+    log_level -i "------------------------------------------------------------------------"
+    
+    # Cleanup Word press app.
+    wpRelease=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+' || true")
+    if [ -z "$wpRelease" ]; then
+        log_level -w "Helm deployment not found."
+    else
+        log_level -i "Removing helm deployment($wpRelease)"
+        ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "helm delete --purge $wpRelease"
+        log_level -i "Wait for 30s for all pods to be deleted and removed."
+        sleep 30s
+    fi
+    
+    ssh -t -i $IDENTITYFILE \
+    $AZUREUSER@$MASTERVMIP \
+    "sudo rm -f -r var_log var_log.tar.gz || true"
 
-# Cleanup Word press app.
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST 'echo "wordpress=$(kubectl get svc -o name | grep wordpress); kubectl delete \$wordpress" >file.sh; chmod 744 file.sh;'
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./file.sh;" >> $LOGFILENAME
+    ssh -t -i $IDENTITYFILE \
+    $AZUREUSER@$MASTERVMIP \
+    "mkdir -p var_log"
 
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST 'echo "mariadb=$(kubectl get svc -o name | grep mariadb); kubectl delete \$mariadb" >file.sh; chmod 744 file.sh;'
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./file.sh;" >> $LOGFILENAME
+    ssh -t -i $IDENTITYFILE \
+    $AZUREUSER@$MASTERVMIP \
+    "sudo cp -R /var/log /home/$AZUREUSER/var_log;"
 
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST 'echo "wordpress=$(kubectl get deployment -o name | grep wordpress); kubectl delete \$wordpress" >file.sh; chmod 744 file.sh;'
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./file.sh;" >> $LOGFILENAME
-
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST 'echo "mariadb=$(kubectl get statefulset.apps -o name | grep mariadb); kubectl delete \$mariadb" >file.sh; chmod 744 file.sh;'
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "./file.sh;" >> $LOGFILENAME
-
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "mkdir -p var_log" >> $LOGFILENAME
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "cp -R /var/log /home/$AZUREUSER/var_log;" >> $LOGFILENAME
-ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "tar -zcvf var_log.tar.gz var_log;" >> $LOGFILENAME
-
-scp -r -i $IDENTITYFILE $AZUREUSER@$HOST:/home/$AZUREUSER/var_log.tar.gz $OUTPUTFOLDER
-echo "Logs are copied into $OUTPUTFOLDER"
-
-result="pass"
- # Todo Add a check by query to Kube cluster that cleanup went through fine.
-printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
+    ssh -t -i $IDENTITYFILE \
+    $AZUREUSER@$MASTERVMIP \
+    "sudo tar -zcvf var_log.tar.gz var_log;"
+    
+    log_level -i "Copy log file(var_log.tar.gz) to $OUTPUTFOLDER"
+    scp -r -i $IDENTITYFILE \
+    $AZUREUSER@$MASTERVMIP:/home/$AZUREUSER/var_log.tar.gz $OUTPUTFOLDER
+    log_level -i "Logs are copied into $OUTPUTFOLDER"
+    
+    wpRelease=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+' || true")
+    if [ ! -z "$wpRelease" ]; then
+        log_level -e "Removal of wordpress app failed($wpRelease)."
+        exit 1
+    else
+        log_level -i "Wordpress app removed successfully."
+    fi
+    result="pass"
+    printf '{"result":"%s"}\n' "$result" > $OUTPUT_FILE
+    
+    # Create result file, even if script ends with an error
+    #trap final_changes EXIT
+} 2>&1 | tee $LOGFILENAME
