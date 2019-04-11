@@ -98,23 +98,28 @@ log_level -i "Finding Kubeconfig"
 #There is a dependancy on the _output folder to use to connect to the cluster
 KUBE_CONFIG_LOCATION=`sudo find  /var/lib/waagent/custom-script/download/0/_output/ -type f -iname "kubeconfig*"`
 
+log_level -i "Finding Kubeconfig file from path ($KUBE_CONFIG_LOCATION)"
+KUBE_CONFIG_FILENAME=$(basename $KUBE_CONFIG_LOCATION)
+
 log_level -i "Copy kubeconfig($KUBE_CONFIG_LOCATION) to home directory"
 sudo cp $KUBE_CONFIG_LOCATION $HOME/$TEST_DIRECTORY
 
-if [[ ! -f $HOME/$TEST_DIRECTORY/kubeconfig.local.json ]]; then
-    log_level -e "File(kubeconfig.local.json) does not exist at $HOME/$TEST_DIRECTORY"
+log_level -i "Checking if file ($KUBE_CONFIG_FILENAME) exists"
+if [[ ! -f $HOME/$TEST_DIRECTORY/$KUBE_CONFIG_FILENAME ]]; then
+    log_level -e "File($KUBE_CONFIG_FILENAME) does not exist at $HOME/$TEST_DIRECTORY"
+    exit 1
 else
-    log_level -i "File(kubeconfig.local.json) exist at $HOME/$TEST_DIRECTORY"
+    log_level -i "File($KUBE_CONFIG_FILENAME) exist at $HOME/$TEST_DIRECTORY"
 fi
 
 log_level -i "Changing docker settings"
 sudo chmod a+rw /var/run/docker.sock
 
 log_level -i "Changing permissions of the config file"
-sudo chmod a+r $HOME/$TEST_DIRECTORY/kubeconfig.local.json
+sudo chmod a+r $HOME/$TEST_DIRECTORY/$KUBE_CONFIG_FILENAME
 
-log_level -i "Setting the Environment variables"
-export KUBECONFIG="$HOME/$TEST_DIRECTORY/kubeconfig.local.json"
+log_level -i "Setting Kubectl config variable as per required by k8s"
+export KUBECONFIG="$HOME/$TEST_DIRECTORY/$KUBE_CONFIG_FILENAME"
 export DOCKER_IMAGE_TAG=latest
 
 log_level -i "Changing directories into aris"

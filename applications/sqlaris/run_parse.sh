@@ -1,6 +1,10 @@
 #Connects to Kubernetes cluster Deploys SQL Aris, Runs tests and collects logs.
 
-#! /bin/bash
+#!/bin/bash
+#Github details.
+#use capitals and sort
+#download file when needed
+#add variables when needed
 
 set -e
 
@@ -37,24 +41,24 @@ while [[ "$#" -gt 0 ]]
 do
     case $1 in
         -i|--identity-file)
-            IDENTITYFILE="$2"
+            IDENTITY_FILE="$2"
         ;;
         -m|--master)
             HOST="$2"
         ;;
         -u|--user)
-            AZUREUSER="$2"
+            AZURE_USER="$2"
         ;;
         -o|--output-file)
-            OUTPUT_SUMMARYFILE="$2"
+            OUTPUT_SUMMARY_FILE="$2"
         ;;
         -c|--configfile)
-            PARAMETERFILE="$2"
+            PARAMETER_FILE="$2"
         ;;
         *)
-            echo ""
-            echo "Incorrect parameter $1"
-            echo ""
+            log_level -i ""
+            log_level -i "Incorrect parameter $1"
+            log_level -i ""
             printUsage
         ;;
     esac
@@ -67,20 +71,20 @@ do
     fi
 done
 
-OUTPUTFOLDER=$(dirname $OUTPUT_SUMMARYFILE)
-LOGFILENAME=$OUTPUTFOLDER/parse.log
-touch $LOGFILENAME
+OUTPUT_FOLDER=$(dirname $OUTPUT_SUMMARY_FILE)
+LOG_FILE_NAME=$OUTPUT_FOLDER/parse.log
+touch $LOG_FILE_NAME
 
 {
     log_level -i "Checking script parameters"
     
-    if [ ! -f $PARAMETERFILE ] || [ -z "$PARAMETERFILE" ]; then
+    if [ ! -f $PARAMETER_FILE ] || [ -z "$PARAMETER_FILE" ]; then
         log_level -e "Parameter file does not exist"
         exit 1
     fi
-
-
-    if [ ! -f $IDENTITYFILE ] || [ -z "$IDENTITYFILE" ];
+    
+    
+    if [ ! -f $IDENTITY_FILE ] || [ -z "$IDENTITY_FILE" ];
     then
         log_level -e "Identity file does not exist"
         exit 1
@@ -92,7 +96,7 @@ touch $LOGFILENAME
         exit 1
     fi
     
-    if [ -z "$AZUREUSER" ];
+    if [ -z "$AZURE_USER" ];
     then
         log_level -e "Host Username is not set"
         exit 1
@@ -100,51 +104,69 @@ touch $LOGFILENAME
     
     log_level -i "Parameters passed"
     
+    GIT_REPROSITORY="${GIT_REPROSITORY:-msazurestackworkloads/kubetools}"
+    GIT_BRANCH="${GIT_BRANCH:-sqlaris}"
+    PARSE_SCRIPT="parse_test.sh"
     
-    echo "identity-file: $IDENTITYFILE"
-    echo "host: $HOST"
-    echo "user: $AZUREUSER"
-    echo "FolderName: $OUTPUTFOLDER"
-    echo "ParameterFile: $PARAMETERFILE"
-    
-    #Download assets to a location
-    log_level -i "Downloading Assets"
-    cd $OUTPUTFOLDER
+    log_level -i "-----------------------------------------------------------------------------"
+    log_level -i "Script Parameters"
+    log_level -i "-----------------------------------------------------------------------------"
+    log_level -i "GIT_REPROSITORY: $GIT_REPROSITORY"
+    log_level -i "GIT_BRANCH: $GIT_BRANCH"
+    log_level -i "HOST: $HOST"
+    log_level -i "IDENTITY_FILE: $IDENTITY_FILE"
+    log_level -i "OUTPUT_FOLDER: $OUTPUT_FOLDER"
+    log_level -i "PARAMETER_FILE: $PARAMETER_FILE"
+    log_level -i "PARSE_SCRIPT: $PARSE_SCRIPT"
+    log_level -i "USER: $AZURE_USER"
+    log_level -i "-----------------------------------------------------------------------------"
     
     #Read parameters from json files
     log_level -i "Reading Parameters from Json"
-    GITURL=`cat "$PARAMETERFILE" | jq -r '.gitUrl'`
-    TEST_DIRECTORY=`cat "$PARAMETERFILE" | jq -r '.dvmAssetsFolder'`
-    PARSE_DVM_LOG_FILE=`cat "$PARAMETERFILE" | jq -r '.parseDVMLogFile'`
-    JUNIT_FOLDER_LOCATION=`cat "$PARAMETERFILE" | jq -r '.junitFileLocation'`
+    TEST_DIRECTORY=`cat "$PARAMETER_FILE" | jq -r '.dvmAssetsFolder'`
+    PARSE_DVM_LOG_FILE=`cat "$PARAMETER_FILE" | jq -r '.parseDVMLogFile'`
+    JUNIT_FOLDER_LOCATION=`cat "$PARAMETER_FILE" | jq -r '.junitFileLocation'`
     
-    echo "TEST_DIRECTORY: $TEST_DIRECTORY"
-    echo "PARSE_DVM_LOG_FILE: $PARSE_DVM_LOG_FILE"
-    echo "JUNIT_FOLDER_LOCATION: $JUNIT_FOLDER_LOCATION"
+    log_level -i "-----------------------------------------------------------------------------"
+    log_level -i "Config Parameters"
+    log_level -i "-----------------------------------------------------------------------------"
+    log_level -i "JUNIT_FOLDER_LOCATION: $JUNIT_FOLDER_LOCATION"
+    log_level -i "PARSE_DVM_LOG_FILE: $PARSE_DVM_LOG_FILE"
+    log_level -i "TEST_DIRECTORY: $TEST_DIRECTORY"
+    log_level -i "-----------------------------------------------------------------------------"
     
-    cd -
-    
-    IDENTITYFILEBACKUPPATH="/home/$AZUREUSER/IDENTITYFILEBACKUP"
-    
-    log_level -i "Run Parse Test Script"
-    ssh -t -i $IDENTITYFILE $AZUREUSER@$HOST "cd $TEST_DIRECTORY; chmod +x ./parse_test.sh; ./parse_test.sh -t $TEST_DIRECTORY -o $JUNIT_FOLDER_LOCATION 2>&1 | tee $PARSE_DVM_LOG_FILE;"
-    
-    log_level -i "Copying over parsed logs"
-    scp -i $IDENTITYFILE $AZUREUSER@$HOST:/home/$AZUREUSER/$TEST_DIRECTORY/$PARSE_DVM_LOG_FILE $OUTPUTFOLDER
-    
-    log_level -i "Copying over test results"
-    scp -r -i $IDENTITYFILE $AZUREUSER@$HOST:/home/$AZUREUSER/$TEST_DIRECTORY/$JUNIT_FOLDER_LOCATION $OUTPUTFOLDER
-    
-    #Checking status of the deployment
-    DEPLOYMENTSTATUS=`awk '/./{line=$0} END{print line}' $OUTPUTFOLDER/$PARSE_DVM_LOG_FILE`
-
-    if [ "$DEPLOYMENTSTATUS" == "0" ];
-    then 
-        result="pass"
-        printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
-    else
-        result="failed"
-        printf '{"result":"%s","error":"%s"}\n' "$result" "$DEPLOYMENTSTATUS" > $OUTPUT_SUMMARYFILE
+    curl -o $OUTPUT_FOLDER/$PARSE_SCRIPT \
+    https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/sqlaris/$PARSE_SCRIPT
+    if [ ! -f $OUTPUT_FOLDER/$PARSE_SCRIPT ]; then
+        log_level -e "File($PARSE_SCRIPT) failed to download."
+        exit 1
     fi
     
-} 2>&1 | tee $LOGFILENAME
+    log_level -i "Copy script($PARSE_SCRIPT) to test folder($TEST_DIRECTORY)"
+    scp -i $IDENTITY_FILE $OUTPUT_FOLDER/$PARSE_SCRIPT $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY
+    
+    log_level -i "Change ($PARSE_SCRIPT) to unix format"
+    ssh -t -i $IDENTITY_FILE $AZURE_USER@$HOST "dos2unix $TEST_DIRECTORY/$PARSE_SCRIPT;"
+    
+    log_level -i "Run parse test script ($PARSE_SCRIPT)"
+    ssh -t -i $IDENTITY_FILE $AZURE_USER@$HOST "cd $TEST_DIRECTORY; chmod +x ./$PARSE_SCRIPT; ./$PARSE_SCRIPT -t $TEST_DIRECTORY -o $JUNIT_FOLDER_LOCATION 2>&1 | tee $PARSE_DVM_LOG_FILE;"
+    
+    log_level -i "Copying parsed logs from ($TEST_DIRECTORY)"
+    scp -i $IDENTITY_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY/$PARSE_DVM_LOG_FILE $OUTPUT_FOLDER
+    
+    log_level -i "Copying over test results from ($JUNIT_FOLDER_LOCATION)"
+    scp -r -i $IDENTITY_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY/$JUNIT_FOLDER_LOCATION $OUTPUT_FOLDER
+    
+    #Checking status of the deployment
+    PARSE_STATUS=`awk '/./{line=$0} END{print line}' $OUTPUT_FOLDER/$PARSE_DVM_LOG_FILE`
+    
+    if [ "$PARSE_STATUS" == "0" ];
+    then
+        result="pass"
+        printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARY_FILE
+    else
+        result="failed"
+        printf '{"result":"%s","error":"%s"}\n' "$result" "$PARSE_STATUS" > $OUTPUT_SUMMARY_FILE
+    fi
+    
+} 2>&1 | tee $LOG_FILE_NAME

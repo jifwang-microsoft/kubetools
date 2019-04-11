@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 #Define Console Output Color
 RED='\033[0;31m'    # For error
 GREEN='\033[0;32m'  # For crucial check success

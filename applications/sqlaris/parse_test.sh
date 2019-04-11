@@ -65,23 +65,39 @@ then
     exit 1
 fi
 
+log_level -i "-----------------------------------------------------------------------------"
 log_level -i "Script Parameters"
-echo "TEST_DIRECTORY: $TEST_DIRECTORY"
-echo "TEST_OUTPUT_DIRECTORY: $TEST_OUTPUT_DIRECTORY"
+log_level -i "-----------------------------------------------------------------------------"
+log_level -i "TEST_DIRECTORY: $TEST_DIRECTORY"
+log_level -i "TEST_OUTPUT_DIRECTORY: $TEST_OUTPUT_DIRECTORY"
+log_level -i "-----------------------------------------------------------------------------"
 
-
-
-log_level -i "Making output directory"
+log_level -i "Making output directory($HOME/$TEST_DIRECTORY/$TEST_OUTPUT_DIRECTORY)"
 mkdir $HOME/$TEST_DIRECTORY/$TEST_OUTPUT_DIRECTORY
+
+ARIS_TEST_RESULTS="$HOME/$TEST_DIRECTORY/aris/projects/test/output/junit/"
+
+log_level -i "Checking if folder($ARIS_TEST_RESULTS) exists"
+if [[ -d $ARIS_TEST_RESULTS ]]; then
+    log_level -i "Directory ($ARIS_TEST_RESULTS) exists"
+    exit 1
+else
+    log_level -e "Directory ($ARIS_TEST_RESULTS) does not exist"
+fi
 
 log_level -i "Moving Test Results into a test directory"
 sudo cp -r $HOME/$TEST_DIRECTORY/aris/projects/test/output/junit/* $HOME/$TEST_DIRECTORY/$TEST_OUTPUT_DIRECTORY
 
-log_level -i "Change directory to test output folder"
+log_level -i "Change directory to folder ($TEST_OUTPUT_DIRECTORY)"
 cd $TEST_OUTPUT_DIRECTORY
 
 log_level -i "Collecting junit merge file"
 curl -O https://gist.githubusercontent.com/cgoldberg/4320815/raw/efcf6830f516f79b82e7bd631b076363eda3ed99/merge_junit_results.py
+
+if [ ! -f "merge_junit_results.py" ]; then
+    log_level -e "File(merge_junit_results.py) failed to download."
+    exit 1
+fi
 
 log_level -i "Merge junit files"
 FILES=""
@@ -89,9 +105,9 @@ for entry in *
 do
     if [ $entry == "merge_junit_results.py" ];
     then
-        echo Not Merging $entry
+        log_level -w "Not Merging $entry"
     else
-        echo Merging $entry
+        log_level -i "Merging $entry"
         FILES="$FILES $entry"
     fi
 done
