@@ -9,7 +9,7 @@
 			"githubBranch": "azsmaster",
 			"apiModel":"https://raw.githubusercontent.com/honcao/aks-engine/e2e/examples/kubernetes-azure-stack.json",
 			"upgradeVersion": "1.12",
-			"nodeCount": "5",
+			"nodeCount": 5,
 			"upgrade": "true",
 			"scale": "true"
 		},
