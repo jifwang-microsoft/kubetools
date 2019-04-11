@@ -105,7 +105,7 @@ touch $LOG_FILE_NAME
     log_level -i "Parameters passed"
     
     GIT_REPROSITORY="${GIT_REPROSITORY:-msazurestackworkloads/kubetools}"
-    GIT_BRANCH="${GIT_BRANCH:-sqlaris}"
+    GIT_BRANCH="${GIT_BRANCH:-master}"
     PARSE_SCRIPT="parse_test.sh"
     
     log_level -i "-----------------------------------------------------------------------------"

@@ -27,8 +27,8 @@ printUsage()
 }
 
 function final_changes {
-    if [ ! -f "$OUTPUT_FILE" ]; then
-        printf '{"result":"%s"}\n' "fail" > $OUTPUT_FILE
+    if [ ! -f "$OUTPUT_SUMMARYFILE" ]; then
+        printf '{"result":"%s"}\n' "failed" > $OUTPUT_SUMMARYFILE
     fi
 }
 
@@ -38,19 +38,19 @@ while [[ "$#" -gt 0 ]]
 do
     case $1 in
         -i|--identity-file)
-            IDENTITYFILE="$2"
+            IDENTITY_FILE="$2"
         ;;
         -m|--master)
-            MASTERVMIP="$2"
+            MASTER_IP="$2"
         ;;
         -u|--user)
-            AZUREUSER="$2"
+            USER_NAME="$2"
         ;;
         -o|--output-file)
-            OUTPUT_FILE="$2"
+            OUTPUT_SUMMARYFILE="$2"
         ;;
         -c|--configFile)
-            PARAMETERFILE="$2"
+            CONFIG_FILE="$2"
         ;;
         *)
             echo ""
@@ -68,25 +68,26 @@ do
     fi
 done
 
-OUTPUTFOLDER="$(dirname $OUTPUT_FILE)"
-LOGFILENAME="$OUTPUTFOLDER/validate.log"
-touch $LOGFILENAME
+OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
+LOG_FILENAME="$OUTPUT_FOLDER/validate.log"
+touch $LOG_FILENAME
 
 {
+
     log_level -i "------------------------------------------------------------------------"
-    log_level -i "Input Parameters"
+    log_level -i "                Input Parameters"
     log_level -i "------------------------------------------------------------------------"
-    log_level -i "Identity-file   : $IDENTITYFILE"
-    log_level -i "Master IP       : $MASTERVMIP"
-    log_level -i "OUTPUT_FILE     : $OUTPUT_FILE"
-    log_level -i "User            : $AZUREUSER"
+    log_level -i "IDENTITY_FILE       : $IDENTITY_FILE"
+    log_level -i "MASTER_IP           : $MASTER_IP"
+    log_level -i "OUTPUT_SUMMARYFILE  : $OUTPUT_SUMMARYFILE"
+    log_level -i "USER_NAME           : $USER_NAME"
     log_level -i "------------------------------------------------------------------------"
     
     # Check if pod is up and running
-    log_level -i "Validate if Pods are created and running."
-    wpRelease=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+'")
-    mariadbPodstatus=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo kubectl get pods --selector app=mariadb | grep 'Running'")
-    wdpressPodstatus=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo kubectl get pods --selector app=${wpRelease}-wordpress | grep 'Running'")
+    log_level -i "Validate if pods are created and running."
+    wordPressDeploymentName=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+'")
+    mariadbPodstatus=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --selector app=mariadb | grep 'Running'")
+    wdpressPodstatus=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --selector app=${wordPressDeploymentName}-wordpress | grep 'Running'")
     failedPods=""
     if [ -z "$mariadbPodstatus" ]; then
         failedPods="mariadb"
@@ -98,6 +99,8 @@ touch $LOGFILENAME
     
     if [ ! -z "$failedPods" ]; then
         log_level -e "Validation failed because pods ($failedPods) not running."
+        result="failed"
+        printf '{"result":"%s","error":"%s"}\n' "$result" "Pods ($failedPods) are not in running state." > $OUTPUT_SUMMARYFILE
         exit 1
     else
         log_level -i "Wordpress and mariadb pods are up and running."
@@ -105,9 +108,11 @@ touch $LOGFILENAME
     
     # Check if App got external IP
     log_level -i "Validate if Pods got external IP address."
-    externalIp=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "sudo kubectl get services ${wpRelease}-wordpress -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
+    externalIp=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get services ${wordPressDeploymentName}-wordpress -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
     if [ -z "$externalIp" ]; then
         log_level -e "External IP not found for wordpress."
+        result="failed"
+        printf '{"result":"%s","error":"%s"}\n' "$result" "No external IP found." > $OUTPUT_SUMMARYFILE
         exit 1
     else
         log_level -i "Found external IP address ($externalIp)."
@@ -118,7 +123,7 @@ touch $LOGFILENAME
     while [ $i -lt 20 ];do
         portalState="$(curl http://${externalIp} --head -s | grep '200 OK')"
         if [ -z "$portalState" ]; then
-            log_level -w "Portal communication validation failed. We we will retry after some time."
+            log_level -i "Portal communication validation failed. We we will retry after some time."
             sleep 30s
         else
             break
@@ -127,15 +132,18 @@ touch $LOGFILENAME
     done
     
     if [ -z "$portalState" ]; then
-        log_level -e "Portal communication validation failed. Please check if app is up and running."
+        log_level -e "Not able to communicate wordpress web endpoint. Please check if app is up and running."
+        result="failed"
+        printf '{"result":"%s","error":"%s"}\n' "$result" "Not able to communicate wordpress web endpoint." > $OUTPUT_SUMMARYFILE
+        exit 1
     else
-        log_level -i "Able to communicate wordpress portal. ($portalState)"
+        log_level -i "Able to communicate wordpress web endpoint. ($portalState)"
     fi
 
     result="pass"
-    printf '{"result":"%s"}\n' "$result" > $OUTPUT_FILE
+    printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
     
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
     
-} 2>&1 | tee $LOGFILENAME
+} 2>&1 | tee $LOG_FILENAME

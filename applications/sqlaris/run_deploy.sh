@@ -121,7 +121,7 @@ touch $LOG_FILE_NAME
     
     # Github details.
     GIT_REPROSITORY="${GIT_REPROSITORY:-msazurestackworkloads/kubetools}"
-    GIT_BRANCH="${GIT_BRANCH:-sqlaris}"
+    GIT_BRANCH="${GIT_BRANCH:-master}"
     DEPLOYMENT_SCRIPT="deploy_test.sh"
     
     #use capitals and sort

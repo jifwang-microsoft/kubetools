@@ -28,8 +28,8 @@ printUsage()
 }
 
 function final_changes {
-    if [ ! -f "$OUTPUT_FILE" ]; then
-        printf '{"result":"%s"}\n' "fail" > $OUTPUT_FILE
+    if [ ! -f "$OUTPUT_SUMMARYFILE" ]; then
+        printf '{"result":"%s"}\n' "failed" > $OUTPUT_SUMMARYFILE
     fi
 }
 
@@ -39,19 +39,19 @@ while [[ "$#" -gt 0 ]]
 do
     case $1 in
         -i|--identity-file)
-            IDENTITYFILE="$2"
+            IDENTITY_FILE="$2"
         ;;
         -m|--master)
-            MASTERVMIP="$2"
+            MASTER_IP="$2"
         ;;
         -u|--user)
-            AZUREUSER="$2"
+            USER_NAME="$2"
         ;;
         -c|--configFile)
-            PARAMETERFILE="$2"
+            CONFIG_FILE="$2"
         ;;
         -o|--output-file)
-            OUTPUT_FILE="$2"
+            OUTPUT_SUMMARYFILE="$2"
         ;;
         *)
             echo ""
@@ -69,62 +69,78 @@ do
     fi
 done
 
-OUTPUTFOLDER="$(dirname $OUTPUT_FILE)"
-LOGFILENAME="$OUTPUTFOLDER/cleanup.log"
-touch $LOGFILENAME
+OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
+LOG_FILENAME="$OUTPUT_FOLDER/cleanup.log"
+touch $LOG_FILENAME
 
 {
+    WORDPRESS_LOG_FOLDERNAME="var_log"
+    WORDPRESS_TAR_FILENAME="var_log.tar.gz"
+    
     log_level -i "------------------------------------------------------------------------"
-    log_level -i "Input Parameters"
+    log_level -i "                Input Parameters"
     log_level -i "------------------------------------------------------------------------"
-    log_level -i "Identity-file   : $IDENTITYFILE"
-    log_level -i "Master IP       : $MASTERVMIP"
-    log_level -i "OUTPUT_FILE     : $OUTPUT_FILE"
-    log_level -i "User            : $AZUREUSER"
+    log_level -i "IDENTITY_FILE       : $IDENTITY_FILE"
+    log_level -i "MASTER_IP           : $MASTER_IP"
+    log_level -i "OUTPUT_SUMMARYFILE  : $OUTPUT_SUMMARYFILE"
+    log_level -i "USER_NAME           : $USER_NAME"
+    log_level -i "------------------------------------------------------------------------"
+    
+    log_level -i "------------------------------------------------------------------------"
+    log_level -i "                Inner Variables"
+    log_level -i "------------------------------------------------------------------------"
+    log_level -i "WORDPRESS_LOG_FOLDERNAME : $WORDPRESS_LOG_FOLDERNAME"
+    log_level -i "WORDPRESS_TAR_FILENAME   : $WORDPRESS_TAR_FILENAME"
     log_level -i "------------------------------------------------------------------------"
     
     # Cleanup Word press app.
-    wpRelease=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+' || true")
-    if [ -z "$wpRelease" ]; then
-        log_level -w "Helm deployment not found."
+    wordPressDeploymentName=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+' || true")
+    if [ -z "$wordPressDeploymentName" ]; then
+        log_level -w "No deployment found."
     else
-        log_level -i "Removing helm deployment($wpRelease)"
-        ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "helm delete --purge $wpRelease"
+        log_level -i "Removing helm deployment($wordPressDeploymentName)"
+        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm delete --purge $wordPressDeploymentName"
         log_level -i "Wait for 30s for all pods to be deleted and removed."
         sleep 30s
     fi
     
-    ssh -t -i $IDENTITYFILE \
-    $AZUREUSER@$MASTERVMIP \
-    "sudo rm -f -r var_log var_log.tar.gz || true"
-
-    ssh -t -i $IDENTITYFILE \
-    $AZUREUSER@$MASTERVMIP \
-    "mkdir -p var_log"
-
-    ssh -t -i $IDENTITYFILE \
-    $AZUREUSER@$MASTERVMIP \
-    "sudo cp -R /var/log /home/$AZUREUSER/var_log;"
-
-    ssh -t -i $IDENTITYFILE \
-    $AZUREUSER@$MASTERVMIP \
-    "sudo tar -zcvf var_log.tar.gz var_log;"
+    log_level -i "Delete previous created log data($WORDPRESS_LOG_FOLDERNAME, $WORDPRESS_TAR_FILENAME) "
+    ssh -t -i $IDENTITY_FILE \
+    $USER_NAME@$MASTER_IP \
+    "sudo rm -f -r $WORDPRESS_LOG_FOLDERNAME $WORDPRESS_TAR_FILENAME || true"
     
-    log_level -i "Copy log file(var_log.tar.gz) to $OUTPUTFOLDER"
-    scp -r -i $IDENTITYFILE \
-    $AZUREUSER@$MASTERVMIP:/home/$AZUREUSER/var_log.tar.gz $OUTPUTFOLDER
-    log_level -i "Logs are copied into $OUTPUTFOLDER"
+    log_level -i "Create folder $WORDPRESS_LOG_FOLDERNAME "
+    ssh -t -i $IDENTITY_FILE \
+    $USER_NAME@$MASTER_IP \
+    "mkdir -p $WORDPRESS_LOG_FOLDERNAME"
     
-    wpRelease=$(ssh -t -i $IDENTITYFILE $AZUREUSER@$MASTERVMIP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+' || true")
+    log_level -i "Copy logs to $WORDPRESS_LOG_FOLDERNAME "
+    ssh -t -i $IDENTITY_FILE \
+    $USER_NAME@$MASTER_IP \
+    "sudo cp -R /var/log /home/$USER_NAME/$WORDPRESS_LOG_FOLDERNAME;"
+    
+    ssh -t -i $IDENTITY_FILE \
+    $USER_NAME@$MASTER_IP \
+    "sudo tar -zcvf $WORDPRESS_TAR_FILENAME $WORDPRESS_LOG_FOLDERNAME;"
+    
+    log_level -i "Copy log file($WORDPRESS_TAR_FILENAME) to $OUTPUT_FOLDER"
+    scp -r -i $IDENTITY_FILE \
+    $USER_NAME@$MASTER_IP:/home/$USER_NAME/$WORDPRESS_TAR_FILENAME $OUTPUT_FOLDER
+    log_level -i "Logs are copied into $OUTPUT_FOLDER"
+    
+    # Rechecking to make sure deployment cleanup done successfully.
+    wpRelease=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+' || true")
     if [ ! -z "$wpRelease" ]; then
         log_level -e "Removal of wordpress app failed($wpRelease)."
-        exit 1
+        result="failed"
+        printf '{"result":"%s","error":"%s"}\n' "$result" "App($wordPressDeploymentName) cleanup was not successfull." > $OUTPUT_SUMMARYFILE
     else
-        log_level -i "Wordpress app removed successfully."
+        log_level -i "Wordpress app($wordPressDeploymentName) removed successfully."
+        result="pass"
+        printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
     fi
-    result="pass"
-    printf '{"result":"%s"}\n' "$result" > $OUTPUT_FILE
     
+    # Todo Remove files copied to master.
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
-} 2>&1 | tee $LOGFILENAME
+} 2>&1 | tee $LOG_FILENAME
