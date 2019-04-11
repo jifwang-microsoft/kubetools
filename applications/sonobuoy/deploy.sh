@@ -74,7 +74,7 @@ touch $LOG_FILENAME
     GIT_REPROSITORY="${GIT_REPROSITORY:-msazurestackworkloads/kubetools}"
     GIT_BRANCH="${GIT_BRANCH:-master}"
     INSTALL_PREREQUISITE="install_prerequisite.sh"
-    
+    TEST_DIRECTORY="/home/$USER_NAME/sonobuoy"
     
     log_level -i "------------------------------------------------------------------------"
     log_level -i "Input Parameters"
@@ -100,11 +100,12 @@ touch $LOG_FILENAME
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Inner Variables"
     log_level -i "------------------------------------------------------------------------"
-    log_level -i "INSTALL_PREREQUISITE  : $INSTALL_PREREQUISITE"
+    log_level -i "INSTALL_PREREQUISITE     : $INSTALL_PREREQUISITE"
     log_level -i "KUBERNETES_MAJOR_VERSION : $KUBERNETES_MAJOR_VERSION"
     log_level -i "KUBERNETES_VERSION       : $KUBERNETES_VERSION"    
     log_level -i "SONOBUOY_TAR_FILENAME    : $SONOBUOY_TAR_FILENAME"
     log_level -i "SONOBUOY_VERSION         : $SONOBUOY_VERSION"
+    log_level -i "TEST_DIRECTORY           : $TEST_DIRECTORY"
     log_level -i "------------------------------------------------------------------------"
     
     # ----------------------------------------------------------------------------------------
@@ -119,14 +120,16 @@ touch $LOG_FILENAME
         exit 1
     fi
     
+    log_level -i "Create test folder($TEST_DIRECTORY)"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $TEST_DIRECTORY"
     log_level -i "Copy file($INSTALL_PREREQUISITE) to VM."
     scp -i $IDENTITY_FILE \
     $OUTPUT_FOLDER/$INSTALL_PREREQUISITE \
-    $USER_NAME@$MASTER_IP:/home/$USER_NAME/
+    $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/
     
     # INSTALL PREREQUISITE
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo chmod 744 $INSTALL_PREREQUISITE; "
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "./$INSTALL_PREREQUISITE;"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo chmod 744 $TEST_DIRECTORY/$INSTALL_PREREQUISITE; "
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; ./$INSTALL_PREREQUISITE;"
     goPath=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "go env | grep GOPATH || true")
     if [ -z "$goPath" ]; then
         log_level -e "GO is not installed."
@@ -151,14 +154,14 @@ touch $LOG_FILENAME
     log_level -i "Copy file($SONOBUOY_TAR_FILENAME) to VM."
     scp -i $IDENTITY_FILE \
     $OUTPUT_FOLDER/$SONOBUOY_TAR_FILENAME \
-    $USER_NAME@$MASTER_IP:/home/$USER_NAME/
+    $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/
 
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo tar -xvf $SONOBUOY_TAR_FILENAME"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; sudo tar -xvf $SONOBUOY_TAR_FILENAME"
     # ----------------------------------------------------------------------------------------
     # Launch Sonobuoy
     
-    #ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "./sonobuoy run --mode quick;"
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "./sonobuoy run;"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; ./sonobuoy run --mode quick;"
+    #ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; ./sonobuoy run;"
     
     result="pass"
     printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE

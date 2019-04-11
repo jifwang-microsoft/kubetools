@@ -74,9 +74,10 @@ LOG_FILENAME="$OUTPUT_FOLDER/cleanup.log"
 touch $LOG_FILENAME
 
 {
-    WORDPRESS_LOG_FOLDERNAME="var_log"
-    WORDPRESS_TAR_FILENAME="var_log.tar.gz"
-    
+    WORDPRESS_LOG_FOLDERNAME="var_log"$(date +"%m-%d-%y-%H-%M")
+    WORDPRESS_TAR_FILENAME=$WORDPRESS_LOG_FOLDERNAME".tar.gz"
+    TEST_DIRECTORY="/home/$USER_NAME/wordpress"
+
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Input Parameters"
     log_level -i "------------------------------------------------------------------------"
@@ -89,6 +90,7 @@ touch $LOG_FILENAME
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Inner Variables"
     log_level -i "------------------------------------------------------------------------"
+    log_level -i "TEST_DIRECTORY           : $TEST_DIRECTORY"
     log_level -i "WORDPRESS_LOG_FOLDERNAME : $WORDPRESS_LOG_FOLDERNAME"
     log_level -i "WORDPRESS_TAR_FILENAME   : $WORDPRESS_TAR_FILENAME"
     log_level -i "------------------------------------------------------------------------"
@@ -104,28 +106,23 @@ touch $LOG_FILENAME
         sleep 30s
     fi
     
-    log_level -i "Delete previous created log data($WORDPRESS_LOG_FOLDERNAME, $WORDPRESS_TAR_FILENAME) "
-    ssh -t -i $IDENTITY_FILE \
-    $USER_NAME@$MASTER_IP \
-    "sudo rm -f -r $WORDPRESS_LOG_FOLDERNAME $WORDPRESS_TAR_FILENAME || true"
-    
     log_level -i "Create folder $WORDPRESS_LOG_FOLDERNAME "
     ssh -t -i $IDENTITY_FILE \
     $USER_NAME@$MASTER_IP \
-    "mkdir -p $WORDPRESS_LOG_FOLDERNAME"
+    "mkdir -p $TEST_DIRECTORY/$WORDPRESS_LOG_FOLDERNAME"
     
     log_level -i "Copy logs to $WORDPRESS_LOG_FOLDERNAME "
     ssh -t -i $IDENTITY_FILE \
     $USER_NAME@$MASTER_IP \
-    "sudo cp -R /var/log /home/$USER_NAME/$WORDPRESS_LOG_FOLDERNAME;"
+    "sudo cp -R /var/log $TEST_DIRECTORY/$WORDPRESS_LOG_FOLDERNAME;"
     
     ssh -t -i $IDENTITY_FILE \
     $USER_NAME@$MASTER_IP \
-    "sudo tar -zcvf $WORDPRESS_TAR_FILENAME $WORDPRESS_LOG_FOLDERNAME;"
+    "sudo tar -zcvf $TEST_DIRECTORY/$WORDPRESS_TAR_FILENAME $TEST_DIRECTORY/$WORDPRESS_LOG_FOLDERNAME;"
     
     log_level -i "Copy log file($WORDPRESS_TAR_FILENAME) to $OUTPUT_FOLDER"
     scp -r -i $IDENTITY_FILE \
-    $USER_NAME@$MASTER_IP:/home/$USER_NAME/$WORDPRESS_TAR_FILENAME $OUTPUT_FOLDER
+    $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/$WORDPRESS_TAR_FILENAME $OUTPUT_FOLDER
     log_level -i "Logs are copied into $OUTPUT_FOLDER"
     
     # Rechecking to make sure deployment cleanup done successfully.
@@ -140,7 +137,8 @@ touch $LOG_FILENAME
         printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
     fi
     
-    # Todo Remove files copied to master.
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo rm -rf $TEST_DIRECTORY;"
+
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
 } 2>&1 | tee $LOG_FILENAME

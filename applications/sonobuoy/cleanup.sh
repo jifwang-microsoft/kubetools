@@ -79,9 +79,15 @@ touch $LOG_FILENAME
     log_level -i "USER_NAME             : $USER_NAME"
     log_level -i "------------------------------------------------------------------------"
     
-    log_level -i "Deleting Namespace for sonobuoy..."
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "./sonobuoy delete;"
+    TEST_DIRECTORY="/home/$USER_NAME/sonobuoy"
     log_level -i "------------------------------------------------------------------------"
+    log_level -i "                Inner Variables"
+    log_level -i "------------------------------------------------------------------------"
+    log_level -i "TEST_DIRECTORY           : $TEST_DIRECTORY"
+    log_level -i "------------------------------------------------------------------------"
+
+    log_level -i "Deleting Namespace for sonobuoy..."
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; ./sonobuoy delete;"
     
     i=0
     while [ $i -lt 10 ];do
@@ -100,15 +106,13 @@ touch $LOG_FILENAME
         log_level -e "Sonobuoy pods($sonobuoyPod) are still up and running. Cleanup failed."
         result="failed"
         printf '{"result":"%s","error":"%s"}\n' "$result" "Sonobuoy pods($sonobuoyPod) are still up and running. Cleanup failed." > $OUTPUT_SUMMARYFILE
-        exit 1
     else
         log_level -i "Sonobuoy app cleanup done."
+        result="pass"
+        printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
     fi
     
-    result="pass"
-    printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
-    
-    # Todo Remove files copied to master.
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo rm -rf $TEST_DIRECTORY;"
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
 } 2>&1 | tee $LOG_FILENAME

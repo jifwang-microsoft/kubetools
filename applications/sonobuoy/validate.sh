@@ -79,6 +79,12 @@ touch $LOG_FILENAME
     log_level -i "USER_NAME             : $USER_NAME"
     log_level -i "------------------------------------------------------------------------"
     
+    TEST_DIRECTORY="/home/$USER_NAME/sonobuoy"
+    log_level -i "------------------------------------------------------------------------"
+    log_level -i "                Inner Variables"
+    log_level -i "------------------------------------------------------------------------"
+    log_level -i "TEST_DIRECTORY           : $TEST_DIRECTORY"
+    log_level -i "------------------------------------------------------------------------"
     # Check if Sonobuoy pods are running and up
     i=0
     while [ $i -lt 10 ];do
@@ -105,7 +111,7 @@ touch $LOG_FILENAME
     # Check Sonobuoy runs are in progress.
     while true
     do
-        runStatus=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "./sonobuoy status | grep running || true")
+        runStatus=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; ./sonobuoy status | grep running || true")
         log_level -i "Status of the run is: $runStatus"
         if [ -z "$runStatus" ]; then
             break
@@ -116,9 +122,9 @@ touch $LOG_FILENAME
     done
     
     # Retrieve test case details.
-    ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "./sonobuoy retrieve;"
+    ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; ./sonobuoy retrieve;"
     sleep 30s
-    tarfile=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP 'ls | grep _sonobuoy_ | sort -r | head -1')
+    tarfile=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP 'ls -r | grep _sonobuoy_ | sort -r | head -1')
 
     if [ -z "$tarfile" ]; then
         log_level -e "No tar file got created. Sonobuoy retrieve command failed."
@@ -131,14 +137,14 @@ touch $LOG_FILENAME
 
     resultfolder="${tarfile%.*.*}"
     log_level -i "Copy tar file($tarfile) locally to $OUTPUT_FOLDER"
-    scp -r -i $IDENTITY_FILE $USER_NAME@$MASTER_IP:/home/$USER_NAME/$tarfile $OUTPUT_FOLDER
+    scp -r -i $IDENTITY_FILE $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/$tarfile $OUTPUT_FOLDER
     
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir $resultfolder"
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo tar -xvf $tarfile -C ~/$resultfolder"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $TEST_DIRECTORY/$resultfolder"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; sudo tar -xvf $tarfile -C $TEST_DIRECTORY/$resultfolder"
 
     # Todo check if file exist.
     log_level -i "Copy junit file(junit_01.xml) locally to $OUTPUT_FOLDER"
-    scp -r -i $IDENTITY_FILE $USER_NAME@$MASTER_IP:/home/$USER_NAME/$resultfolder/plugins/e2e/results/junit_01.xml $OUTPUT_FOLDER
+    scp -r -i $IDENTITY_FILE $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/$resultfolder/plugins/e2e/results/junit_01.xml $OUTPUT_FOLDER
     
     result="pass"
     printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE

@@ -78,7 +78,8 @@ touch $LOG_FILENAME
     GIT_BRANCH="${GIT_BRANCH:-master}"
     HELM_INSTALL_FILENAME="install_helm.sh"
     WORDPRESS_INSTALL_FILEANME="install_wordpress_using_helm.sh"
-    
+    TEST_DIRECTORY="/home/$USER_NAME/wordpress"
+
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Input Parameters"
     log_level -i "------------------------------------------------------------------------"
@@ -94,7 +95,9 @@ touch $LOG_FILENAME
     log_level -i "                Inner Variables"
     log_level -i "------------------------------------------------------------------------"
     log_level -i "HELM_INSTALL_FILENAME       : $HELM_INSTALL_FILENAME"
+    log_level -i "TEST_DIRECTORY              : $TEST_DIRECTORY"
     log_level -i "WORDPRESS_INSTALL_FILEANME  : $WORDPRESS_INSTALL_FILEANME"
+    
     log_level -i "------------------------------------------------------------------------"
     
     curl -o $OUTPUT_FOLDER/$HELM_INSTALL_FILENAME \
@@ -115,18 +118,21 @@ touch $LOG_FILENAME
         exit 1
     fi
     
+    log_level -i "Create test folder($TEST_DIRECTORY)"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $TEST_DIRECTORY"
+
     log_level -i "Copy files to K8s master node."
     scp -i $IDENTITY_FILE \
     $OUTPUT_FOLDER/$HELM_INSTALL_FILENAME \
     $OUTPUT_FOLDER/$WORDPRESS_INSTALL_FILEANME \
-    $USER_NAME@$MASTER_IP:/home/$USER_NAME/
+    $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/
     
     # Install Helm chart
     log_level -i "=========================================================================="
     log_level -i "Installing Helm chart."
     ssh -t -i $IDENTITY_FILE \
     $USER_NAME@$MASTER_IP \
-    "sudo chmod 744 $HELM_INSTALL_FILENAME; ./$HELM_INSTALL_FILENAME;"
+    "sudo chmod 744 $TEST_DIRECTORY/$HELM_INSTALL_FILENAME; cd $TEST_DIRECTORY; ./$HELM_INSTALL_FILENAME;"
     helmServerVer=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm version | grep -o 'Server: \(.*\)[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}'")
     if [ -z "$helmServerVer" ]; then
         log_level -e "Helm install failed."
@@ -142,7 +148,7 @@ touch $LOG_FILENAME
     # Install Wordpress app
     ssh -t -i $IDENTITY_FILE \
     $USER_NAME@$MASTER_IP \
-    "sudo chmod 744 $WORDPRESS_INSTALL_FILEANME.sh; ./$WORDPRESS_INSTALL_FILEANME;"
+    "sudo chmod 744 $TEST_DIRECTORY/$WORDPRESS_INSTALL_FILEANME.sh; cd $TEST_DIRECTORY; ./$WORDPRESS_INSTALL_FILEANME;"
     wpRelease=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+'")
     if [ -z "$wpRelease" ]; then
         log_level -e "Wordpress deployment failed using Helm."
