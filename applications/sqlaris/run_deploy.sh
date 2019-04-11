@@ -138,6 +138,17 @@ touch $LOG_FILE_NAME
     log_level -i "USER: $AZURE_USER"
     log_level -i "-----------------------------------------------------------------------------"
     
+    #Install jq
+    #make jq version a variable
+    log_level -i "Install jq"
+    curl -O -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe
+    if [ ! -f jq-win64.exe ]; then
+        log_level -e "File(jq-win64.exe) failed to download."
+        exit 1
+    fi
+    mv jq-win64.exe /usr/bin/jq
+    
+    
     log_level -i "Reading parameters from json($PARAMETER_FILE)"
     GITURL=`cat "$PARAMETER_FILE" | jq -r '.gitUrl'`
     
@@ -166,16 +177,6 @@ touch $LOG_FILE_NAME
         log_level -e "File($DEPLOYMENT_SCRIPT) failed to download."
         exit 1
     fi
-    
-    #Install jq
-    #make jq version a variable
-    log_level -i "Install jq"
-    curl -O -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe
-    if [ ! -f jq-win64.exe ]; then
-        log_level -e "File(jq-win64.exe) failed to download."
-        exit 1
-    fi
-    mv jq-win64.exe /usr/bin/jq
     
     #Read parameters from json files
     log_level -i "Converting parameters file($PARAMETER_FILE) to unix format"
