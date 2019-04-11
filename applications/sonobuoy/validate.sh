@@ -121,6 +121,8 @@ touch $LOG_FILENAME
         fi
     done
     
+    runStatus=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; ./sonobuoy status || true")
+    log_level -i "Final runs status is $runStatus."
     # Retrieve test case details.
     ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; ./sonobuoy retrieve;"
     sleep 30s
