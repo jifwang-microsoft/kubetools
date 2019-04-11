@@ -126,7 +126,7 @@ touch $LOG_FILENAME
     # Retrieve test case details.
     ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; ./sonobuoy retrieve;"
     sleep 30s
-    tarfile=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP 'ls -r | grep _sonobuoy_ | sort -r | head -1')
+    tarfile=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP 'ls -R | grep _sonobuoy_ | sort -r | head -1')
 
     if [ -z "$tarfile" ]; then
         log_level -e "No tar file got created. Sonobuoy retrieve command failed."

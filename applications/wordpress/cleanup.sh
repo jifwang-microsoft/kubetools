@@ -77,7 +77,7 @@ touch $LOG_FILENAME
     WORDPRESS_LOG_FOLDERNAME="var_log"$(date +"%m-%d-%y-%H-%M")
     WORDPRESS_TAR_FILENAME=$WORDPRESS_LOG_FOLDERNAME".tar.gz"
     TEST_DIRECTORY="/home/$USER_NAME/wordpress"
-
+    
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Input Parameters"
     log_level -i "------------------------------------------------------------------------"
@@ -126,7 +126,18 @@ touch $LOG_FILENAME
     log_level -i "Logs are copied into $OUTPUT_FOLDER"
     
     # Rechecking to make sure deployment cleanup done successfully.
-    wpRelease=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+' || true")
+    i=0
+    while [ $i -lt 20 ];do
+        wpRelease=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+' || true")
+        if [ ! -z "$wpRelease" ]; then
+            log_level -i "Removal of wordpress app in progress($wpRelease)."
+            sleep 30s
+        else
+            break
+        fi
+        let i=i+1
+    done
+    
     if [ ! -z "$wpRelease" ]; then
         log_level -e "Removal of wordpress app failed($wpRelease)."
         result="failed"
@@ -138,7 +149,7 @@ touch $LOG_FILENAME
     fi
     
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo rm -rf $TEST_DIRECTORY;"
-
+    
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
 } 2>&1 | tee $LOG_FILENAME

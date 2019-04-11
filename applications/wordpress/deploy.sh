@@ -148,7 +148,7 @@ touch $LOG_FILENAME
     # Install Wordpress app
     ssh -t -i $IDENTITY_FILE \
     $USER_NAME@$MASTER_IP \
-    "sudo chmod 744 $TEST_DIRECTORY/$WORDPRESS_INSTALL_FILEANME.sh; cd $TEST_DIRECTORY; ./$WORDPRESS_INSTALL_FILEANME;"
+    "sudo chmod 744 $TEST_DIRECTORY/$WORDPRESS_INSTALL_FILEANME; cd $TEST_DIRECTORY; ./$WORDPRESS_INSTALL_FILEANME;"
     wpRelease=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+'")
     if [ -z "$wpRelease" ]; then
         log_level -e "Wordpress deployment failed using Helm."
