@@ -1,19 +1,25 @@
 {
 	"clusterARMTemplate": {
-		"githubRepo": "Bhuvaneswari-Santharam/azurestack-gallery",
-		"githubBranch": "bhsantha-aks-e2e",
-		"folderPath": "AKSEngine-E2E/Template",
+		"githubRepo": "msazurestackworkloads/azurestack-gallery",
+		"githubBranch": "ci-test",
+		"folderPath": "kubernetes/template/DeploymentTemplates",
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
 		"aksEngine": {
 			"githubRepo": "msazurestackworkloads/aks-engine",
-			"githubBranch": "azsmaster"
+			"githubBranch": "azsmaster",
+			"apiModel":"https://raw.githubusercontent.com/honcao/aks-engine/e2e/examples/kubernetes-azure-stack.json",
+			"upgradeVersion": "1.12",
+			"nodeCount": "5",
+			"upgrade": "true",
+			"scale": "true"
 		},
 		"minNumberofAzsNodes": 1,
+		"removeDeployment": "true",
 		"deploymentMatrix": [
 			{
 				"agentPoolProfileCount": 3,
 				"agentPoolProfilevmSize": "Standard_D2_v2",
-				"masterPoolProfileCount": 1,
+				"masterPoolProfileCount": 3,
 				"masterPoolProfilevmSize": "Standard_D2_v2",
 				"storageProfile": "ManagedDisk",
 				"hyperkubeImagesVersion": "1.11"
@@ -27,6 +33,5 @@
 		"filename": "getkuberneteslogs.sh"
 	},
 	"testSuite": {
-  }
-
+	}
 }
