@@ -138,6 +138,10 @@ touch $LOG_FILE_NAME
     log_level -i "USER: $AZURE_USER"
     log_level -i "-----------------------------------------------------------------------------"
     
+    #Read parameters from json files
+    log_level -i "Converting parameters file($PARAMETER_FILE) to unix format"
+    dos2unix $PARAMETER_FILE
+    
     #Install jq
     #make jq version a variable
     log_level -i "Install jq"
@@ -177,10 +181,6 @@ touch $LOG_FILE_NAME
         log_level -e "File($DEPLOYMENT_SCRIPT) failed to download."
         exit 1
     fi
-    
-    #Read parameters from json files
-    log_level -i "Converting parameters file($PARAMETER_FILE) to unix format"
-    dos2unix $PARAMETER_FILE
     
     log_level -i "Backing up identity files at ($IDENTITY_FILE_BACKUP_PATH)"
     ssh -t -i $IDENTITY_FILE $AZURE_USER@$HOST "if [ -f /home/$AZURE_USER/.ssh/id_rsa ]; then mkdir -p $IDENTITY_FILE_BACKUP_PATH;  sudo mv /home/$AZURE_USER/.ssh/id_rsa $IDENTITY_FILE_BACKUP_PATH; fi;"
