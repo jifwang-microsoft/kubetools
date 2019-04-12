@@ -13,9 +13,9 @@
 		"deploymentMatrix": [
 			{
 				"agentPoolProfileCount": 3,
-				"agentPoolProfilevmSize": "Standard_D5_v2",
+				"agentPoolProfilevmSize": "Standard_DS5_v2",
 				"masterPoolProfileCount": 1,
-				"masterPoolProfilevmSize": "Standard_D5_v2",
+				"masterPoolProfilevmSize": "Standard_DS5_v2",
 				"storageProfile": "ManagedDisk",
 				"hyperkubeImagesVersion": "1.11"
 			}
