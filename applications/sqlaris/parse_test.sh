@@ -80,9 +80,9 @@ ARIS_TEST_RESULTS="$HOME/$TEST_DIRECTORY/aris/projects/test/output/junit/"
 log_level -i "Checking if folder($ARIS_TEST_RESULTS) exists"
 if [[ -d $ARIS_TEST_RESULTS ]]; then
     log_level -i "Directory ($ARIS_TEST_RESULTS) exists"
-    exit 1
 else
     log_level -e "Directory ($ARIS_TEST_RESULTS) does not exist"
+    exit 1
 fi
 
 log_level -i "Moving Test Results into a test directory"

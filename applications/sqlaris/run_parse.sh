@@ -154,6 +154,9 @@ touch $LOG_FILE_NAME
     log_level -i "Copying parsed logs from ($TEST_DIRECTORY)"
     scp -i $IDENTITY_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY/$PARSE_DVM_LOG_FILE $OUTPUT_FOLDER
     
+    log_level -i "Copying over test results file"
+    scp -r -i $IDENTITY_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY/$JUNIT_FOLDER_LOCATION/results.xml $OUTPUT_FOLDER
+    
     log_level -i "Copying over test results from ($JUNIT_FOLDER_LOCATION)"
     scp -r -i $IDENTITY_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY/$JUNIT_FOLDER_LOCATION $OUTPUT_FOLDER
     
