@@ -41,7 +41,6 @@
 		"applications": [
 			{
 				"name": "sonobuoy",
-				"junitFile": "junit_01.xml",
 				"deployment": {
 					"scriptName": "deploy.sh",
 					"summaryFile": "deploy.json"
