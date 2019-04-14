@@ -101,7 +101,7 @@ touch $LOG_FILENAME
     log_level -i "------------------------------------------------------------------------"
     
     curl -o $OUTPUT_FOLDER/$HELM_INSTALL_FILENAME \
-    https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/wordpress/$HELM_INSTALL_FILENAME
+    https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/common/$HELM_INSTALL_FILENAME
     if [ ! -f $OUTPUT_FOLDER/$HELM_INSTALL_FILENAME ]; then
         log_level -e "File($HELM_INSTALL_FILENAME) failed to download."
         result="failed"
