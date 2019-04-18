@@ -6,7 +6,7 @@
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
 		"aksEngine": {
 			"githubRepo": "msazurestackworkloads/aks-engine",
-			"githubBranch": "azsmaster"
+			"githubBranch": "patch-release-v0.34.2-azs-1904-17"
 		},
 		"minNumberofAzsNodes": 1,
 		"removeDeployment": "true",
