@@ -123,16 +123,11 @@ export KUBECONFIG="$HOME/$TEST_DIRECTORY/$KUBE_CONFIG_FILENAME"
 export DOCKER_IMAGE_TAG=latest
 
 log_level -i "Changing directories into aris"
-cd aris
+cd $HOME/$TEST_DIRECTORY/aris
 
 log_level -i "Deploying SQL Aris"
 make deploy-azure
 
 log_level -i "SQL Aris Deployment Complete"
-
-log_level -i "Running SQL Aris Tests"
-make run-tests-azure
-
-log_level -i "SQL Aris Tests Completed"
 
 echo 0

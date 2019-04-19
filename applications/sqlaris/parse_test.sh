@@ -72,10 +72,29 @@ log_level -i "TEST_DIRECTORY: $TEST_DIRECTORY"
 log_level -i "TEST_OUTPUT_DIRECTORY: $TEST_OUTPUT_DIRECTORY"
 log_level -i "-----------------------------------------------------------------------------"
 
+KUBE_CONFIG_LOCATION=`sudo find  $HOME/$TEST_DIRECTORY/ -type f -iname "kubeconfig*"`
+
+log_level -i "Finding Kubeconfig file from path ($KUBE_CONFIG_LOCATION)"
+KUBE_CONFIG_FILENAME=$(basename $KUBE_CONFIG_LOCATION)
+
+log_level -i "Setting Kubectl config variable as per required by k8s"
+export KUBECONFIG="$HOME/$TEST_DIRECTORY/$KUBE_CONFIG_FILENAME"
+export DOCKER_IMAGE_TAG=latest
+
+log_level -i "Changing directories into aris"
+cd $HOME/$TEST_DIRECTORY/aris
+
+#The make run-tests-azure command returns an error status when there is one or more test failure. 
+#We mark the command as true to allow the script the collect the logs even if there are test failures
+log_level -i "Running SQL Aris Tests"
+make run-tests-azure || true
+
+log_level -i "SQL Aris Tests Completed"
+
 log_level -i "Making output directory($HOME/$TEST_DIRECTORY/$TEST_OUTPUT_DIRECTORY)"
 mkdir $HOME/$TEST_DIRECTORY/$TEST_OUTPUT_DIRECTORY
 
-ARIS_TEST_RESULTS="$HOME/$TEST_DIRECTORY/aris/projects/test/output/junit/"
+ARIS_TEST_RESULTS="$HOME/$TEST_DIRECTORY/aris/projects/test/output/junit"
 
 log_level -i "Checking if folder($ARIS_TEST_RESULTS) exists"
 if [[ -d $ARIS_TEST_RESULTS ]]; then
@@ -86,10 +105,10 @@ else
 fi
 
 log_level -i "Moving Test Results into a test directory"
-sudo cp -r $HOME/$TEST_DIRECTORY/aris/projects/test/output/junit/* $HOME/$TEST_DIRECTORY/$TEST_OUTPUT_DIRECTORY
+sudo cp -r $ARIS_TEST_RESULTS/* $HOME/$TEST_DIRECTORY/$TEST_OUTPUT_DIRECTORY
 
 log_level -i "Change directory to folder ($TEST_OUTPUT_DIRECTORY)"
-cd $TEST_OUTPUT_DIRECTORY
+cd $HOME/$TEST_DIRECTORY/$TEST_OUTPUT_DIRECTORY
 
 log_level -i "Collecting junit merge file"
 curl -O https://gist.githubusercontent.com/cgoldberg/4320815/raw/efcf6830f516f79b82e7bd631b076363eda3ed99/merge_junit_results.py
