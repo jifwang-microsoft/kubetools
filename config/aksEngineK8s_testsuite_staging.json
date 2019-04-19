@@ -14,14 +14,6 @@
 			{
 				"agentPoolProfileCount": 3,
 				"agentPoolProfilevmSize": "Standard_D2_v2",
-				"masterPoolProfileCount": 1,
-				"masterPoolProfilevmSize": "Standard_D2_v2",
-				"storageProfile": "BlobDisk",
-				"hyperkubeImagesVersion": "1.11"
-			},
-			{
-				"agentPoolProfileCount": 3,
-				"agentPoolProfilevmSize": "Standard_D2_v2",
 				"masterPoolProfileCount": 3,
 				"masterPoolProfilevmSize": "Standard_D2_v2",
 				"storageProfile": "ManagedDisk",
@@ -41,6 +33,7 @@
 		"applications": [
 			{
 				"name": "sonobuoy",
+				"junitFile": "junit_01.xml",
 				"deployment": {
 					"scriptName": "deploy.sh",
 					"summaryFile": "deploy.json"
