@@ -91,6 +91,24 @@ make run-tests-azure || true
 
 log_level -i "SQL Aris Tests Completed"
 
+#This command may cause an error where one or more log locations is/are not available. We mark this as true since this error should not case the script to fail
+log_level -i "Running log collection"
+make copy-logs || true
+
+LOG_LOCATION="$HOME/$TEST_DIRECTORY/aris/output/logs"
+
+log_level -i "Checking if folder($LOG_LOCATION) exists"
+if [[ -d $LOG_LOCATION ]]; then
+    log_level -i "Directory ($LOG_LOCATION) exists"
+else
+    log_level -e "Directory ($LOG_LOCATION) does not exist"
+    exit 1
+fi
+
+sudo cp -r $LOG_LOCATION $HOME/$TEST_DIRECTORY
+
+log_level -i "Log collection complete"
+
 log_level -i "Making output directory($HOME/$TEST_DIRECTORY/$TEST_OUTPUT_DIRECTORY)"
 mkdir $HOME/$TEST_DIRECTORY/$TEST_OUTPUT_DIRECTORY
 

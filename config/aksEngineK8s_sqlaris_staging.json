@@ -29,7 +29,7 @@
 	},
 	"testSuite": {
 		"githubRepo": "msazurestackworkloads/kubetools",
-		"githubBranch": "master",
+		"githubBranch": "arislogs",
 		"applications": [
 			{
 				"name": "sqlaris",

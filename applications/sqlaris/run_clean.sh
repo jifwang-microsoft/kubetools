@@ -97,7 +97,7 @@ touch $LOG_FILE_NAME
     log_level -i "Parameters passed"
     
     GIT_REPROSITORY="${GIT_REPROSITORY:-msazurestackworkloads/kubetools}"
-    GIT_BRANCH="${GIT_BRANCH:-master}"
+    GIT_BRANCH="${GIT_BRANCH:-arislogs}"
     CLEAN_SCRIPT="clean_test.sh"
     
     log_level -i "-----------------------------------------------------------------------------"

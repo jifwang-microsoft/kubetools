@@ -105,7 +105,7 @@ touch $LOG_FILE_NAME
     log_level -i "Parameters passed"
     
     GIT_REPROSITORY="${GIT_REPROSITORY:-msazurestackworkloads/kubetools}"
-    GIT_BRANCH="${GIT_BRANCH:-master}"
+    GIT_BRANCH="${GIT_BRANCH:-arislogs}"
     PARSE_SCRIPT="parse_test.sh"
     
     log_level -i "-----------------------------------------------------------------------------"
@@ -153,6 +153,9 @@ touch $LOG_FILE_NAME
     
     log_level -i "Copying parsed logs from ($TEST_DIRECTORY)"
     scp -i $IDENTITY_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY/$PARSE_DVM_LOG_FILE $OUTPUT_FOLDER
+
+    log_level -i "Copying sql aris logs from ($TEST_DIRECTORY)"
+    scp -r -i $IDENTITY_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY/logs $OUTPUT_FOLDER
     
     log_level -i "Copying over test results file"
     scp -r -i $IDENTITY_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY/$JUNIT_FOLDER_LOCATION/results.xml $OUTPUT_FOLDER
