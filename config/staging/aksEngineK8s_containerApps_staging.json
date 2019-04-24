@@ -17,7 +17,7 @@
 				"aksEngine": {
 					"githubRepo": "msazurestackworkloads/aks-engine",
 					"githubBranch": "patch-release-v0.34.2-azs-1904-17",
-					"releaseFileName": "patch-release-v0.34.2-azs-1904-17.gz",
+					"releaseFileName": "aks-engine-patch-release-v0.34.2-azs-1904-17-linux-amd64.gz",
 					"apiModelPrefix":"azurestack-kubernetes"
 				}
 			}
