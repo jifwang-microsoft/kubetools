@@ -14,7 +14,7 @@
 			"scale": "true"
 		},
 		"minNumberofAzsNodes": 1,
-		"removeDeployment": "true",
+		"removeDeployment": "false",
 		"deploymentMatrix": [
 			{
 				"agentPoolProfileCount": 3,
