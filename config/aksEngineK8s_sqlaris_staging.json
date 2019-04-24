@@ -4,10 +4,6 @@
 		"githubBranch": "ci-test",
 		"folderPath": "kubernetes/template/DeploymentTemplates",
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
-		"aksEngine": {
-			"githubRepo": "msazurestackworkloads/aks-engine",
-			"githubBranch": "patch-release-v0.34.2-azs-1904-17"
-		},
 		"minNumberofAzsNodes": 4,
 		"removeDeployment": "true",
 		"deploymentMatrix": [
@@ -17,7 +13,13 @@
 				"masterPoolProfileCount": 1,
 				"masterPoolProfilevmSize": "Standard_DS5_v2",
 				"storageProfile": "ManagedDisk",
-				"hyperkubeImagesVersion": "1.11"
+				"hyperkubeImagesVersion": "1.11",
+				"aksEngine": {
+					"githubRepo": "msazurestackworkloads/aks-engine",
+					"githubBranch": "patch-release-v0.34.2-azs-1904-17",
+					"releaseFileName": "aks-engine-patch-release-v0.34.2-azs-1904-17-linux-amd64.gz",
+					"apiModelPrefix":"azurestack-kubernetes"
+				}
 			}
 		]
 	},
