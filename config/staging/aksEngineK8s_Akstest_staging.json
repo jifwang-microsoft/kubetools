@@ -1,12 +1,12 @@
 {
 	"clusterARMTemplate": {
-		"githubRepo": "msazurestackworkloads/azurestack-gallery",
-		"githubBranch": "ci-test",
-		"folderPath": "kubernetes/template/DeploymentTemplates",
+		"githubRepo": "Bhuvaneswari-Santharam/azurestack-gallery",
+		"githubBranch": "bhsantha-aks-e2e",
+		"folderPath": "AKSEngine-E2E/Template",
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
 		"aksEngine": {
 			"githubRepo": "msazurestackworkloads/aks-engine",
-			"githubBranch": "next",
+			"githubBranch": "azmaster-releasev0.34.3",
 			"apiModel":"https://raw.githubusercontent.com/honcao/aks-engine/e2e/examples/kubernetes-azure-stack.json",
 			"upgradeVersion": "1.12",
 			"nodeCount": 5,
