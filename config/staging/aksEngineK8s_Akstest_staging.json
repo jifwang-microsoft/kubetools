@@ -7,7 +7,7 @@
 		"aksEngine": {
 			"githubRepo": "msazurestackworkloads/aks-engine",
 			"githubBranch": "azmaster-releasev0.34.3",
-			"apiModel":"https://raw.githubusercontent.com/honcao/aks-engine/e2e/examples/kubernetes-azure-stack.json",
+			"apiModel":"https://raw.githubusercontent.com/Bhuvaneswari-Santharam/azurestack-gallery/bhsantha-aks-e2e/AKSEngine-E2E/kubernetes-azurestack.json",
 			"upgradeVersion": "1.12",
 			"nodeCount": 5,
 			"upgrade": "true",
