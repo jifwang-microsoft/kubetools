@@ -16,7 +16,10 @@
 		"ScaleandUpgrade":{
 			"githubRepo": "Bhuvaneswari-Santharam/azurestack-gallery",
 			"githubBranch": "bhsantha-aks-e2e",
-			"folderPath": "AKSEngine-E2E/AksTest-Scripts"
+			"folderPath": "AKSEngine-E2E/AksTest-Scripts",
+			"fileName": "runAksScript.sh",
+			"scaleScript": "aksEngineScale.sh",
+			"UpgradeScript": "aksEngineUpgrade.sh"
 		},
 		"minNumberofAzsNodes": 1,
 		"removeDeployment": "false",
