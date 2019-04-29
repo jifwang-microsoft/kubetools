@@ -7,7 +7,7 @@
 		"aksEngine": {
 			"githubRepo": "msazurestackworkloads/aks-engine",
 			"githubBranch": "azmaster-releasev0.34.3",
-			"apiModel":"kubernetes-azurestack.json",
+			"apiModel":"kubernetes-azurestack",
 			"upgradeVersion": "1.12.7",
 			"nodeCount": 5,
 			"upgrade": "true",
