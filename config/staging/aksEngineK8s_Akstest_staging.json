@@ -27,7 +27,7 @@
 			{
 				"agentPoolProfileCount": 3,
 				"agentPoolProfilevmSize": "Standard_D2_v2",
-				"masterPoolProfileCount": 3,
+				"masterPoolProfileCount": 1,
 				"masterPoolProfilevmSize": "Standard_D2_v2",
 				"storageProfile": "ManagedDisk",
 				"hyperkubeImagesVersion": "1.11"
