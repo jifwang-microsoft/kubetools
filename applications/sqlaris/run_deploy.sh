@@ -67,7 +67,7 @@ do
             AZURE_USER="$2"
         ;;
         -o|--output-file)
-            OUTPUT_SUMMARYFILE="$2"
+            OUTPUT_SUMMARY_FILE="$2"
         ;;
         -c|--configfile)
             PARAMETER_FILE="$2"
@@ -88,7 +88,14 @@ do
     fi
 done
 
-OUTPUT_FOLDER=$(dirname $OUTPUT_SUMMARYFILE)
+if [ -z "$OUTPUT_SUMMARY_FILE" ];
+then
+    log_level -e "Summary file not set"
+    exit 1
+fi
+
+SCRIPT_LOCATION=$(dirname $FILENAME)
+OUTPUT_FOLDER=$(dirname $OUTPUT_SUMMARY_FILE)
 LOG_FILE_NAME=$OUTPUT_FOLDER/deploy.log
 touch $LOG_FILE_NAME
 
@@ -152,16 +159,11 @@ touch $LOG_FILE_NAME
     fi
     mv jq-win64.exe /usr/bin/jq
     
+    log_level -i "Getting parameter filename from ($PARAMETER_FILE)"
+    PARAMETER_FILENAME=$(basename $PARAMETER_FILE)
     
     log_level -i "Reading parameters from json($PARAMETER_FILE)"
-    GITURL=`cat "$PARAMETER_FILE" | jq -r '.gitUrl'`
     
-    if [[ $GITURL == "https://"* ]]; then
-        log_level -i "Giturl is valid"
-    else
-        log_level -e "Giturl is not valid"
-        exit 1
-    fi
     
     TEST_DIRECTORY=`cat "$PARAMETER_FILE" | jq -r '.dvmAssetsFolder'`
     DEPLOY_DVM_LOG_FILE=`cat "$PARAMETER_FILE" | jq -r '.deployDVMLogFile'`
@@ -173,12 +175,12 @@ touch $LOG_FILE_NAME
     log_level -i "TEST_DIRECTORY: $TEST_DIRECTORY"
     log_level -i "DEPLOY_DVM_LOG_FILE: $DEPLOY_DVM_LOG_FILE"
     log_level -i "IDENTITY_FILE_BACKUP_PATH: $IDENTITY_FILE_BACKUP_PATH"
+    log_level -i "PARAMETER_FILENAME: $PARAMETER_FILENAME"
     log_level -i "-----------------------------------------------------------------------------"
     
-    curl -o $OUTPUT_FOLDER/$DEPLOYMENT_SCRIPT \
-    https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/sqlaris/$DEPLOYMENT_SCRIPT
-    if [ ! -f $OUTPUT_FOLDER/$DEPLOYMENT_SCRIPT ]; then
-        log_level -e "File($DEPLOYMENT_SCRIPT) failed to download."
+    #if file exists, do not download
+    if [ ! -f $SCRIPT_LOCATION/$DEPLOYMENT_SCRIPT ]; then
+        log_level -e "Deployment script does not exist"
         exit 1
     fi
     
@@ -189,16 +191,19 @@ touch $LOG_FILE_NAME
     scp -i $IDENTITY_FILE $IDENTITY_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/.ssh/id_rsa
     
     log_level -i "Create test folder($TEST_DIRECTORY)"
-    ssh -t -i $IDENTITY_FILE $AZURE_USER@$HOST "mkdir $TEST_DIRECTORY"
+    ssh -t -i $IDENTITY_FILE $AZURE_USER@$HOST "mkdir -p $TEST_DIRECTORY"
     
     log_level -i "Copy script($DEPLOYMENT_SCRIPT) to test folder($TEST_DIRECTORY)"
-    scp -i $IDENTITY_FILE $OUTPUT_FOLDER/$DEPLOYMENT_SCRIPT $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY
+    scp -i $IDENTITY_FILE $SCRIPT_LOCATION/$DEPLOYMENT_SCRIPT $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY
+    
+    log_level -i "Copy parameter file($PARAMETER_FILE) to test folder($TEST_DIRECTORY)"
+    scp -i $IDENTITY_FILE $PARAMETER_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY
     
     log_level -i "Install and Modify to unix format"
     ssh -t -i $IDENTITY_FILE $AZURE_USER@$HOST "sudo apt install dos2unix; dos2unix $TEST_DIRECTORY/$DEPLOYMENT_SCRIPT;"
     
     log_level -i "Run SQL aris deployment and test"
-    ssh -t -i $IDENTITY_FILE $AZURE_USER@$HOST "cd $TEST_DIRECTORY; chmod +x ./$DEPLOYMENT_SCRIPT; ./$DEPLOYMENT_SCRIPT -u $GITURL -t $TEST_DIRECTORY 2>&1 | tee $DEPLOY_DVM_LOG_FILE;"
+    ssh -i $IDENTITY_FILE $AZURE_USER@$HOST "cd $TEST_DIRECTORY; chmod +x ./$DEPLOYMENT_SCRIPT; ./$DEPLOYMENT_SCRIPT -c $PARAMETER_FILENAME 2>&1 | tee $DEPLOY_DVM_LOG_FILE;"
     
     log_level -i "Copying over deployment logs locally"
     scp -i $IDENTITY_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY/$DEPLOY_DVM_LOG_FILE $OUTPUT_FOLDER
@@ -209,10 +214,10 @@ touch $LOG_FILE_NAME
     if [ "$DEPLOYMENT_STATUS" == "0" ];
     then
         result="pass"
-        printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
+        printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARY_FILE
     else
         result="failed"
-        printf '{"result":"%s","error":"%s"}\n' "$result" "$DEPLOYMENT_STATUS" > $OUTPUT_SUMMARYFILE
+        printf '{"result":"%s","error":"%s"}\n' "$result" "$DEPLOYMENT_STATUS" > $OUTPUT_SUMMARY_FILE
     fi
     
 } 2>&1 | tee $LOG_FILE_NAME

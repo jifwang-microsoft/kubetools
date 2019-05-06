@@ -65,6 +65,13 @@ do
     fi
 done
 
+if [ -z "$OUTPUT_SUMMARY_FILE" ];
+then
+    log_level -e "Summary file not set"
+    exit 1
+fi
+
+SCRIPT_LOCATION=$(dirname $FILENAME)
 OUTPUT_FOLDER=$(dirname $OUTPUT_SUMMARY_FILE)
 LOG_FILE_NAME=$OUTPUT_FOLDER/clean.log
 touch $LOG_FILE_NAME
@@ -118,6 +125,9 @@ touch $LOG_FILE_NAME
     TEST_DIRECTORY=`cat "$PARAMETER_FILE" | jq -r '.dvmAssetsFolder'`
     CLEAN_DVM_LOG_FILE=`cat "$PARAMETER_FILE" | jq -r '.cleanDVMLogFile'`
     
+    log_level -i "Getting parameter filename from ($PARAMETER_FILE)"
+    PARAMETER_FILENAME=$(basename $PARAMETER_FILE)
+    
     log_level -i "-----------------------------------------------------------------------------"
     log_level -i "Config Parameters"
     log_level -i "-----------------------------------------------------------------------------"
@@ -125,21 +135,25 @@ touch $LOG_FILE_NAME
     log_level -i "CLEAN_DVM_LOG_FILE: $CLEAN_DVM_LOG_FILE"
     log_level -i "-----------------------------------------------------------------------------"
     
-    curl -o $OUTPUT_FOLDER/$CLEAN_SCRIPT \
-    https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/sqlaris/$CLEAN_SCRIPT
-    if [ ! -f $OUTPUT_FOLDER/$CLEAN_SCRIPT ]; then
-        log_level -e "File($CLEAN_SCRIPT) failed to download."
+    if [ ! -f $SCRIPT_LOCATION/$CLEAN_SCRIPT ]; then
+        log_level -e "Clean script does not exist"
         exit 1
     fi
     
+    log_level -i "Create test folder($TEST_DIRECTORY)"
+    ssh -t -i $IDENTITY_FILE $AZURE_USER@$HOST "mkdir -p $TEST_DIRECTORY"
+    
+    log_level -i "Copy parameter file($PARAMETER_FILE) to test folder($TEST_DIRECTORY)"
+    scp -i $IDENTITY_FILE $PARAMETER_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY
+    
     log_level -i "Copy script($CLEAN_SCRIPT) to test folder($TEST_DIRECTORY)"
-    scp -i $IDENTITY_FILE $OUTPUT_FOLDER/$CLEAN_SCRIPT $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY
+    scp -i $IDENTITY_FILE $SCRIPT_LOCATION/$CLEAN_SCRIPT $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY
     
     log_level -i "Change file($CLEAN_SCRIPT) to unix format"
     ssh -t -i $IDENTITY_FILE $AZURE_USER@$HOST "dos2unix $TEST_DIRECTORY/$CLEAN_SCRIPT;"
     
     log_level -i "Running clean test script ($CLEAN_SCRIPT)"
-    ssh -t -i $IDENTITY_FILE $AZURE_USER@$HOST "cd $TEST_DIRECTORY; chmod +x ./$CLEAN_SCRIPT; ./$CLEAN_SCRIPT -t $TEST_DIRECTORY 2>&1 | tee $CLEAN_DVM_LOG_FILE;"
+    ssh -t -i $IDENTITY_FILE $AZURE_USER@$HOST "cd $TEST_DIRECTORY; chmod +x ./$CLEAN_SCRIPT; ./$CLEAN_SCRIPT -c $PARAMETER_FILENAME 2>&1 | tee $CLEAN_DVM_LOG_FILE;"
     
     log_level -i "Copying over deployment logs locally"
     scp -i $IDENTITY_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY/$CLEAN_DVM_LOG_FILE $OUTPUT_FOLDER

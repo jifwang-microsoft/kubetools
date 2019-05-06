@@ -1,10 +1,4 @@
-#Connects to Kubernetes cluster Deploys SQL Aris, Runs tests and collects logs.
-
 #!/bin/bash
-#Github details.
-#use capitals and sort
-#download file when needed
-#add variables when needed
 
 set -e
 
@@ -71,6 +65,14 @@ do
     fi
 done
 
+
+if [ -z "$OUTPUT_SUMMARY_FILE" ];
+then
+    log_level -e "Summary file not set"
+    exit 1
+fi
+
+SCRIPT_LOCATION=$(dirname $FILENAME)
 OUTPUT_FOLDER=$(dirname $OUTPUT_SUMMARY_FILE)
 LOG_FILE_NAME=$OUTPUT_FOLDER/parse.log
 touch $LOG_FILE_NAME
@@ -121,6 +123,9 @@ touch $LOG_FILE_NAME
     log_level -i "USER: $AZURE_USER"
     log_level -i "-----------------------------------------------------------------------------"
     
+    log_level -i "Getting parameter filename from ($PARAMETER_FILE)"
+    PARAMETER_FILENAME=$(basename $PARAMETER_FILE)
+    
     #Read parameters from json files
     log_level -i "Reading Parameters from Json"
     TEST_DIRECTORY=`cat "$PARAMETER_FILE" | jq -r '.dvmAssetsFolder'`
@@ -132,28 +137,33 @@ touch $LOG_FILE_NAME
     log_level -i "-----------------------------------------------------------------------------"
     log_level -i "JUNIT_FOLDER_LOCATION: $JUNIT_FOLDER_LOCATION"
     log_level -i "PARSE_DVM_LOG_FILE: $PARSE_DVM_LOG_FILE"
+    log_level -i "PARAMETER_FILENAME: $PARAMETER_FILENAME"
     log_level -i "TEST_DIRECTORY: $TEST_DIRECTORY"
     log_level -i "-----------------------------------------------------------------------------"
     
-    curl -o $OUTPUT_FOLDER/$PARSE_SCRIPT \
-    https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/sqlaris/$PARSE_SCRIPT
-    if [ ! -f $OUTPUT_FOLDER/$PARSE_SCRIPT ]; then
-        log_level -e "File($PARSE_SCRIPT) failed to download."
+    if [ ! -f $SCRIPT_LOCATION/$PARSE_SCRIPT ]; then
+        log_level -e "Parse script does not exist"
         exit 1
     fi
     
     log_level -i "Copy script($PARSE_SCRIPT) to test folder($TEST_DIRECTORY)"
-    scp -i $IDENTITY_FILE $OUTPUT_FOLDER/$PARSE_SCRIPT $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY
+    scp -i $IDENTITY_FILE $SCRIPT_LOCATION/$PARSE_SCRIPT $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY
+    
+    log_level -i "Create test folder($TEST_DIRECTORY)"
+    ssh -t -i $IDENTITY_FILE $AZURE_USER@$HOST "mkdir -p $TEST_DIRECTORY"
+    
+    log_level -i "Copy parameter file($PARAMETER_FILE) to test folder($TEST_DIRECTORY)"
+    scp -i $IDENTITY_FILE $PARAMETER_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY
     
     log_level -i "Change ($PARSE_SCRIPT) to unix format"
     ssh -t -i $IDENTITY_FILE $AZURE_USER@$HOST "dos2unix $TEST_DIRECTORY/$PARSE_SCRIPT;"
     
     log_level -i "Run parse test script ($PARSE_SCRIPT)"
-    ssh -t -i $IDENTITY_FILE $AZURE_USER@$HOST "cd $TEST_DIRECTORY; chmod +x ./$PARSE_SCRIPT; ./$PARSE_SCRIPT -t $TEST_DIRECTORY -o $JUNIT_FOLDER_LOCATION 2>&1 | tee $PARSE_DVM_LOG_FILE;"
+    ssh -t -i $IDENTITY_FILE $AZURE_USER@$HOST "cd $TEST_DIRECTORY; chmod +x ./$PARSE_SCRIPT; ./$PARSE_SCRIPT -c $PARAMETER_FILENAME 2>&1 | tee $PARSE_DVM_LOG_FILE;"
     
     log_level -i "Copying parsed logs from ($TEST_DIRECTORY)"
     scp -i $IDENTITY_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY/$PARSE_DVM_LOG_FILE $OUTPUT_FOLDER
-
+    
     log_level -i "Copying sql aris logs from ($TEST_DIRECTORY)"
     scp -r -i $IDENTITY_FILE $AZURE_USER@$HOST:/home/$AZURE_USER/$TEST_DIRECTORY/logs $OUTPUT_FOLDER
     

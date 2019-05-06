@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #Clean The sql aris cluster
 #Delete PVCS where posible
 #Return Output
@@ -19,7 +21,7 @@ log_level()
 
 function printUsage
 {
-    echo "            -t, --test-assets                    Location of all test assets"
+    echo "            -c, --configFile                            Parameter file for any extra parameters for the deployment"
     exit 1
 }
 
@@ -28,8 +30,8 @@ FILENAME=$0
 while [[ "$#" -gt 0 ]]
 do
     case $1 in
-        -t|--test-assets)
-            TEST_DIRECTORY="$2"
+        -c|--configfile)
+            PARAMETER_FILE="$2"
         ;;
         *)
             echo ""
@@ -48,23 +50,37 @@ do
 done
 
 #Checking Variables
-if [ -z "$TEST_DIRECTORY" ];
-then
-    log_level -e "TEST_DIRECTORY not set"
+if [ ! -f $PARAMETER_FILE ] || [ -z "$PARAMETER_FILE" ]; then
+    log_level -e "Parameter file does not exist"
     exit 1
 fi
+
+#Cluster settings
+CLUSTER_CONTROLLER_USERNAME=`cat "$PARAMETER_FILE" | jq -r '.clusterSettings.controllerUsername'`
+CLUSTER_CONTROLLER_PASSWORD=`cat "$PARAMETER_FILE" | jq -r '.clusterSettings.controllerPassword'`
+CLUSTER_KNOX_PASSWORD=`cat "$PARAMETER_FILE" | jq -r '.clusterSettings.knoxPassword'`
+CLUSTER_MSSQL_SA_PASSWORD=`cat "$PARAMETER_FILE" | jq -r '.clusterSettings.mssqlPassword'`
+CLUSTER_NAME=`cat "$PARAMETER_FILE" | jq -r '.clusterSettings.clusterName'`
+
+TEST_DIRECTORY=`cat "$PARAMETER_FILE" | jq -r '.dvmAssetsFolder'`
 
 log_level -i "-----------------------------------------------------------------------------"
 log_level -i "Script Parameters"
 log_level -i "-----------------------------------------------------------------------------"
+log_level -i "CLUSTER_NAME: $CLUSTER_NAME"
+log_level -i "CLUSTER_CONTROLLER_USERNAME: $CLUSTER_CONTROLLER_USERNAME"
 log_level -i "TEST_DIRECTORY: $TEST_DIRECTORY"
 log_level -i "-----------------------------------------------------------------------------"
 
-log_level -i "Finding Kubeconfig file"
-KUBE_CONFIG_LOCATION=`sudo find  $HOME/$TEST_DIRECTORY/ -type f -iname "kubeconfig*"`
+log_level -i "Finding Kubeconfig"
+#There is a dependancy on the _output folder to use to connect to the cluster
+KUBE_CONFIG_LOCATION=`sudo find  /var/lib/waagent/custom-script/download/0/ -type f -iname "kubeconfig*"`
 
 log_level -i "Finding Kubeconfig file from path ($KUBE_CONFIG_LOCATION)"
 KUBE_CONFIG_FILENAME=$(basename $KUBE_CONFIG_LOCATION)
+
+log_level -i "Copy kubeconfig($KUBE_CONFIG_LOCATION) to home directory"
+sudo cp $KUBE_CONFIG_LOCATION $HOME/$TEST_DIRECTORY
 
 log_level -i "Checking if file ($KUBE_CONFIG_FILENAME) exists"
 if [[ ! -f $HOME/$TEST_DIRECTORY/$KUBE_CONFIG_FILENAME ]]; then
@@ -74,10 +90,23 @@ else
     log_level -i "File($KUBE_CONFIG_FILENAME) exist at $HOME/$TEST_DIRECTORY"
 fi
 
+log_level -i "Changing permissions of the config file"
+sudo chmod a+r $HOME/$TEST_DIRECTORY/$KUBE_CONFIG_FILENAME
+
 log_level -i "Setting Kubectl config variable as per required by k8s"
 export KUBECONFIG="$HOME/$TEST_DIRECTORY/$KUBE_CONFIG_FILENAME"
 
+# export environment variables
+log_level -i "Exporting enviroment variables for mssqlctl testing"
+export CONTROLLER_USERNAME=$CLUSTER_CONTROLLER_USERNAME
+export CONTROLLER_PASSWORD=$CLUSTER_CONTROLLER_PASSWORD
+export MSSQL_SA_PASSWORD=$CLUSTER_MSSQL_SA_PASSWORD
+export KNOX_PASSWORD=$CLUSTER_KNOX_PASSWORD
+
+log_level -i "Setting environment variable for python"
+PATH="$PATH:$HOME/.local/bin/"
+
 log_level -i "Deleting Namespace"
-kubectl delete namespaces test
+mssqlctl cluster delete --name $CLUSTER_NAME -f
 
 echo 0
