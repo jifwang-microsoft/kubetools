@@ -19,8 +19,9 @@
 					"githubBranch": "patch-release-v0.34.2-azs-1904-17",
 					"releaseFileName": "aks-engine-patch-release-v0.34.2-azs-1904-17-linux-amd64.gz",
 					"apiModelPrefix":"azurestack-kubernetes"
-				},
-                       {
+				}
+			},
+                        {
 				"agentPoolProfileCount": 3,
 				"agentPoolProfilevmSize": "Standard_D2_v2",
 				"masterPoolProfileCount": 1,
