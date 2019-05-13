@@ -48,23 +48,8 @@
 		"githubBranch": "master",
 		"applications": [
 			{
-				"name": "statelessApp",
+				"name": "wordpress",
 				"junitFile": "junit_01.xml",
-				"deployment": {
-					"scriptName": "deploy.sh",
-					"summaryFile": "deploy.json"
-				},
-				"validation": {
-					"scriptName": "validate.sh",
-					"summaryFile": "validate.json"
-				},
-				"cleanup": {
-					"scriptName": "cleanup.sh",
-					"summaryFile": "cleanup.json"
-				}
-			},
-			{
-				"name": "monitoring",
 				"deployment": {
 					"scriptName": "deploy.sh",
 					"summaryFile": "deploy.json"
