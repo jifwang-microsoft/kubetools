@@ -1,0 +1,82 @@
+{
+	"clusterARMTemplate": {
+		"githubRepo": "msazurestackworkloads/azurestack-gallery",
+		"githubBranch": "ci-test",
+		"folderPath": "kubernetes/template/DeploymentTemplates",
+		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
+		"minNumberofAzsNodes": 1,
+		"removeDeployment": "false",
+		"deploymentMatrix": [
+			{
+				"agentPoolProfileCount": 3,
+				"agentPoolProfilevmSize": "Standard_D2_v2",
+				"masterPoolProfileCount": 1,
+				"masterPoolProfilevmSize": "Standard_D2_v2",
+				"storageProfile": "ManagedDisk",
+				"hyperkubeImagesVersion": "1.11",
+				"aksEngine": {
+					"githubRepo": "msazurestackworkloads/aks-engine",
+					"githubBranch": "patch-release-v0.34.2-azs-1904-17",
+					"releaseFileName": "aks-engine-patch-release-v0.34.2-azs-1904-17-linux-amd64.gz",
+					"apiModelPrefix":"azurestack-kubernetes"
+				},
+        {
+				"agentPoolProfileCount": 3,
+				"agentPoolProfilevmSize": "Standard_D2_v2",
+				"masterPoolProfileCount": 1,
+				"masterPoolProfilevmSize": "Standard_D2_v2",
+				"storageProfile": "ManagedDisk",
+				"hyperkubeImagesVersion": "1.11",
+				"aksEngine": {
+					"githubRepo": "msazurestackworkloads/aks-engine",
+					"githubBranch": "patch-release-v0.34.2-azs-1904-17",
+					"releaseFileName": "aks-engine-patch-release-v0.34.2-azs-1904-17-linux-amd64.gz",
+					"apiModelPrefix":"azurestack-kubernetes"
+				}
+			}
+		]
+	},
+	"diagnosis": {
+		"githubRepo": "msazurestackworkloads/azurestack-gallery",
+		"githubBranch": "master",
+		"folderPath": "diagnosis",
+		"filename": "getkuberneteslogs.sh"
+	},
+	"testSuite": {
+		"githubRepo": "msazurestackworkloads/kubetools",
+		"githubBranch": "master",
+		"applications": [
+			{
+				"name": "statelessApp",
+				"junitFile": "junit_01.xml",
+				"deployment": {
+					"scriptName": "deploy.sh",
+					"summaryFile": "deploy.json"
+				},
+				"validation": {
+					"scriptName": "validate.sh",
+					"summaryFile": "validate.json"
+				},
+				"cleanup": {
+					"scriptName": "cleanup.sh",
+					"summaryFile": "cleanup.json"
+				}
+			},
+			{
+				"name": "monitoring",
+				"deployment": {
+					"scriptName": "deploy.sh",
+					"summaryFile": "deploy.json"
+				},
+				"validation": {
+					"scriptName": "validate.sh",
+					"summaryFile": "validate.json"
+				},
+				"cleanup": {
+					"scriptName": "cleanup.sh",
+					"summaryFile": "cleanup.json"
+				}
+			}
+		]
+	}
+}
