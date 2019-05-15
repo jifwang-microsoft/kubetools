@@ -13,12 +13,12 @@
 				"masterPoolProfileCount": 1,
 				"masterPoolProfilevmSize": "Standard_DS5_v2",
 				"storageProfile": "ManagedDisk",
-				"hyperkubeImagesVersion": "1.11",
+				"hyperkubeImagesVersion": "1.13",
 				"aksEngine": {
-					"githubRepo": "msazurestackworkloads/aks-engine",
-					"githubBranch": "patch-release-v0.34.2-azs-1904-17",
-					"releaseFileName": "aks-engine-patch-release-v0.34.2-azs-1904-17-linux-amd64.gz",
-					"apiModelPrefix":"azurestack-kubernetes"
+					"githubRepo": "rjaini/aks-engine",
+					"githubBranch": "rjaini-test",
+					"releaseFileName": "aks-engine-patch-release-v0.35.2-azs-1904-17-linux-amd64.gz",
+					"apiModelPrefix":"azurestack-kubernetes-flannel"
 				}
 			}
 		]
@@ -44,10 +44,6 @@
 				"validation": {
 					"scriptName": "run_parse.sh",
 					"summaryFile": "validate.json"
-				},
-				"cleanup": {
-					"scriptName": "run_clean.sh",
-					"summaryFile": "cleanup.json"
 				}
 			}
 		]
