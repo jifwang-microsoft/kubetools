@@ -44,10 +44,6 @@
 				"validation": {
 					"scriptName": "run_parse.sh",
 					"summaryFile": "validate.json"
-				},
-				"cleanup": {
-					"scriptName": "run_clean.sh",
-					"summaryFile": "cleanup.json"
 				}
 			}
 		]
