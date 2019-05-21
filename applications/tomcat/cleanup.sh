@@ -64,7 +64,7 @@ touch $LOG_FILENAME
     if [[ $? != 0 ]]; then
         printf '{"result":"%s","error":"%s"}\n' "failed" "App($APPLICATION_NAME) cleanup was not successfull" > $OUTPUT_SUMMARYFILE
     else
-        printf '{"result":"%s"}\n' "$pass" > $OUTPUT_SUMMARYFILE
+        printf '{"result":"%s"}\n' "pass" > $OUTPUT_SUMMARYFILE
     fi
     
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo rm -rf $TEST_DIRECTORY;"
