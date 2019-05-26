@@ -16,8 +16,8 @@
 				"hyperkubeImagesVersion": "1.11",
 				"aksEngine": {
 					"githubRepo": "msazurestackworkloads/aks-engine",
-					"githubBranch": "patch-release-v0.34.2-azs-1904-17",
-					"releaseFileName": "aks-engine-patch-release-v0.34.2-azs-1904-17-linux-amd64.gz",
+					"githubBranch": "patch-release-v0.36.2-azs",
+					"releaseFileName": "aks-engine-v0.36.2-linux-amd64.gz",
 					"apiModelPrefix":"azurestack-kubernetes"
 				}
 			}
