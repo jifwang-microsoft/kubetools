@@ -74,6 +74,7 @@ touch $LOG_FILENAME
     GIT_REPROSITORY="${GIT_REPROSITORY:-msazurestackworkloads/kubetools}"
     GIT_BRANCH="${GIT_BRANCH:-master}"
     TEST_DIRECTORY="/home/$USER_NAME/nginx"
+    NGINX_DEPLOY_FILENAME="nginx-deploy.yaml"
 
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Input Parameters"
@@ -112,14 +113,14 @@ touch $LOG_FILENAME
     
     log_level -i "=========================================================================="
     log_level -i "Installing nginx."
-    # Install Wordpress app
+
     ssh -t -i $IDENTITY_FILE \
     $USER_NAME@$MASTER_IP \
     "sudo chmod 744 $TEST_DIRECTORY/$NGINX_DEPLOY_FILENAME; cd $TEST_DIRECTORY;"
-    nginx=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl create -f $NGINX_DEPLOY_FILENAME")
-    nginx_deploy=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get deployment -o json > nginx_deploy.json")
-    nginx_status=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cat nginx_deploy.json | jq '.items[0]."status"."conditions"[0].type' > status; if [status == "Available"]; then echo true; else echo false;fi")
-    if [$nginx_status == "true "]; then
+    nginx=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY;kubectl create -f $NGINX_DEPLOY_FILENAME";sleep 10)
+    nginx_deploy=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY;kubectl get deployment -o json > nginx_deploy.json")
+    nginx_status=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY;cat nginx_deploy.json | jq '.items[0]."status"."conditions"[0].type'" | grep "Available" )
+    if [ $? == 0 ]; then
         log_level -i "Deployed nginx app."
     else    
         log_level -e "Nginx deployment failed."
