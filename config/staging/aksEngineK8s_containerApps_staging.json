@@ -1,7 +1,7 @@
 {
 	"clusterARMTemplate": {
 		"githubRepo": "msazurestackworkloads/azurestack-gallery",
-		"githubBranch": "ci-test",
+		"githubBranch": "master",
 		"folderPath": "kubernetes/template/DeploymentTemplates",
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
 		"minNumberofAzsNodes": 1,
@@ -15,10 +15,12 @@
 				"storageProfile": "ManagedDisk",
 				"hyperkubeImagesVersion": "1.11",
 				"aksEngine": {
-					"githubRepo": "msazurestackworkloads/aks-engine",
-					"githubBranch": "patch-release-v0.36.2-azs",
-					"releaseFileName": "aks-engine-v0.36.2-linux-amd64.gz",
-					"apiModelPrefix":"azurestack-kubernetes"
+					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
+					"aksEngineReleaseVersion": "v0.36.2",
+					"galleryRepository": "msazurestackworkloads/azurestack-gallery",
+					"galleryBranch": "master",
+					"clusterDefinitionFileName": "clusterDefinition.json",
+					"kubernetesImageBase": "mcr.microsoft.com/k8s/azurestack/core/"
 				}
 			}
 		]
