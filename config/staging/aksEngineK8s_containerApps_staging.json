@@ -1,7 +1,7 @@
 {
 	"clusterARMTemplate": {
-		"githubRepo": "msazurestackworkloads/azurestack-gallery",
-		"githubBranch": "master",
+		"galleryRepository": "msazurestackworkloads/azurestack-gallery",
+		"galleryBranch": "master",
 		"folderPath": "kubernetes/template/DeploymentTemplates",
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
 		"minNumberofAzsNodes": 1,
@@ -17,8 +17,6 @@
 				"aksEngine": {
 					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
 					"aksEngineReleaseVersion": "v0.36.2",
-					"galleryRepository": "msazurestackworkloads/azurestack-gallery",
-					"galleryBranch": "master",
 					"clusterDefinitionFileName": "clusterDefinition.json",
 					"kubernetesImageBase": "mcr.microsoft.com/k8s/azurestack/core/"
 				}
