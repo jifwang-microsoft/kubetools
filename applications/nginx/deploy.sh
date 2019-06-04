@@ -67,6 +67,7 @@ done
 
 OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
 LOG_FILENAME="$OUTPUT_FOLDER/deploy.log"
+APP_SERVICE="$OUTPUT_FOLDER/app-service.txt"
 touch $LOG_FILENAME
 
 {
@@ -79,12 +80,12 @@ touch $LOG_FILENAME
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Input Parameters"
     log_level -i "------------------------------------------------------------------------"
-    log_level -i "IDENTITY_FILE   : $IDENTITY_FILE"
-    log_level -i "GIT_BRANCH      : $GIT_BRANCH"
-    log_level -i "GIT_REPROSITORY : $GIT_REPROSITORY"
-    log_level -i "MASTER_IP       : $MASTER_IP"
-    log_level -i "OUTPUT_SUMMARYFILE     : $OUTPUT_SUMMARYFILE"
-    log_level -i "USER_NAME       : $USER_NAME"
+    log_level -i "IDENTITY_FILE         : $IDENTITY_FILE"
+    log_level -i "GIT_BRANCH            : $GIT_BRANCH"
+    log_level -i "GIT_REPROSITORY       : $GIT_REPROSITORY"
+    log_level -i "MASTER_IP             : $MASTER_IP"
+    log_level -i "OUTPUT_SUMMARYFILE    : $OUTPUT_SUMMARYFILE"
+    log_level -i "USER_NAME             : $USER_NAME"
     log_level -i "------------------------------------------------------------------------"
     
     log_level -i "------------------------------------------------------------------------"
@@ -119,7 +120,10 @@ touch $LOG_FILENAME
     "sudo chmod 744 $TEST_DIRECTORY/$NGINX_DEPLOY_FILENAME; cd $TEST_DIRECTORY;"
     nginx=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY;kubectl create -f $NGINX_DEPLOY_FILENAME";sleep 10)
     nginx_deploy=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY;kubectl get deployment -o json > nginx_deploy.json")
-    nginx_status=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY;cat nginx_deploy.json | jq '.items[0]."status"."conditions"[0].type'" | grep "Available" )
+    nginx_status=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY;cat nginx_deploy.json | jq '.items[0]."status"."conditions"[0].type'" | grep "Available";sleep 20)
+    nginx_services=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY;kubectl get services -o json > nginx_service.json")
+    app_nginx=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY;cat nginx_service.json | jq '.items[1]."status"."loadBalancer"."ingress"[0].ip'")
+
     if [ $? == 0 ]; then
         log_level -i "Deployed nginx app."
     else    
