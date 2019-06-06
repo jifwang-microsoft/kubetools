@@ -123,6 +123,7 @@ touch $LOG_FILENAME
     nginx_status=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY;cat nginx_deploy.json | jq '.items[0]."status"."conditions"[0].type'" | grep "Available";sleep 20)
     nginx_services=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY;kubectl get services -o json > nginx_service.json")
     app_nginx=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY;cat nginx_service.json | jq '.items[1]."status"."loadBalancer"."ingress"[0].ip'")
+    echo $app_nginx > $APP_SERVICE
 
     if [ $? == 0 ]; then
         log_level -i "Deployed nginx app."
