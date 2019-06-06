@@ -8,7 +8,7 @@
 			"githubRepo": "Azure/aks-engine",
 			"githubBranch": "master",
 			"apiModel":"kubernetes-azurestack",
-			"upgradeVersion": "1.12.7",
+			"upgradeVersion": "1.12.8",
 			"nodeCount": 5,
 			"upgrade": "true",
 			"scale": "true"
