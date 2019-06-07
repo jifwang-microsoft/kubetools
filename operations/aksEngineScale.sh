@@ -102,7 +102,7 @@ log_level -i "Running  script as : $(whoami)"
 log_level -i "System information: $(sudo uname -a)"
 
 
-ROOT_PATH=/home/azureuser/src/github.com/Azure/aks-engine
+ROOT_PATH=/var/lib/waagent/custom-script/download/0
 cd $ROOT_PATH
 
 log_level -i "Getting Resource group and region"
@@ -114,9 +114,6 @@ if [ $RESOURCE_GROUP == "" ] ; then
     log_level -i "Resource group not found.Scale can not be performed"
     exit 1
 fi
-
-
-
 
 cd $ROOT_PATH/_output
 
