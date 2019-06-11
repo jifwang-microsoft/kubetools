@@ -245,7 +245,141 @@ check_helm_app_release_cleanup()
     return 0
 }
 
+# Avoids apt failures by first checking if the lock files are around
+# Function taken from the AKSe's code based
+wait_for_apt_locks()
+{
+    while fuser /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock >/dev/null 2>&1; do
+        echo 'Waiting for release of apt locks'
+        sleep 3
+    done
+}
 
+# Avoid transcient apt-update failures
+# Function taken from gallery code based
+apt_get_update()
+{
+    log_level -i "Updating apt cache."
+    
+    retries=10
+    apt_update_output=/tmp/apt-get-update.out
+    
+    for i in $(seq 1 $retries); do
+        wait_for_apt_locks
+        sudo dpkg --configure -a
+        sudo apt-get -f -y install
+        sudo apt-get update 2>&1 | tee $apt_update_output | grep -E "^([WE]:.*)|([eE]rr.*)$"
+        [ $? -ne 0  ] && cat $apt_update_output && break || \
+        cat $apt_update_output
+        if [ $i -eq $retries ]; then
+            return 1
+        else
+            sleep 30
+        fi
+    done
+    
+    echo "Executed apt-get update $i time/s"
+    wait_for_apt_locks
+}
 
+# Avoids transcient apt-install failures
+# Function taken from gallery code based
+apt_get_install()
+{
+    retries=$1; wait_sleep=$2; timeout=$3;
+    shift && shift && shift
+    
+    for i in $(seq 1 $retries); do
+        wait_for_apt_locks
+        sudo dpkg --configure -a
+        sudo apt-get install --no-install-recommends -y ${@}
+        [ $? -eq 0  ] && break || \
+        if [ $i -eq $retries ]; then
+            return 1
+        else
+            sleep $wait_sleep
+            apt_get_update
+        fi
+    done
+    
+    echo "Executed apt-get install --no-install-recommends -y \"$@\" $i times";
+    wait_for_apt_locks
+}
 
+perf_process_net_files()
+{
+    directoryName=$1
+    outputFileName=$2
+    FILENAME_LIST=$(ls $directoryName/*.csv)
+    declare -A RESULT_MAP
+    testCaseCount=0
+    while [ $testCaseCount -lt 14 ];do
+        RESULT_MAP[$testCaseCount]=0.00
+        let testCaseCount=testCaseCount+1
+    done
+    iteration=0
+    for resultFileName in $FILENAME_LIST
+    do
+        log_level -i "Processing file $resultFileName."
+        testCaseCount=0
+        while IFS= read -r line;
+        do
+            currentLine=$(echo $line | tr -d " ");
+            currentLine=$(echo $currentLine | tr "," " ");
+            currentLine=($currentLine);
+            if [[ $testCaseCount != 0 ]]; then
+                RESULT_MAP[$testCaseCount]=$(echo ${RESULT_MAP[$testCaseCount]}+${currentLine[1]}| bc);
+            fi
+            let testCaseCount=testCaseCount+1
+        done < $resultFileName
+        let iteration=iteration+1
+    done
+    
+    testCaseCount=1
+    while [ $testCaseCount -lt 14 ];do
+        RESULT_MAP[$testCaseCount]=$(echo ${RESULT_MAP[$testCaseCount]}/$iteration| bc);
+        let testCaseCount=testCaseCount+1
+    done
+    json_string='{ "testSuite": [ {"testname":"Iperf_TCP_SameVM_Pod_IP", "value":"%s" },{"testname":"Iperf_TCP_SameVM_Virtual_IP", "value":"%s"},'
+    json_string=$json_string'{"testname":"Iperf_TCP_RemoteVM_Pod_IP", "value":"%s"},{"testname":"Iperf_TCP_RemoteVM_Virtual_IP", "value":"%s"},'
+    json_string=$json_string'{"testname":"Iperf_TCP_Hairpin_Pod_IP", "value":"%s"},{"testname":"Iperf_UDP_SameVM_Pod_IP", "value":"%s"},'
+    json_string=$json_string'{"testname":"Iperf_UDP_SameVM_Virtual_IP", "value":"%s"},{"testname":"Iperf_UDP_RemoteVM_Pod_IP", "value":"%s"},'
+    json_string=$json_string'{"testname":"Iperf_UDP_RemoteVM_Virtual_IP", "value":"%s"},{"testname":"NetPerf_SameVM_Pod_IP", "value":"%s"},'
+    json_string=$json_string'{"testname":"NetPerf_SameVM_Virtual_IP", "value":"%s"},{"testname":"NetPerf_RemoteVM_Pod_IP", "value":"%s"},'
+    json_string=$json_string'{"testname":"NetPerf_RemoteVM_Virtual_IP", "value":"%s"} ] }'
+    printf "$json_string" "${RESULT_MAP[1]}" "${RESULT_MAP[2]}" \
+                          "${RESULT_MAP[3]}" "${RESULT_MAP[4]}" \
+                          "${RESULT_MAP[5]}" "${RESULT_MAP[6]}" \
+                          "${RESULT_MAP[7]}" "${RESULT_MAP[8]}" \
+                          "${RESULT_MAP[9]}" "${RESULT_MAP[10]}" \
+                          "${RESULT_MAP[11]}" "${RESULT_MAP[12]}" \
+                          "${RESULT_MAP[13]}" > $directoryName/$outputFileName
+}
 
+apt_install_jq()
+{
+    jq_Link=$1
+    log_level -i "Install jq on local machine."
+    curl -O -L $jq_Link
+    if [ ! -f jq-win64.exe ]; then
+        log_level -e "File(jq-win64.exe) failed to download."
+        exit 1
+    fi
+    mv jq-win64.exe /usr/bin/jq
+}
+
+validate_testcase_result()
+{
+    resultFileName=$1
+    expectedResultFileName=$2
+    testCaseName=$3
+    
+    TESTRESULT=`cat "$resultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .value'`
+    TESTCASE_MINVALUE=`cat "$expectedResultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .minvalue'`
+    if (( $(awk 'BEGIN {print ("'$TESTRESULT'" >= "'$TESTCASE_MINVALUE'")}') )); then
+        log_level -i "Test case \"$testCaseName\" passed with value $TESTRESULT as it is greater than $TESTCASE_MINVALUE."
+    else 
+        FAILED_CASES="$FAILED_CASES,$testCaseName"
+        log_level -e "Test case \"$testCaseName\" failed for value $TESTRESULT as it is less than $TESTCASE_MINVALUE."
+    fi
+}

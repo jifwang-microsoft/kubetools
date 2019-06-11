@@ -1,0 +1,56 @@
+{
+	"testSuite": [
+		{
+			"testname": "Iperf_TCP_SameVM_Pod_IP",
+			"minvalue": "36000"
+		},
+		{
+			"testname": "Iperf_TCP_SameVM_Virtual_IP",
+			"minvalue": "35000"
+		},
+		{
+			"testname": "Iperf_TCP_RemoteVM_Pod_IP",
+			"minvalue": "900"
+		},
+		{
+			"testname": "Iperf_TCP_RemoteVM_Virtual_IP",
+			"minvalue": "900"
+		},
+		{
+			"testname": "Iperf_TCP_Hairpin_Pod_IP",
+			"minvalue": "0"
+		},
+		{
+			"testname": "Iperf_UDP_SameVM_Pod_IP",
+			"minvalue": "2300"
+		},
+		{
+			"testname": "Iperf_UDP_SameVM_Virtual_IP",
+			"minvalue": "2300"
+		},
+		{
+			"testname": "Iperf_UDP_RemoteVM_Pod_IP",
+			"minvalue": "2000"
+		},
+		{
+			"testname": "Iperf_UDP_RemoteVM_Virtual_IP",
+			"minvalue": "2000"
+		},
+		{
+			"testname": "NetPerf_SameVM_Pod_IP",
+			"minvalue": "10000"
+		},
+		{
+			"testname": "NetPerf_SameVM_Virtual_IP",
+			"minvalue": "0"
+		},
+		{
+			"testname": "NetPerf_RemoteVM_Pod_IP",
+			"minvalue": "900"
+		},
+		{
+			"testname": "NetPerf_RemoteVM_Virtual_IP",
+			"minvalue": "0"
+		}
+	]
+}

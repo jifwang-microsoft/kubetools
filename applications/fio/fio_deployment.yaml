@@ -1,0 +1,43 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: fio-pv-claim
+spec:
+  storageClassName: managed-standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1000Gi
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fio
+spec:
+  template:
+    spec:
+      containers:
+      - name: fio
+        image: msazurestackqa/fio:latest
+        imagePullPolicy: Always
+        env:
+          - name: DBENCH_MOUNTPOINT
+            value: /data
+          # - name: DBENCH_QUICK
+          #   value: "yes"
+          # - name: FIO_SIZE
+          #   value: 1G
+          # - name: FIO_OFFSET_INCREMENT
+          #   value: 256M
+          # - name: FIO_DIRECT
+          #   value: "0"
+        volumeMounts:
+        - name: fio-pv
+          mountPath: /data
+      restartPolicy: Never
+      volumes:
+      - name: fio-pv
+        persistentVolumeClaim:
+          claimName: fio-pv-claim
+  backoffLimit: 4
