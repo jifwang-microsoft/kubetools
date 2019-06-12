@@ -25,7 +25,6 @@ log_level -i "------------------------------------------------------------------
 log_level -i "                Input Parameters"
 log_level -i "------------------------------------------------------------------------"
 log_level -i "IDENTITY_FILE       : $IDENTITY_FILE"
-log_level -i "CONFIG_FILE         : $CONFIG_FILE"
 log_level -i "MASTER_IP           : $MASTER_IP"
 log_level -i "OUTPUT_SUMMARYFILE  : $OUTPUT_SUMMARYFILE"
 log_level -i "USER_NAME           : $USER_NAME"
@@ -34,7 +33,6 @@ log_level -i "------------------------------------------------------------------
 if [[ -z "$IDENTITY_FILE" ]] || \
 [[ -z "$MASTER_IP" ]] || \
 [[ -z "$USER_NAME" ]] || \
-[[ -z "$CONFIG_FILE" ]] || \
 [[ -z "$OUTPUT_SUMMARYFILE" ]]; then
     log_level -e "One of the mandatory parameter is not passed correctly."
     print_usage
@@ -65,9 +63,9 @@ touch $LOG_FILENAME
     # ----------------------------------------------------------------------------------------
     # INSTALL PREREQUISITE
 
-    curl -o $SCRIPT_FOLDER/$INSTALL_PREREQUISITE_FILE \
+    curl -o $SCRIPT_FOLDER/$APP_DEPLOYMENT_FILE \
     https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/$APPLICATION_NAME/$APP_DEPLOYMENT_FILE
-    if [ ! -f $SCRIPT_FOLDER/$INSTALL_PREREQUISITE_FILE ]; then
+    if [ ! -f $SCRIPT_FOLDER/$APP_DEPLOYMENT_FILE ]; then
         log_level -e "File($APP_DEPLOYMENT_FILE) failed to download."
         printf '{"result":"%s","error":"%s"}\n' "failed" "File($APP_DEPLOYMENT_FILE) failed to download." > $OUTPUT_SUMMARYFILE
         exit 1
@@ -82,9 +80,14 @@ touch $LOG_FILENAME
 
     # Launch fio app
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_FOLDER; kubectl apply -f $APP_DEPLOYMENT_FILE;"
+
+    check_app_pod_running $IDENTITY_FILE \
+    $USER_NAME \
+    $MASTER_IP \
+    "job-name=$APPLICATION_NAME"
+    
     if [[ $? != 0 ]]; then
-        log_level -e "No fio file got deployed."
-        printf '{"result":"%s","error":"%s"}\n' "failed" "No fio file got deployed." > $OUTPUT_SUMMARYFILE
+        printf '{"result":"%s","error":"%s"}\n' "failed" "Pod related to App($APPLICATION_NAME) was not successfull." > $OUTPUT_SUMMARYFILE
         exit 1
     else
         printf '{"result":"%s"}\n' "pass" > $OUTPUT_SUMMARYFILE

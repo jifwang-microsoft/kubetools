@@ -96,6 +96,10 @@ touch $LOG_FILENAME
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo chmod 744 $TEST_FOLDER/$INSTALL_PREREQUISITE_FILE; "
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo chmod 744 $TEST_FOLDER/$COMMON_SCRIPT_FILENAME; "
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_FOLDER; ./$INSTALL_PREREQUISITE_FILE;"
+    sleep 30s
+    # This is needed as latest version of go lang gets install in second pass.
+    # Todo need to debug and resolve why
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_FOLDER; ./$INSTALL_PREREQUISITE_FILE;"
     goPath=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "go env | grep GOPATH || true")
     if [ -z "$goPath" ]; then
         log_level -e "GO is not installed."
@@ -111,7 +115,6 @@ touch $LOG_FILENAME
     if [ -z "$goFolder" ]; then
 
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $GO_SRC_FOLDER"
-
         log_level -i "Install godep tool "
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "export GOPATH=$GO_FOLDER; go get github.com/tools/godep"
 

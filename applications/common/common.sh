@@ -128,7 +128,7 @@ install_helm_app()
     return 0
 }
 
-check_helm_app_pod_running()
+check_app_pod_running()
 {
     local identityFile=$1;
     local userName=$2;
@@ -139,7 +139,7 @@ check_helm_app_pod_running()
     log_level -i "Validate if pod for $appName app is created and running."
     i=0
     while [ $i -lt 20 ]; do
-        appPodstatus=$(ssh -t -i $identityFile $userName@$connectionIP "sudo kubectl get pods --selector app=$appName | grep 'Running' || true")
+        appPodstatus=$(ssh -t -i $identityFile $userName@$connectionIP "sudo kubectl get pods --selector $appName | grep 'Running' || true")
         if [ -z "$appPodstatus" ]; then
             log_level -i "Pod is not up. We we will retry after some time."
             sleep 30s
@@ -383,3 +383,4 @@ validate_testcase_result()
         log_level -e "Test case \"$testCaseName\" failed for value $TESTRESULT as it is less than $TESTCASE_MINVALUE."
     fi
 }
+

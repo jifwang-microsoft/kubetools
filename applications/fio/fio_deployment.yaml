@@ -22,16 +22,14 @@ spec:
         image: msazurestackqa/fio:latest
         imagePullPolicy: Always
         env:
-          - name: DBENCH_MOUNTPOINT
+          - name: MOUNTPOINT
             value: /data
-          # - name: DBENCH_QUICK
-          #   value: "yes"
-          # - name: FIO_SIZE
-          #   value: 1G
+          # - name: FIO_FILE_SIZE
+          #   value: 2G
           # - name: FIO_OFFSET_INCREMENT
           #   value: 256M
-          # - name: FIO_DIRECT
-          #   value: "0"
+          # - name: FIO_RUN_TIME
+          #   value: "60s"
         volumeMounts:
         - name: fio-pv
           mountPath: /data
