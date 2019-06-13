@@ -79,6 +79,9 @@ download_file_locally()
         return 1
     fi
     
+    log_level -i "Converting parameters file($outputFolder/$fileName) to unix format"
+    dos2unix $outputFolder/$fileName
+
     return 0
 }
 
@@ -128,34 +131,35 @@ install_helm_app()
     return 0
 }
 
-check_app_pod_running()
+check_app_pod_status()
 {
     local identityFile=$1;
     local userName=$2;
     local connectionIP=$3;
     local appName=$4;
+    local appStatus=$5;
     
     # Check if pod is up and running
     log_level -i "Validate if pod for $appName app is created and running."
     i=0
     while [ $i -lt 20 ]; do
-        appPodstatus=$(ssh -t -i $identityFile $userName@$connectionIP "sudo kubectl get pods --selector $appName | grep 'Running' || true")
+        appPodstatus=$(ssh -t -i $identityFile $userName@$connectionIP "sudo kubectl get pods --selector $appName | grep '$appStatus' || true")
         if [ -z "$appPodstatus" ]; then
-            log_level -i "Pod is not up. We we will retry after some time."
+            log_level -i "Pod is not in expected state($appStatus). We we will retry after some time."
             sleep 30s
         else
-            log_level -i "Pod is up ($appPodstatus)."
+            log_level -i "Pod status is in expected state: $appPodstatus."
             break
         fi
         let i=i+1
     done
     
     if [ -z "$appPodstatus" ]; then
-        log_level -e "Validation failed because $appName pod not running."
+        log_level -e "Validation failed because $appName pod is not in state $appStatus."
         return 1
     fi
     
-    log_level -i "$appName pod is up and running."
+    log_level -i "$appName pod is in expected state($appStatus)."
     return 0
 }
 
@@ -245,79 +249,18 @@ check_helm_app_release_cleanup()
     return 0
 }
 
-# Avoids apt failures by first checking if the lock files are around
-# Function taken from the AKSe's code based
-wait_for_apt_locks()
-{
-    while fuser /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock >/dev/null 2>&1; do
-        echo 'Waiting for release of apt locks'
-        sleep 3
-    done
-}
-
-# Avoid transcient apt-update failures
-# Function taken from gallery code based
-apt_get_update()
-{
-    log_level -i "Updating apt cache."
-    
-    retries=10
-    apt_update_output=/tmp/apt-get-update.out
-    
-    for i in $(seq 1 $retries); do
-        wait_for_apt_locks
-        sudo dpkg --configure -a
-        sudo apt-get -f -y install
-        sudo apt-get update 2>&1 | tee $apt_update_output | grep -E "^([WE]:.*)|([eE]rr.*)$"
-        [ $? -ne 0  ] && cat $apt_update_output && break || \
-        cat $apt_update_output
-        if [ $i -eq $retries ]; then
-            return 1
-        else
-            sleep 30
-        fi
-    done
-    
-    echo "Executed apt-get update $i time/s"
-    wait_for_apt_locks
-}
-
-# Avoids transcient apt-install failures
-# Function taken from gallery code based
-apt_get_install()
-{
-    retries=$1; wait_sleep=$2; timeout=$3;
-    shift && shift && shift
-    
-    for i in $(seq 1 $retries); do
-        wait_for_apt_locks
-        sudo dpkg --configure -a
-        sudo apt-get install --no-install-recommends -y ${@}
-        [ $? -eq 0  ] && break || \
-        if [ $i -eq $retries ]; then
-            return 1
-        else
-            sleep $wait_sleep
-            apt_get_update
-        fi
-    done
-    
-    echo "Executed apt-get install --no-install-recommends -y \"$@\" $i times";
-    wait_for_apt_locks
-}
-
 perf_process_net_files()
 {
-    directoryName=$1
-    outputFileName=$2
-    FILENAME_LIST=$(ls $directoryName/*.csv)
+    local directoryName=$1
+    local outputFileName=$2
+    local FILENAME_LIST=$(ls $directoryName/*.csv)
     declare -A RESULT_MAP
-    testCaseCount=0
+    local testCaseCount=0
     while [ $testCaseCount -lt 14 ];do
         RESULT_MAP[$testCaseCount]=0.00
         let testCaseCount=testCaseCount+1
     done
-    iteration=0
+    local iteration=0
     for resultFileName in $FILENAME_LIST
     do
         log_level -i "Processing file $resultFileName."
@@ -358,9 +301,9 @@ perf_process_net_files()
 
 apt_install_jq()
 {
-    jq_Link=$1
+    local JQ_INSTALL_LINK="https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe"
     log_level -i "Install jq on local machine."
-    curl -O -L $jq_Link
+    curl -O -L $JQ_INSTALL_LINK
     if [ ! -f jq-win64.exe ]; then
         log_level -e "File(jq-win64.exe) failed to download."
         exit 1
@@ -370,9 +313,9 @@ apt_install_jq()
 
 validate_testcase_result()
 {
-    resultFileName=$1
-    expectedResultFileName=$2
-    testCaseName=$3
+    local resultFileName=$1
+    local expectedResultFileName=$2
+    local testCaseName=$3
     
     TESTRESULT=`cat "$resultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .value'`
     TESTCASE_MINVALUE=`cat "$expectedResultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .minvalue'`
@@ -383,4 +326,3 @@ validate_testcase_result()
         log_level -e "Test case \"$testCaseName\" failed for value $TESTRESULT as it is less than $TESTCASE_MINVALUE."
     fi
 }
-

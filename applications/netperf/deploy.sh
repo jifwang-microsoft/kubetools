@@ -2,20 +2,20 @@
 
 FILE_NAME=$0
 
-SCRIPT_FOLDER="$(dirname $FILE_NAME)"
+SCRIPT_DIRECTORY="$(dirname $FILE_NAME)"
 GIT_REPROSITORY="${GIT_REPROSITORY:-msazurestackworkloads/kubetools}"
 GIT_BRANCH="${GIT_BRANCH:-master}"
 COMMON_SCRIPT_FILENAME="common.sh"
 
 # Download common script file.
-curl -o $SCRIPT_FOLDER/$COMMON_SCRIPT_FILENAME \
+curl -o $SCRIPT_DIRECTORY/$COMMON_SCRIPT_FILENAME \
 https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/common/$COMMON_SCRIPT_FILENAME
-if [ ! -f $SCRIPT_FOLDER/$COMMON_SCRIPT_FILENAME ]; then
+if [ ! -f $SCRIPT_DIRECTORY/$COMMON_SCRIPT_FILENAME ]; then
     log_level -e "File($COMMON_SCRIPT_FILENAME) failed to download."
     exit 1
 fi
 
-source $SCRIPT_FOLDER/$COMMON_SCRIPT_FILENAME
+source $SCRIPT_DIRECTORY/$COMMON_SCRIPT_FILENAME
 ###########################################################################################################
 # The function will read parameters and populate below global variables.
 # IDENTITY_FILE, MASTER_IP, OUTPUT_SUMMARYFILE, USER_NAME
@@ -25,7 +25,6 @@ log_level -i "------------------------------------------------------------------
 log_level -i "                Input Parameters"
 log_level -i "------------------------------------------------------------------------"
 log_level -i "IDENTITY_FILE       : $IDENTITY_FILE"
-log_level -i "CONFIG_FILE         : $CONFIG_FILE"
 log_level -i "MASTER_IP           : $MASTER_IP"
 log_level -i "OUTPUT_SUMMARYFILE  : $OUTPUT_SUMMARYFILE"
 log_level -i "USER_NAME           : $USER_NAME"
@@ -42,8 +41,8 @@ fi
 
 ###########################################################################################################
 # Define all inner varaibles.
-OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
-LOG_FILENAME="$OUTPUT_FOLDER/deploy.log"
+OUTPUT_DIRECTORY="$(dirname $OUTPUT_SUMMARYFILE)"
+LOG_FILENAME="$OUTPUT_DIRECTORY/deploy.log"
 touch $LOG_FILENAME
 
 {
@@ -51,55 +50,69 @@ touch $LOG_FILENAME
     # Github details.
     APPLICATION_NAME="netperf"
     INSTALL_PREREQUISITE_FILE="install_prerequisite.sh"    
-    
-    TEST_FOLDER="/home/$USER_NAME/$APPLICATION_NAME"
-    GO_FOLDER="/home/$USER_NAME/go"
-    GO_SRC_FOLDER="$GO_FOLDER/src/k8s.io/"
-    NETPERF_FOLDER="$GO_SRC_FOLDER/perf-tests/network/benchmarks/netperf"
+    EXPECTED_RESULT_FILE="expectedresults.json"
+    TEST_DIRECTORY="/home/$USER_NAME/$APPLICATION_NAME"
+    GO_DIRECTORY="/home/$USER_NAME/go"
+    GO_SRC_DIRECTORY="$GO_DIRECTORY/src/k8s.io/"
+    NETPERF_DIRECTORY="$GO_SRC_DIRECTORY/perf-tests/network/benchmarks/netperf"
     GIT_PERF_CODE="https://github.com/kubernetes/perf-tests.git"
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Inner Variables"
     log_level -i "------------------------------------------------------------------------"
     log_level -i "APPLICATION_NAME           : $APPLICATION_NAME"
+    log_level -i "EXPECTED_RESULT_FILE       : $EXPECTED_RESULT_FILE"
     log_level -i "GIT_BRANCH                 : $GIT_BRANCH"
     log_level -i "GIT_PERF_CODE              : $GIT_PERF_CODE"    
     log_level -i "GIT_REPROSITORY            : $GIT_REPROSITORY"
-    log_level -i "GO_FOLDER                  : $GO_FOLDER"
-    log_level -i "GO_SRC_FOLDER              : $GO_SRC_FOLDER"
+    log_level -i "GO_DIRECTORY               : $GO_DIRECTORY"
+    log_level -i "GO_SRC_DIRECTORY           : $GO_SRC_DIRECTORY"
     log_level -i "INSTALL_PREREQUISITE_FILE  : $INSTALL_PREREQUISITE_FILE"
-    log_level -i "NETPERF_FOLDER             : $NETPERF_FOLDER"
-    log_level -i "TEST_FOLDER                : $TEST_FOLDER"
+    log_level -i "NETPERF_DIRECTORY          : $NETPERF_DIRECTORY"
+    log_level -i "TEST_DIRECTORY             : $TEST_DIRECTORY"
     log_level -i "------------------------------------------------------------------------"    
 
     # ----------------------------------------------------------------------------------------
     # INSTALL PREREQUISITE
 
-    curl -o $SCRIPT_FOLDER/$INSTALL_PREREQUISITE_FILE \
-    https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/common/$INSTALL_PREREQUISITE_FILE
-    if [ ! -f $SCRIPT_FOLDER/$INSTALL_PREREQUISITE_FILE ]; then
-        log_level -e "File($INSTALL_PREREQUISITE_FILE) failed to download."
-        printf '{"result":"%s","error":"%s"}\n' "failed" "File($INSTALL_PREREQUISITE_FILE) failed to download." > $OUTPUT_SUMMARYFILE
+    apt_install_jq
+        
+    download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
+    "applications/$APPLICATION_NAME" \
+    $SCRIPT_DIRECTORY \
+    $EXPECTED_RESULT_FILE
+
+    download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
+    "applications/common" \
+    $SCRIPT_DIRECTORY \
+    $INSTALL_PREREQUISITE_FILE
+    
+    if [[ $? != 0 ]]; then
+        log_level -e "Download of file($INSTALL_PREREQUISITE_FILE) failed."
+        printf '{"result":"%s","error":"%s"}\n' "failed" "Download of file($INSTALL_PREREQUISITE_FILE) was not successfull." > $OUTPUT_SUMMARYFILE
         exit 1
     fi
-    
-    log_level -i "Create test folder($TEST_FOLDER)"
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $TEST_FOLDER"
+
+    # ----------------------------------------------------------------------------------------
+    # Copy all files inside master VM for execution.
+    log_level -i "Create test DIRECTORY($TEST_DIRECTORY)"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $TEST_DIRECTORY"
     log_level -i "Copy file($INSTALL_PREREQUISITE_FILE) to VM."
     scp -i $IDENTITY_FILE \
-    $SCRIPT_FOLDER/$INSTALL_PREREQUISITE_FILE \
-    $USER_NAME@$MASTER_IP:$TEST_FOLDER/
+    $SCRIPT_DIRECTORY/$INSTALL_PREREQUISITE_FILE \
+    $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/
     scp -i $IDENTITY_FILE \
-    $SCRIPT_FOLDER/$COMMON_SCRIPT_FILENAME \
-    $USER_NAME@$MASTER_IP:$TEST_FOLDER/
+    $SCRIPT_DIRECTORY/$COMMON_SCRIPT_FILENAME \
+    $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/
 
-    
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo chmod 744 $TEST_FOLDER/$INSTALL_PREREQUISITE_FILE; "
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo chmod 744 $TEST_FOLDER/$COMMON_SCRIPT_FILENAME; "
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_FOLDER; ./$INSTALL_PREREQUISITE_FILE;"
+    # ----------------------------------------------------------------------------------------
+    # Launch prequisite files to install required components.
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo chmod 744 $TEST_DIRECTORY/$COMMON_SCRIPT_FILENAME; "
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo chmod 744 $TEST_DIRECTORY/$INSTALL_PREREQUISITE_FILE; "
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $INSTALL_PREREQUISITE_FILE; apt_install_important_packages ;"
     sleep 30s
     # This is needed as latest version of go lang gets install in second pass.
     # Todo need to debug and resolve why
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_FOLDER; ./$INSTALL_PREREQUISITE_FILE;"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $INSTALL_PREREQUISITE_FILE; apt_install_important_packages ;"
     goPath=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "go env | grep GOPATH || true")
     if [ -z "$goPath" ]; then
         log_level -e "GO is not installed."
@@ -108,28 +121,29 @@ touch $LOG_FILENAME
     else
         log_level -i "Go installed with GOPATH($goPath)"
     fi
+    
     # ----------------------------------------------------------------------------------------
-    log_level -i "Create go folder($GO_SRC_FOLDER)"
-    goFolder=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "ls | grep go || true")
-    log_level -i "GO folder status : $goFolder"
-    if [ -z "$goFolder" ]; then
+    log_level -i "Create go DIRECTORY($GO_SRC_DIRECTORY)"
+    goDIRECTORY=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "ls | grep go || true")
+    log_level -i "GO DIRECTORY status : $goDIRECTORY"
+    if [ -z "$goDIRECTORY" ]; then
 
-        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $GO_SRC_FOLDER"
+        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $GO_SRC_DIRECTORY"
         log_level -i "Install godep tool "
-        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "export GOPATH=$GO_FOLDER; go get github.com/tools/godep"
+        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "export GOPATH=$GO_DIRECTORY; go get github.com/tools/godep"
 
         log_level -i "Clone $APPLICATION_NAME repository "
-        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $GO_SRC_FOLDER; git clone $GIT_PERF_CODE"
+        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $GO_SRC_DIRECTORY; git clone $GIT_PERF_CODE"
     else
-        log_level -i "Remove old results to temp folder."
-        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $NETPERF_FOLDER; mv results_netperf-latest/ results_netperf-latest_temp/ || true"
+        log_level -i "Remove old results to temp DIRECTORY."
+        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $NETPERF_DIRECTORY; mv results_netperf-latest/ results_netperf-latest_temp/ || true"
     fi
 
     log_level -i "Build $APPLICATION_NAME launch binary."
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $NETPERF_FOLDER; go build launch.go"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $NETPERF_DIRECTORY; go build launch.go"
     
     log_level -i "Check if build passed."
-    fileType=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $NETPERF_FOLDER; stat --format '%a' launch")
+    fileType=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $NETPERF_DIRECTORY; stat --format '%a' launch")
     log_level -i "FileType value of launch is $fileType."
 
     if [[ $fileType != "775" ]]; then

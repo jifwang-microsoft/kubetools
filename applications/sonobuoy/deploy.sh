@@ -110,16 +110,17 @@ touch $LOG_FILENAME
     
     # ----------------------------------------------------------------------------------------
     # INSTALL PREREQUISITE
-
-    curl -o $OUTPUT_FOLDER/$INSTALL_PREREQUISITE \
-    https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/sonobuoy/$INSTALL_PREREQUISITE
-    if [ ! -f $OUTPUT_FOLDER/$INSTALL_PREREQUISITE ]; then
-        log_level -e "File($INSTALL_PREREQUISITE) failed to download."
-        result="failed"
-        printf '{"result":"%s","error":"%s"}\n' "$result" "File($INSTALL_PREREQUISITE) failed to download." > $OUTPUT_SUMMARYFILE
+    download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
+    "applications/common" \
+    $SCRIPT_FOLDER \
+    $INSTALL_PREREQUISITE
+    
+    if [[ $? != 0 ]]; then
+        log_level -e "Download of file($INSTALL_PREREQUISITE) failed."
+        printf '{"result":"%s","error":"%s"}\n' "failed" "Download of file($INSTALL_PREREQUISITE) was not successfull." > $OUTPUT_SUMMARYFILE
         exit 1
     fi
-    
+
     log_level -i "Create test folder($TEST_DIRECTORY)"
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $TEST_DIRECTORY"
     log_level -i "Copy file($INSTALL_PREREQUISITE) to VM."
@@ -129,7 +130,7 @@ touch $LOG_FILENAME
     
     # INSTALL PREREQUISITE
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo chmod 744 $TEST_DIRECTORY/$INSTALL_PREREQUISITE; "
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; ./$INSTALL_PREREQUISITE;"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $INSTALL_PREREQUISITE; apt_install_important_packages ;"
     goPath=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "go env | grep GOPATH || true")
     if [ -z "$goPath" ]; then
         log_level -e "GO is not installed."
@@ -141,7 +142,6 @@ touch $LOG_FILENAME
     fi
     # ----------------------------------------------------------------------------------------
     # Install Sonobuoy
-
     curl -L -o $OUTPUT_FOLDER/$SONOBUOY_TAR_FILENAME \
     https://github.com/heptio/sonobuoy/releases/download/v$SONOBUOY_VERSION/$SONOBUOY_TAR_FILENAME
     if [ ! -f $OUTPUT_FOLDER/$SONOBUOY_TAR_FILENAME ]; then

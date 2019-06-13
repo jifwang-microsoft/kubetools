@@ -4,6 +4,6 @@ RUN apt-get update \
 
 VOLUME /tmp
 WORKDIR /tmp
-COPY ./fio.sh /
-ENTRYPOINT ["/fio.sh"]
+COPY ./fio_run.sh /
+ENTRYPOINT ["/fio_run.sh"]
 CMD ["fio"]

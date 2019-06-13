@@ -65,8 +65,11 @@ echo
 echo ==================
 echo = Summary =
 echo ==================
-echo "Random Read/Write IOPS: $READ_IOPS_VALUE/$WRITE_IOPS_VALUE. "
-echo "Sequential Read/Write: $READ_SEQ_VALUE / $WRITE_SEQ_VALUE"
-echo "Mixed Random Read/Write IOPS: $MIX_READ_IOPS_VALUE/$MIX_WRITE_IOPS_VALUE"
+echo "Random Read IOPS Value:      $READ_IOPS_VALUE"
+echo "Random Write IOPS Value:     $WRITE_IOPS_VALUE"
+echo "Mixed Read IOPS Value:       $MIX_READ_IOPS_VALUE"
+echo "Mixed Write IOPS Value:      $MIX_WRITE_IOPS_VALUE"
+echo "Sequential Read IOPS Value:  $READ_SEQ_VALUE"
+echo "Sequential Write IOPS Value: $WRITE_SEQ_VALUE"
 rm $MOUNTPOINT/fiofile
 exit 0

@@ -43,10 +43,12 @@ touch $LOG_FILENAME
     log_level -i "APPLICATION_NAME           : $APPLICATION_NAME"
     log_level -i "------------------------------------------------------------------------"
     # Check application pod is up and running
-    check_app_pod_running $IDENTITY_FILE \
+    check_app_pod_status $IDENTITY_FILE \
     $USER_NAME \
     $MASTER_IP \
-    "app=$APPLICATION_NAME"
+    "app=$APPLICATION_NAME" \
+    "Running"
+
     
     if [[ $? != 0 ]]; then
         printf '{"result":"%s","error":"%s"}\n' "failed" "Pod related to App($APPLICATION_NAME) was not successfull." > $OUTPUT_SUMMARYFILE

@@ -2,20 +2,20 @@
 
 FILE_NAME=$0
 
-SCRIPT_FOLDER="$(dirname $FILE_NAME)"
+SCRIPT_DIRECTORY="$(dirname $FILE_NAME)"
 GIT_REPROSITORY="${GIT_REPROSITORY:-msazurestackworkloads/kubetools}"
 GIT_BRANCH="${GIT_BRANCH:-master}"
 COMMON_SCRIPT_FILENAME="common.sh"
 
 # Download common script file.
-curl -o $SCRIPT_FOLDER/$COMMON_SCRIPT_FILENAME \
+curl -o $SCRIPT_DIRECTORY/$COMMON_SCRIPT_FILENAME \
 https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/common/$COMMON_SCRIPT_FILENAME
-if [ ! -f $SCRIPT_FOLDER/$COMMON_SCRIPT_FILENAME ]; then
+if [ ! -f $SCRIPT_DIRECTORY/$COMMON_SCRIPT_FILENAME ]; then
     log_level -e "File($COMMON_SCRIPT_FILENAME) failed to download."
     exit 1
 fi
 
-source $SCRIPT_FOLDER/$COMMON_SCRIPT_FILENAME
+source $SCRIPT_DIRECTORY/$COMMON_SCRIPT_FILENAME
 ###########################################################################################################
 # The function will read parameters and populate below global variables.
 # IDENTITY_FILE, MASTER_IP, OUTPUT_SUMMARYFILE, USER_NAME
@@ -41,50 +41,60 @@ fi
 
 ###########################################################################################################
 # Define all inner varaibles.
-OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
-LOG_FILENAME="$OUTPUT_FOLDER/deploy.log"
+OUTPUT_DIRECTORY="$(dirname $OUTPUT_SUMMARYFILE)"
+LOG_FILENAME="$OUTPUT_DIRECTORY/deploy.log"
 touch $LOG_FILENAME
 
 {
-
     # Github details.
     APPLICATION_NAME="fio"
     APP_DEPLOYMENT_FILE="fio_deployment.yaml"
-    TEST_FOLDER="/home/$USER_NAME/$APPLICATION_NAME"
-
+    TEST_DIRECTORY="/home/$USER_NAME/$APPLICATION_NAME"
+    EXPECTED_RESULT_FILE="expectedresults.json"
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Inner Variables"
     log_level -i "------------------------------------------------------------------------"
     log_level -i "APPLICATION_NAME           : $APPLICATION_NAME"
     log_level -i "APP_DEPLOYMENT_FILE        : $APP_DEPLOYMENT_FILE"
-    log_level -i "TEST_FOLDER                : $TEST_FOLDER"
+    log_level -i "EXPECTED_RESULT_FILE       : $EXPECTED_RESULT_FILE"
+    log_level -i "TEST_DIRECTORY             : $TEST_DIRECTORY"
     log_level -i "------------------------------------------------------------------------"    
 
     # ----------------------------------------------------------------------------------------
     # INSTALL PREREQUISITE
+    apt_install_jq
+    download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
+    "applications/diskperf" \
+    $SCRIPT_DIRECTORY \
+    $EXPECTED_RESULT_FILE
 
-    curl -o $SCRIPT_FOLDER/$APP_DEPLOYMENT_FILE \
-    https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/$APPLICATION_NAME/$APP_DEPLOYMENT_FILE
-    if [ ! -f $SCRIPT_FOLDER/$APP_DEPLOYMENT_FILE ]; then
-        log_level -e "File($APP_DEPLOYMENT_FILE) failed to download."
-        printf '{"result":"%s","error":"%s"}\n' "failed" "File($APP_DEPLOYMENT_FILE) failed to download." > $OUTPUT_SUMMARYFILE
+    download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
+    "applications/diskperf" \
+    $SCRIPT_DIRECTORY \
+    $APP_DEPLOYMENT_FILE 
+    
+    if [[ $? != 0 ]]; then
+        log_level -e "Download of file($APP_DEPLOYMENT_FILE) failed."
+        printf '{"result":"%s","error":"%s"}\n' "failed" "Download of file($APP_DEPLOYMENT_FILE) was not successfull." > $OUTPUT_SUMMARYFILE
         exit 1
     fi
     
-    log_level -i "Create test folder($TEST_FOLDER)"
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $TEST_FOLDER"
+    log_level -i "Create test DIRECTORY($TEST_DIRECTORY)"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $TEST_DIRECTORY"
     log_level -i "Copy file($APP_DEPLOYMENT_FILE) to VM."
     scp -i $IDENTITY_FILE \
-    $SCRIPT_FOLDER/$APP_DEPLOYMENT_FILE \
-    $USER_NAME@$MASTER_IP:$TEST_FOLDER/
+    $SCRIPT_DIRECTORY/$APP_DEPLOYMENT_FILE \
+    $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/
 
     # Launch fio app
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_FOLDER; kubectl apply -f $APP_DEPLOYMENT_FILE;"
+    log_level -i "Deploy application using file($APP_DEPLOYMENT_FILE)"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; kubectl apply -f $APP_DEPLOYMENT_FILE;"
 
-    check_app_pod_running $IDENTITY_FILE \
+    check_app_pod_status $IDENTITY_FILE \
     $USER_NAME \
     $MASTER_IP \
-    "job-name=$APPLICATION_NAME"
+    "job-name=$APPLICATION_NAME" \
+    "Running"
     
     if [[ $? != 0 ]]; then
         printf '{"result":"%s","error":"%s"}\n' "failed" "Pod related to App($APPLICATION_NAME) was not successfull." > $OUTPUT_SUMMARYFILE

@@ -34,7 +34,22 @@
 		"githubBranch": "master",
 		"applications": [
 			{
-				"name": "netbench",
+				"name": "diskperf",
+				"deployment": {
+					"scriptName": "fio_deploy.sh",
+					"summaryFile": "deploy.json"
+				},
+				"validation": {
+					"scriptName": "fio_validate.sh",
+					"summaryFile": "validate.json"
+				},
+				"cleanup": {
+					"scriptName": "fio_cleanup.sh",
+					"summaryFile": "cleanup.json"
+				}
+			},
+			{
+				"name": "netperf",
 				"deployment": {
 					"scriptName": "deploy.sh",
 					"summaryFile": "deploy.json"
@@ -47,7 +62,7 @@
 					"scriptName": "cleanup.sh",
 					"summaryFile": "cleanup.json"
 				}
-			}
+			}			
 		]
 	}
 }

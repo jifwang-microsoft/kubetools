@@ -61,15 +61,19 @@ apt_get_install()
     wait_for_apt_locks
 }
 
-# apt packages
-echo "Updating apt cache."
-apt_get_update || exit 0
+apt_install_important_packages()
+{
+    # apt packages
+    echo "Updating apt cache."
+    apt_get_update || exit 0
 
-sudo add-apt-repository -y ppa:longsleep/golang-backports
-echo "Installing golang."
-apt_get_install 30 1 600  \
-golang-go \
-bc \
-dos2unix \
-|| exit 0
+    sudo add-apt-repository -y ppa:longsleep/golang-backports
+    echo "Installing golang."
+    apt_get_install 30 1 600  \
+    golang-go \
+    bc \
+    dos2unix \
+    || exit 0
+}
+
 

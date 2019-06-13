@@ -1,0 +1,28 @@
+{
+	"testSuite": [
+		{
+			"testname": "Random_Read_IOPS",
+			"minvalue": "410"
+		},
+		{
+			"testname": "Random_Write_IOPS",
+			"minvalue": "325"
+		},
+		{
+			"testname": "Mixed_Read_IOPS",
+			"minvalue": "300"
+		},
+		{
+			"testname": "Mixed_Write_IOPS",
+			"minvalue": "100"
+		},
+		{
+			"testname": "Sequential_Read_IOPS",
+			"minvalue": "30"
+		},
+		{
+			"testname": "Sequential_Write_IOPS",
+			"minvalue": "30"
+		}
+	]
+}
