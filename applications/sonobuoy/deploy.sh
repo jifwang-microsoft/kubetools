@@ -71,11 +71,14 @@ touch $LOG_FILENAME
 
 {
     # Github details.
+    COMMON_SCRIPT_FILENAME="common.sh"
     GIT_REPROSITORY="${GIT_REPROSITORY:-msazurestackworkloads/kubetools}"
     GIT_BRANCH="${GIT_BRANCH:-master}"
     INSTALL_PREREQUISITE="install_prerequisite.sh"
+    SCRIPT_DIRECTORY="$(dirname $FILE_NAME)"
+
     TEST_DIRECTORY="/home/$USER_NAME/sonobuoy"
-    
+
     log_level -i "------------------------------------------------------------------------"
     log_level -i "Input Parameters"
     log_level -i "------------------------------------------------------------------------"
@@ -100,9 +103,11 @@ touch $LOG_FILENAME
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Inner Variables"
     log_level -i "------------------------------------------------------------------------"
+    log_level -i "COMMON_SCRIPT_FILENAME   : $COMMON_SCRIPT_FILENAME"    
     log_level -i "INSTALL_PREREQUISITE     : $INSTALL_PREREQUISITE"
     log_level -i "KUBERNETES_MAJOR_VERSION : $KUBERNETES_MAJOR_VERSION"
-    log_level -i "KUBERNETES_VERSION       : $KUBERNETES_VERSION"    
+    log_level -i "KUBERNETES_VERSION       : $KUBERNETES_VERSION"
+    log_level -i "SCRIPT_DIRECTORY         : $SCRIPT_DIRECTORY"
     log_level -i "SONOBUOY_TAR_FILENAME    : $SONOBUOY_TAR_FILENAME"
     log_level -i "SONOBUOY_VERSION         : $SONOBUOY_VERSION"
     log_level -i "TEST_DIRECTORY           : $TEST_DIRECTORY"
@@ -110,9 +115,17 @@ touch $LOG_FILENAME
     
     # ----------------------------------------------------------------------------------------
     # INSTALL PREREQUISITE
+    curl -o $SCRIPT_DIRECTORY/$COMMON_SCRIPT_FILENAME \
+    https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/common/$COMMON_SCRIPT_FILENAME
+    if [ ! -f $SCRIPT_DIRECTORY/$COMMON_SCRIPT_FILENAME ]; then
+        log_level -e "File($COMMON_SCRIPT_FILENAME) failed to download."
+        exit 1
+    fi
+
+    source $SCRIPT_DIRECTORY/$COMMON_SCRIPT_FILENAME
     download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
     "applications/common" \
-    $SCRIPT_FOLDER \
+    $SCRIPT_DIRECTORY \
     $INSTALL_PREREQUISITE
     
     if [[ $? != 0 ]]; then
