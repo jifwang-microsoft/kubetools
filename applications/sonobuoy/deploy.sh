@@ -65,6 +65,8 @@ do
     fi
 done
 
+FILE_NAME=$0
+
 OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
 LOG_FILENAME="$OUTPUT_FOLDER/deploy.log"
 touch $LOG_FILENAME
@@ -123,7 +125,8 @@ touch $LOG_FILENAME
     fi
 
     source $SCRIPT_DIRECTORY/$COMMON_SCRIPT_FILENAME
-    download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
+    download_file_locally $GIT_REPROSITORY \
+    $GIT_BRANCH \
     "applications/common" \
     $SCRIPT_DIRECTORY \
     $INSTALL_PREREQUISITE
