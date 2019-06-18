@@ -10,19 +10,25 @@ echo -e " $(date) [Info] Install Eventrouter to collect the events for all kuber
 helmcmd="$(helm)"
 
 if [[ -z $helmcmd ]]; then
+    echo -e  "$(date) [Info] Helm not installed, installing helm"
+    
     curl https://raw.githubusercontent.com/msazurestackworkloads/kubetools/eventrouter/applications/common/install_helm.sh | bash
 else
     #Installing eventrouter to send input to stdout
-    echo -e  "$(date) [Info] Install eventrouter"
-    helm install stable/eventrouter --set sink=stdout
-
+    echo -e  "$(date) [Info] Checking if event router is already deployed"
+    
     #Checking if eventrouter is deployed
     INSTALL_STATUS=$(helm ls -d -r | grep 'DEPLOYED\(.*\)eventrouter' | grep -Eo '^[a-z,-]+')
     
     if [[ -z $INSTALL_STATUS ]]; then
-        echo -e  " ${RED}$(date) [Err] App(eventrouter) deployment failed using Helm."
-        return 1
+        echo -e  "$(date) [Info] Installing eventrouter"
+        
+        if helm install stable/eventrouter --set sink=stdout;  then
+            echo -e  "${GREEN}$(date) [Info] Eventrouter installing sucessfully"
+        else
+            echo -e  "${RED}$(date) [Err] Eventrouter Failed to install"
+        fi 
     else
-        echo -e  " ${GREEN}$(date) [Info] App(eventrouter) deployment successfull."
+        echo -e  " ${GREEN}$(date) [Info] App(eventrouter) already installed"
     fi
 fi
