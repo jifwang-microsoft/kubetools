@@ -29,6 +29,6 @@ else
             echo -e  "${RED}$(date) [Err] Eventrouter Failed to install"
         fi 
     else
-        echo -e  " ${GREEN}$(date) [Info] App(eventrouter) already installed"
+        echo -e  "${GREEN}$(date) [Info] App(eventrouter) already installed"
     fi
 fi
