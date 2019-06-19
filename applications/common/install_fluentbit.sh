@@ -25,15 +25,16 @@ if [[ -z $INSTALL_STATUS ]]; then
     
     helm repo add elastic https://helm.elastic.co
     
-    ELASTIC_INSTALL_STATUS=$(helm install --name elasticsearch elastic/elasticsearch --version 7.1.1 --set service.type=LoadBalancer )
+    helm install --name elasticsearch elastic/elasticsearch --version 7.1.1 --set service.type=LoadBalancer
     
-    if $ELASTIC_INSTALL_STATUS; then
+    PODS=$(kubectl get pods -n default -o custom-columns=NAME:.metadata.name --no-headers)
+    
+    if [[ $PODS == *"elasticsearch"* ]]; then
         echo -e  "$(date) [Info] Elasticserch installed sucessfully"
     else
-        echo -e "$(date) [Info] could not install elasticsearch. Reason [$ELASTIC_INSTALL_STATUS]"
+        echo -e "$(date) [Info] Could not install elasticsearch."
         exit 1
     fi
-    
 else
     echo -e  "$(date) [Info] Elasticserch already installed"
 fi
@@ -49,17 +50,19 @@ INSTALL_STATUS=$(helm ls -d -r | grep 'DEPLOYED\(.*\)kibana' | grep -Eo '^[a-z,-
 if [[ -z $INSTALL_STATUS ]]; then
     echo -e  "$(date) [Info] Installing kibana"
     
-    KIBANA_INSTALL_STATUS=$(helm install --name kibana elastic/kibana --version 7.1.1 --set imageTag=7.1.1 --set service.type=LoadBalancer )
+    helm install --name kibana elastic/kibana --version 7.1.1 --set imageTag=7.1.1 --set service.type=LoadBalancer
+
+    PODS=$(kubectl get pods -n default -o custom-columns=NAME:.metadata.name --no-headers)
     
-    if $KIBANA_INSTALL_STATUS; then
+    if [[ $PODS == *"kibana"* ]]; then
         echo -e  "$(date) [Info] Kibana installed sucessfully"
     else
-        echo -e "$(date) [Info] Could not install elasticsearch"
+        echo -e "$(date) [Info] Could not install kibana."
         exit 1
     fi
     
 else
-    echo -e  "$(date) [Info] Elasticserch already installed"
+    echo -e  "$(date) [Info] Kibana already installed"
 fi
 
 
