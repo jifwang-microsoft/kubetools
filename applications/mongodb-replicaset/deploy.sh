@@ -47,7 +47,7 @@ touch $LOG_FILENAME
 
 {
     HELM_INSTALL_FILENAME="install_helm.sh"
-    APPLICATION_NAME="tomcat"
+    APPLICATION_NAME="mongodb-replicaset"
     TEST_FOLDER="/home/$USER_NAME/$APPLICATION_NAME"
     APPLICATION_FOLDER="applications/common"
     
