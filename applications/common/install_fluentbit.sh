@@ -30,7 +30,7 @@ if [[ -z $INSTALL_STATUS ]]; then
     if $ELASTIC_INSTALL_STATUS; then
         echo -e  "$(date) [Info] Elasticserch installed sucessfully"
     else
-        echo -e "$(date) [Info] could not install elasticsearch"
+        echo -e "$(date) [Info] could not install elasticsearch. Reason [$ELASTIC_INSTALL_STATUS]"
         exit 1
     fi
     
