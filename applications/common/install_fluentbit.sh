@@ -50,7 +50,7 @@ INSTALL_STATUS=$(helm ls -d -r | grep 'DEPLOYED\(.*\)kibana' | grep -Eo '^[a-z,-
 if [[ -z $INSTALL_STATUS ]]; then
     echo -e  "$(date) [Info] Installing kibana"
     
-    helm install --name kibana elastic/kibana --version 7.1.1 --set imageTag=7.1.1 --set service.type=LoadBalancer
+    helm install --name kibana elastic/kibana --version 7.1.1 --set imageTag=7.1.1 --set service.type=LoadBalancer --set service.port=5601
 
     PODS=$(kubectl get pods -n default -o custom-columns=NAME:.metadata.name --no-headers)
     
