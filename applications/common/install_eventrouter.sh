@@ -32,3 +32,5 @@ else
         echo -e  "${GREEN}$(date) [Info] App (eventrouter) already installed"
     fi
 fi
+
+echo -e "${NC}$(date) [Info] Installing eventrouter complete"
