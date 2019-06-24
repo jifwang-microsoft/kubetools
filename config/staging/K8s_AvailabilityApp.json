@@ -1,16 +1,17 @@
+
 {
 	"clusterARMTemplate": {
-		"githubRepo": "msazurestackworkloads/azurestack-gallery",
-		"githubBranch": "master",
+		"galleryRepository": "msazurestackworkloads/azurestack-gallery",
+		"galleryBranch": "master",
 		"folderPath": "kubernetes/template/DeploymentTemplates",
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
 		"minNumberofAzsNodes": 1,
-		"removeDeployment": "false",
+		"removeDeployment": "true",
 		"deploymentMatrix": [
 			{
 				"agentPoolProfileCount": 3,
 				"agentPoolProfilevmSize": "Standard_D2_v2",
-				"masterPoolProfileCount": 1,
+				"masterPoolProfileCount": 3,
 				"masterPoolProfilevmSize": "Standard_D2_v2",
 				"storageProfile": "ManagedDisk",
 				"hyperkubeImagesVersion": "1.11",
@@ -35,7 +36,15 @@
 		"applications": [
 			{
 				"name": "nginx",
-				"junitFile": "junit_01.xml",
+				"availabilityTest": "true",
+				"deployment": {
+					"scriptName": "deploy.sh",
+					"summaryFile": "deploy.json"
+				}
+			},
+			{
+				"name": "mongodb-replicaset",
+				"availabilityTest": "true",
 				"deployment": {
 					"scriptName": "deploy.sh",
 					"summaryFile": "deploy.json"
