@@ -43,6 +43,7 @@ fi
 # Define all inner varaibles.
 OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
 LOG_FILENAME="$OUTPUT_FOLDER/deploy.log"
+MONGO_SERVICE="$OUTPUT_FOLDER/mongo-service.txt"
 touch $LOG_FILENAME
 
 {
@@ -50,6 +51,23 @@ touch $LOG_FILENAME
     APPLICATION_NAME="mongodb-replicaset"
     TEST_FOLDER="/home/$USER_NAME/$APPLICATION_NAME"
     APPLICATION_FOLDER="applications/common"
+    # Github details.
+    
+    TEST_DIRECTORY="/home/$USER_NAME/mongodb-replicaset"
+    MONGODB_SERVICE_FILENAME="mongodb-service-loadbalancer.yaml"
+    
+    
+    
+    curl -o $OUTPUT_FOLDER/$MONGODB_SERVICE_FILENAME \
+    https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/mongodb-replicaset/$MONGODB_SERVICE_FILENAME
+    if [ ! -f $OUTPUT_FOLDER/$MONGODB_SERVICE_FILENAME ]; then
+        log_level -e "File($MONGODB_SERVICE_FILENAME) failed to download."
+        result="failed"
+        printf '{"result":"%s","error":"%s"}\n' "$result" "Download of file($MONGODB_SERVICE_FILENAM) was not successfull." > $OUTPUT_SUMMARYFILE
+        exit 1
+    fi
+    
+    
     
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Inner Variables"
@@ -105,7 +123,16 @@ touch $LOG_FILENAME
     else
         printf '{"result":"%s"}\n' "pass" > $OUTPUT_SUMMARYFILE
     fi
-    
+     mongoRelease=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)mongodb-replicaset' | grep -Eo '^[a-z,-]+'")
+     sed -e 's,RELEASENAME,'$mongoRelease',g' < $MONGODB_SERVICE_FILENAME
+     
+    ssh -t -i $IDENTITY_FILE \
+    $USER_NAME@$MASTER_IP \
+    "sudo chmod 744 $TEST_DIRECTORY/$MONGODB_SERVICE_FILENAME; cd $TEST_DIRECTORY;"
+    mongo=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY;kubectl apply -f $MONGODB_SERVICE_FILENAME";sleep 20)
+    app_mongo=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get services mongodb-replicaset-service -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
+    echo $app_mongo > $MONGO_SERVICE
+     
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
 } 2>&1 | tee $LOG_FILENAME
