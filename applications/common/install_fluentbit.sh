@@ -18,32 +18,34 @@ if [[ -z $helmcmd ]]; then
     chmod 700 install_helm.sh
     dir=$(pwd)
     $dir/install_helm.sh
+else
+    echo -e  "$(date) [Info] Helm already installed"
 fi
 
 # # Installing elasticsearch as a backend
-# echo -e  "$(date) [Info] Checking if elasticsearch is already deployed"
+echo -e  "$(date) [Info] Checking if elasticsearch is already deployed"
 
-# INSTALL_STATUS=$(helm ls -d -r | grep 'DEPLOYED\(.*\)elasticsearch' | grep -Eo '^[a-z,-]+')
+INSTALL_STATUS=$(helm ls -d -r | grep 'DEPLOYED\(.*\)elasticsearch' | grep -Eo '^[a-z,-]+')
 
-# if [[ -z $INSTALL_STATUS ]]; then
-#     echo -e  "$(date) [Info] Installing elasticsearch"
+if [[ -z $INSTALL_STATUS ]]; then
+    echo -e  "$(date) [Info] Installing elasticsearch"
 
-#     helm repo add elastic https://helm.elastic.co
+    helm repo add elastic https://helm.elastic.co
 
-#     #service type load balancer not working
-#     helm install --name elasticsearch elastic/elasticsearch --version 7.1.1 --set service.type=LoadBalancer
+    #service type load balancer not working
+    helm install --name elasticsearch elastic/elasticsearch --version 7.1.1 --set service.type=LoadBalancer
 
-#     PODS=$(kubectl get pods -n default -o custom-columns=NAME:.metadata.name --no-headers)
+    PODS=$(kubectl get pods -n default -o custom-columns=NAME:.metadata.name --no-headers)
 
-#     if [[ $PODS == *"elasticsearch"* ]]; then
-#         echo -e  "$(date) [Info] Elasticserch installed sucessfully"
-#     else
-#         echo -e "$(date) [Info] Could not install elasticsearch."
-#         exit 1
-#     fi
-# else
-#     echo -e  "$(date) [Info] Elasticserch already installed"
-# fi
+    if [[ $PODS == *"elasticsearch"* ]]; then
+        echo -e  "$(date) [Info] Elasticserch installed sucessfully"
+    else
+        echo -e "$(date) [Info] Could not install elasticsearch."
+        exit 1
+    fi
+else
+    echo -e  "$(date) [Info] Elasticserch already installed"
+fi
 
 
 
