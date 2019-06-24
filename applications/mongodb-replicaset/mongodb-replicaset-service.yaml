@@ -5,8 +5,8 @@ metadata:
     app: mongodb-replicaset
     chart: mongodb-replicaset-3.9.6
     heritage: Tiller
-    release: {{RELEASE-NAME}}
-  name: {{RELEASE-NAME}}-mongodb-replicaset-service
+    release: RELEASE-NAME
+  name: RELEASE-NAME-mongodb-replicaset-service
   namespace: default
 spec:
   ports:
@@ -16,6 +16,6 @@ spec:
     targetPort: 27017
   selector:
     app: mongodb-replicaset
-    release: {{RELEASE-NAME}}
+    release: RELEASE-NAME
   sessionAffinity: None
   type: LoadBalancer
