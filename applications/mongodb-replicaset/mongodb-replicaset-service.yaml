@@ -6,7 +6,7 @@ metadata:
     chart: mongodb-replicaset-3.9.6
     heritage: Tiller
     release: RELEASE-NAME
-  name: RELEASE-NAME-mongodb-replicaset-service
+  name: mongodb-replicaset-service
   namespace: default
 spec:
   ports:
