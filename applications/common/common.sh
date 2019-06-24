@@ -317,12 +317,116 @@ validate_testcase_result()
     local expectedResultFileName=$2
     local testCaseName=$3
     
-    TESTRESULT=`cat "$resultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .value'`
-    TESTCASE_MINVALUE=`cat "$expectedResultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .minvalue'`
-    if (( $(awk 'BEGIN {print ("'$TESTRESULT'" >= "'$TESTCASE_MINVALUE'")}') )); then
-        log_level -i "Test case \"$testCaseName\" passed with value $TESTRESULT as it is greater than $TESTCASE_MINVALUE."
-    else 
-        FAILED_CASES="$FAILED_CASES,$testCaseName"
-        log_level -e "Test case \"$testCaseName\" failed for value $TESTRESULT as it is less than $TESTCASE_MINVALUE."
+    TESTRESULT=`cat "$resultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
+    TESTCASE_RANGE_VALUE=`cat "$expectedResultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
+    CONDITION_TYPE=`cat "$expectedResultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .conditionType' | sed -e 's/^"//' -e 's/"$//'`
+    TESTCASE_STATUS="fail"
+    log_level -i "Comparing $TESTRESULT with $TESTCASE_RANGE_VALUE with condition as $CONDITION_TYPE."
+    if [[ -z "$CONDITION_TYPE" ]] || [[ "$CONDITION_TYPE" == "gt" ]]; then
+        log_level -i "Comparing values for greater case."
+        if (( $(awk 'BEGIN {print ("'$TESTRESULT'" >= "'$TESTCASE_RANGE_VALUE'")}') )); then
+            TESTCASE_STATUS="pass"
+            log_level -i "Test case \"$testCaseName\" passed with value $TESTRESULT as it is greater than $TESTCASE_RANGE_VALUE."
+        fi
+    else
+        log_level -i "Comparing values for less than case."
+        if (( $(awk 'BEGIN {print ("'$TESTRESULT'" <= "'$TESTCASE_RANGE_VALUE'")}') )); then
+            TESTCASE_STATUS="pass"
+            log_level -i "Test case \"$testCaseName\" passed with value $TESTRESULT as it is less than $TESTCASE_RANGE_VALUE."
+        fi
     fi
+    log_level -i "Comparison done now checking the status."
+    if [ $TESTCASE_STATUS == "fail" ]; then
+        FAILED_CASES="$FAILED_CASES,$testCaseName"
+        log_level -e "Test case \"$testCaseName\" failed for value $TESTRESULT in comparison with range value:$TESTCASE_RANGE_VALUE."
+    fi
+}
+
+deploy_and_measure_event_time()
+{
+    local deploymentFileName=$1
+    local startEventName=$2
+    local expectedEventName=$3
+    local name=$4
+    local objectKind=$5
+    local waitTime=${6:-120}
+
+    kubectl apply -f $deploymentFileName
+    i=0
+    while [ $i -lt 50 ];do
+        kubeEvents=$(kubectl get events --field-selector involvedObject.kind==$objectKind | grep $name | grep $expectedEventName)
+        if [ -z "$kubeEvents" ]; then
+            log_level -i "$expectedEventName event has not reached for $name $objectKind."
+            sleep 10s
+        else
+            break
+        fi
+        let i=i+1
+    done
+
+    if [ -z "$kubeEvents" ]; then
+        log_level -e "$expectedEventName has not reached for $name $objectKind."
+    else
+        kubeEvents=$(kubectl get events --field-selector involvedObject.kind==$objectKind -o json)
+        log_level -i "$kubeEvents"
+        startEventTime=$(echo $kubeEvents | jq --arg items "$startEventName" '.items[] | select(.reason == $items) | .firstTimestamp' | tail -1 | sed -e 's/^"//' -e 's/"$//')
+        endEventTime=$(echo $kubeEvents | jq --arg items "$expectedEventName" '.items[] | select(.reason == $items) | .firstTimestamp' | tail -1 | sed -e 's/^"//' -e 's/"$//')
+        startEventTime=$(date +%s -d $startEventTime)
+        endEventTime=$(date +%s -d $endEventTime)
+        let difference=$(echo "$endEventTime - $startEventTime" | bc)
+        log_level -i "Event ($startEventName) started at $startEventTime and event ($expectedEventName) arrived at $endEventTime."
+        log_level -i "Total time taken to reach from $startEventName to $expectedEventName event is $difference"
+        sleep $waitTime
+        json_string='{ "Time":"%s" }'
+        printf "$json_string" "$difference" > $name.log
+    fi
+}
+
+cleanup_deployment()
+{
+    local deploymentFileName=$1
+    local waitTime=${2:-300}
+    kubectl delete -f $deploymentFileName
+    sleep 10s
+    #Currently assume single PVC
+    pvcName=$(kubectl get pvc -o json | jq '.items[] | .metadata.name' | sed -e 's/^"//' -e 's/"$//')
+    if [ -z "$pvcName" ]; then
+        log_level -i "No pvc found."
+    else
+        log_level -i "Delete pvc:$pvcName."
+        kubectl delete pvc $pvcName
+        sleep $waitTime
+    fi
+}
+
+rename_string_infile()
+{
+    local fileName=$1
+    local findstring=$2
+    local replaceString=$3
+
+    file_contents=$(< $fileName)
+    echo "${file_contents//$findstring/$replaceString}" > $fileName
+}
+
+process_perflog_files()
+{
+    local directoryName=$1
+    local outputFileName=$2
+    local testCaseName=$3
+    local fileNameStartwith=$4
+    local FILENAME_LIST=$(ls $directoryName/$fileNameStartwith*.log)
+    totalTimeTaken=0
+    local iteration=0
+    for resultFileName in $FILENAME_LIST
+    do
+        log_level -i "Processing file $resultFileName."
+        totalTime=$(cat $resultFileName | jq '.Time' | sed -e 's/^"//' -e 's/"$//')
+        totalTimeTaken=$(echo $totalTimeTaken+$totalTime | bc);
+        let iteration=iteration+1
+    done
+    
+    averageTimeTaken=$(echo $totalTimeTaken/$iteration| bc);
+    json_string='{ "testSuite": [ {"testname":"%s", "value":"%s" } ] }'
+    printf "$json_string" "$testCaseName" "$averageTimeTaken" > $directoryName/$outputFileName
 }

@@ -2,27 +2,33 @@
 	"testSuite": [
 		{
 			"testname": "Random_Read_IOPS",
-			"minvalue": "410"
+			"value": "410",
+			"conditionType": "gt"
 		},
 		{
 			"testname": "Random_Write_IOPS",
-			"minvalue": "325"
+			"value": "325",
+			"conditionType": "gt"
 		},
 		{
 			"testname": "Mixed_Read_IOPS",
-			"minvalue": "300"
+			"value": "300",
+			"conditionType": "gt"
 		},
 		{
 			"testname": "Mixed_Write_IOPS",
-			"minvalue": "100"
+			"value": "100",
+			"conditionType": "gt"
 		},
 		{
 			"testname": "Sequential_Read_IOPS",
-			"minvalue": "30"
+			"value": "30",
+			"conditionType": "gt"
 		},
 		{
 			"testname": "Sequential_Write_IOPS",
-			"minvalue": "30"
+			"value": "30",
+			"conditionType": "gt"
 		}
 	]
 }

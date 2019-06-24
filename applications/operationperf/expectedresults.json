@@ -1,0 +1,20 @@
+{
+	"testSuite": [
+		{
+			"testname": "DISK_ATTACH_TIME",
+			"value": "110",
+			"conditionType": "lt"
+		},
+		{
+			"testname": "FIRST_PUBLIC_IP_ALLOCATION_TIME",
+			"value": "100",
+			"conditionType": "lt"
+		},
+		{
+			"testname": "SECOND_PUBLIC_IP_ALLOCATION_TIME",
+			"value": "40",
+			"conditionType": "lt"
+		}
+	]
+}
+

@@ -61,6 +61,19 @@ apt_get_install()
     wait_for_apt_locks
 }
 
+apt_install_prerequisite_packages()
+{
+    # apt packages
+    echo "Updating apt cache."
+    apt_get_update || exit 0
+
+    echo "Installing packages."
+    apt_get_install 30 1 600  \
+    bc \
+    dos2unix \
+    || exit 0
+}
+
 apt_install_important_packages()
 {
     # apt packages

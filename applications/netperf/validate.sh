@@ -41,9 +41,10 @@ touch $LOG_FILENAME
     EXPECTED_RESULT_FILE="expectedresults.json"
     GO_DIRECTORY="/home/$USER_NAME/go"
     GO_SRC_DIRECTORY="$GO_DIRECTORY/src/k8s.io/"
-    NETPERF_DIRECTORY="$GO_SRC_DIRECTORY/perf-tests/network/benchmarks/netperf"    
+    NETPERF_DIRECTORY="$GO_SRC_DIRECTORY/perf-tests/network/benchmarks/netperf"
     TEST_DIRECTORY="/home/$USER_NAME/$APPLICATION_NAME"
-    RESULTS_FILENAME="results.json"    
+    RESULTS_FILENAME="results.json"
+    ITERATIONS="3"
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Inner Variables"
     log_level -i "------------------------------------------------------------------------"
@@ -60,7 +61,7 @@ touch $LOG_FILENAME
     # ----------------------------------------------------------------------------------------
     log_level -i "Launch netperf run."
     TIMEOUT=108000
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $NETPERF_DIRECTORY; timeout $TIMEOUT $NETPERF_DIRECTORY/launch -hostnetworking -kubeConfig /home/$USER_NAME/.kube/config -iterations 3"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $NETPERF_DIRECTORY; timeout $TIMEOUT $NETPERF_DIRECTORY/launch -hostnetworking -kubeConfig /home/$USER_NAME/.kube/config -iterations $ITERATIONS"
 
     log_level -i "Copy results file."
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $NETPERF_DIRECTORY; cp results_netperf-latest/* $TEST_DIRECTORY/ "
@@ -92,23 +93,23 @@ touch $LOG_FILENAME
             exit 1
         fi
 
-        MINVALUE_RESULT_FILE=$SCRIPT_DIRECTORY/$EXPECTED_RESULT_FILE
+        EXPECTED_RESULT_FILE=$SCRIPT_DIRECTORY/$EXPECTED_RESULT_FILE
 
         log_level -i "Validate results with minimum expected results."
         FAILED_CASES=""
-        validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "Iperf_TCP_SameVM_Pod_IP"
-        validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "Iperf_TCP_SameVM_Virtual_IP"
-        validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "Iperf_TCP_RemoteVM_Pod_IP"
-        validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "Iperf_TCP_RemoteVM_Virtual_IP"
-        validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "Iperf_TCP_Hairpin_Pod_IP"
-        validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "Iperf_UDP_SameVM_Pod_IP"
-        validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "Iperf_UDP_SameVM_Virtual_IP"
-        validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "Iperf_UDP_RemoteVM_Pod_IP"
-        validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "Iperf_UDP_RemoteVM_Virtual_IP"
-        validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "NetPerf_SameVM_Pod_IP"
-        validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "NetPerf_SameVM_Virtual_IP"
-        validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "NetPerf_RemoteVM_Pod_IP"
-        validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "NetPerf_RemoteVM_Virtual_IP"
+        validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "Iperf_TCP_SameVM_Pod_IP"
+        validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "Iperf_TCP_SameVM_Virtual_IP"
+        validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "Iperf_TCP_RemoteVM_Pod_IP"
+        validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "Iperf_TCP_RemoteVM_Virtual_IP"
+        validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "Iperf_TCP_Hairpin_Pod_IP"
+        validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "Iperf_UDP_SameVM_Pod_IP"
+        validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "Iperf_UDP_SameVM_Virtual_IP"
+        validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "Iperf_UDP_RemoteVM_Pod_IP"
+        validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "Iperf_UDP_RemoteVM_Virtual_IP"
+        validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "NetPerf_SameVM_Pod_IP"
+        validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "NetPerf_SameVM_Virtual_IP"
+        validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "NetPerf_RemoteVM_Pod_IP"
+        validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "NetPerf_RemoteVM_Virtual_IP"
 
         if [ -z "$FAILED_CASES" ]; then
             log_level -i "All test cases passes."

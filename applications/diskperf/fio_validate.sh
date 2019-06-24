@@ -41,7 +41,7 @@ touch $LOG_FILENAME
     RESULTS_FILE=$OUTPUT_DIRECTORY/$RESULTS_FILENAME
     EXPECTED_RESULT_FILE="expectedresults.json"
     TEST_DIRECTORY="/home/$USER_NAME/$APPLICATION_NAME"
-    MINVALUE_RESULT_FILE=$SCRIPT_DIRECTORY/$EXPECTED_RESULT_FILE
+    EXPECTED_RESULT_FILE=$SCRIPT_DIRECTORY/$EXPECTED_RESULT_FILE
     FAILED_CASES=""
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Inner Variables"
@@ -81,12 +81,12 @@ touch $LOG_FILENAME
                           "$READ_SEQ_VALUE" "$WRITE_SEQ_VALUE" > $RESULTS_FILE
 
     log_level -i "Validate results with minimum expected results."
-    validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "Random_Read_IOPS"
-    validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "Random_Write_IOPS"
-    validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "Mixed_Read_IOPS"
-    validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "Mixed_Write_IOPS"
-    validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "Sequential_Read_IOPS"
-    validate_testcase_result $RESULTS_FILE $MINVALUE_RESULT_FILE "Sequential_Write_IOPS"
+    validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "Random_Read_IOPS"
+    validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "Random_Write_IOPS"
+    validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "Mixed_Read_IOPS"
+    validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "Mixed_Write_IOPS"
+    validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "Sequential_Read_IOPS"
+    validate_testcase_result $RESULTS_FILE $EXPECTED_RESULT_FILE "Sequential_Write_IOPS"
 
     if [ -z "$FAILED_CASES" ]; then
         log_level -i "All test cases passes."
