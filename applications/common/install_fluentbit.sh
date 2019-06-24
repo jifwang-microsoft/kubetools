@@ -13,12 +13,11 @@ helmcmd="$(helm)"
 if [[ -z $helmcmd ]]; then
     echo -e  "$(date) [Info] Helm not installed, installing helm"
     
-    curl https://raw.githubusercontent.com/msazurestackworkloads/kubetools/eventrouter/applications/common/install_helm.sh > install_helm.sh
+    curl https://raw.githubusercontent.com/msazurestackworkloads/kubetools/enableDiagnostics/applications/common/install_helm.sh > install_helm.sh
     
     chmod 700 install_helm.sh
     dir=$(pwd)
-    cd dir
-    ./install_helm.sh
+    $dir/install_helm.sh
 fi
 
 # # Installing elasticsearch as a backend
