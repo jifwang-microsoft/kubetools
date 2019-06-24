@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mongodb-replicaset
+    chart: mongodb-replicaset-3.9.6
+    heritage: Tiller
+    release: {{RELEASE-NAME}}
+  name: {{RELEASE-NAME}}-mongodb-replicaset-service
+  namespace: default
+spec:
+  ports:
+  - name: mongodb
+    port: 27017
+    protocol: TCP
+    targetPort: 27017
+  selector:
+    app: mongodb-replicaset
+    release: {{RELEASE-NAME}}
+  sessionAffinity: None
+  type: LoadBalancer
