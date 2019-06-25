@@ -132,6 +132,9 @@ touch $LOG_FILENAME
     mongo=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY;kubectl apply -f $MONGODB_SERVICE_FILENAME";sleep 20)
     app_mongo=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get services mongodb-replicaset-service -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
     echo $app_mongo > $MONGO_SERVICE
+    
+    ssh -t -i $IDENTITYFILE $USER_NAME@$MASTER_IP "sudo apt install mongodb-clients --assume-yes"
+    
      
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
