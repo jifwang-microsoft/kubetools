@@ -15,6 +15,17 @@ if [ ! -f $SCRIPT_FOLDER/$COMMON_SCRIPT_FILENAME ]; then
     exit 1
 fi
 
+MONGODB_TEST_FILENAME="mongodb_test.js"
+
+curl -o $OUTPUT_FOLDER/$MONGODB_TEST_FILENAME \
+    https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/mongodb-replicaset/$MONGODB_TEST_FILENAME
+    if [ ! -f $OUTPUT_FOLDER/$MONGODB_TEST_FILENAME ]; then
+        log_level -e "File($MONGODB_TEST_FILENAME) failed to download."
+        result="failed"
+        printf '{"result":"%s","error":"%s"}\n' "$result" "Download of file($MONGODB_TEST_FILENAME) was not successfull." > $OUTPUT_SUMMARYFILE
+        exit 1
+    fi
+
 source $SCRIPT_FOLDER/$COMMON_SCRIPT_FILENAME
 ###########################################################################################################
 # The function will read parameters and populate below global variables.
@@ -56,8 +67,6 @@ touch $LOG_FILENAME
     TEST_DIRECTORY="/home/$USER_NAME/mongodb-replicaset"
     MONGODB_SERVICE_FILENAME="mongodb-service-loadbalancer.yaml"
     
-    
-    
     curl -o $OUTPUT_FOLDER/$MONGODB_SERVICE_FILENAME \
     https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/mongodb-replicaset/$MONGODB_SERVICE_FILENAME
     if [ ! -f $OUTPUT_FOLDER/$MONGODB_SERVICE_FILENAME ]; then
@@ -66,7 +75,6 @@ touch $LOG_FILENAME
         printf '{"result":"%s","error":"%s"}\n' "$result" "Download of file($MONGODB_SERVICE_FILENAM) was not successfull." > $OUTPUT_SUMMARYFILE
         exit 1
     fi
-    
     
     
     log_level -i "------------------------------------------------------------------------"
@@ -133,8 +141,11 @@ touch $LOG_FILENAME
     app_mongo=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get services mongodb-replicaset-service -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
     echo $app_mongo > $MONGO_SERVICE
     
-    ssh -t -i $IDENTITYFILE $USER_NAME@$MASTER_IP "sudo apt install mongodb-clients --assume-yes"
+    ssh -t -i $IDENTITYFILE $USER_NAME@$MASTER_IP "for ((i = 0; i < 3; ++i)); do kubectl exec --namespace default $mongoRelease-mongodb-replicaset-$i -- sh -c 'mongo --eval='printjson(rs.isMaster())''; done > test_res"
+    PRIMARY_MONGODB=$(ssh -t -i $IDENTITYFILE $USER_NAME@$MASTER_IP "cat test_res | grep 'primary' | head -n 1 | cut -b 15- | cut -d. -f1 > primary_mongodb")
     
+    ssh -t -i $IDENTITYFILE $USER_NAME@$MASTER_IP "sudo apt install mongodb-clients --assume-yes"
+    ssh -t -i $IDENTITYFILE $USER_NAME@$MASTER_IP "kubectl exec --namespace default $PRIMARY_MONGODB -- mongo --eval=\"db.createCollection('fruits');db.fruits.insert({ name: 'apples', quantity: '5' });db.fruits.insert({ name: 'oranges', quantity: '3' });db.fruits.find()\""
      
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
