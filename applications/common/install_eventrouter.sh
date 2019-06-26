@@ -12,7 +12,7 @@ helmcmd="$(helm)"
 if [[ -z $helmcmd ]]; then
     echo -e  "$(date) [Info] Helm not installed, installing helm"
     
-    curl https://raw.githubusercontent.com/msazurestackworkloads/kubetools/eventrouter/applications/common/install_helm.sh | bash
+    curl https://raw.githubusercontent.com/msazurestackworkloads/kubetools/enableDiagnostics/applications/common/install_helm.sh | bash
 else
     #Installing eventrouter to send input to stdout
     echo -e  "$(date) [Info] Checking if eventrouter is already deployed"
