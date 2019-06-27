@@ -96,7 +96,12 @@ touch $LOG_FILENAME
     log_level -i "Copy file($HELM_INSTALL_FILENAME) to VM."
     scp -i $IDENTITY_FILE \
     $SCRIPT_FOLDER/$HELM_INSTALL_FILENAME \
-    $OUTPUT_FOLDER/$MONGODB_SERVICE_FILEANME \
+    $USER_NAME@$MASTER_IP:$TEST_FOLDER/
+    
+    
+    log_level -i "Copy file($HELM_INSTALL_FILENAME) to VM."
+    scp -i $IDENTITY_FILE \
+    $OUTPUT_FOLDER/$MONGODB_SERVICE_FILENAME \
     $USER_NAME@$MASTER_IP:$TEST_FOLDER/
     
     # Install Helm chart
