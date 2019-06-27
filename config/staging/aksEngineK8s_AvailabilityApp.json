@@ -6,7 +6,7 @@
 		"folderPath": "kubernetes/template/DeploymentTemplates",
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
 		"minNumberofAzsNodes": 1,
-		"removeDeployment": "true",
+		"removeDeployment": "false",
 		"deploymentMatrix": [
 			{
 				"agentPoolProfileCount": 3,
@@ -33,9 +33,9 @@
 	"testSuite": {
 		"githubRepo": "msazurestackworkloads/kubetools",
 		"githubBranch": "master",
-		"applications": [
+		"applications": [		
 			{
-				"name": "nginx",
+				"name": "mongodb-replicaset",
 				"availabilityTest": "true",
 				"deployment": {
 					"scriptName": "deploy.sh",
@@ -43,7 +43,7 @@
 				}
 			},
 			{
-				"name": "mongodb-replicaset",
+				"name": "nginx",
 				"availabilityTest": "true",
 				"deployment": {
 					"scriptName": "deploy.sh",
