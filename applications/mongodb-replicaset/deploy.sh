@@ -81,7 +81,8 @@ touch $LOG_FILENAME
     download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
     $APPLICATION_FOLDER \
     $SCRIPT_FOLDER \
-    $HELM_INSTALL_FILENAME
+    $HELM_INSTALL_FILENAME \
+    $MONGODB_SERVICE_FILENAME
     
     if [[ $? != 0 ]]; then
         log_level -e "Download of file($HELM_INSTALL_FILENAME) failed."
