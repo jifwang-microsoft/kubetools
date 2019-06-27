@@ -15,17 +15,6 @@ if [ ! -f $SCRIPT_FOLDER/$COMMON_SCRIPT_FILENAME ]; then
     exit 1
 fi
 
-MONGODB_TEST_FILENAME="mongodb_test.js"
-
-curl -o $OUTPUT_FOLDER/$MONGODB_TEST_FILENAME \
-    https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/mongodb-replicaset/$MONGODB_TEST_FILENAME
-    if [ ! -f $OUTPUT_FOLDER/$MONGODB_TEST_FILENAME ]; then
-        log_level -e "File($MONGODB_TEST_FILENAME) failed to download."
-        result="failed"
-        printf '{"result":"%s","error":"%s"}\n' "$result" "Download of file($MONGODB_TEST_FILENAME) was not successfull." > $OUTPUT_SUMMARYFILE
-        exit 1
-    fi
-
 source $SCRIPT_FOLDER/$COMMON_SCRIPT_FILENAME
 ###########################################################################################################
 # The function will read parameters and populate below global variables.
@@ -65,7 +54,7 @@ touch $LOG_FILENAME
     # Github details.
     
     TEST_DIRECTORY="/home/$USER_NAME/mongodb-replicaset"
-    MONGODB_SERVICE_FILENAME="mongodb-service-loadbalancer.yaml"
+    MONGODB_SERVICE_FILENAME="mongodb-replicaset-service.yaml"
     
     curl -o $OUTPUT_FOLDER/$MONGODB_SERVICE_FILENAME \
     https://raw.githubusercontent.com/$GIT_REPROSITORY/$GIT_BRANCH/applications/mongodb-replicaset/$MONGODB_SERVICE_FILENAME
