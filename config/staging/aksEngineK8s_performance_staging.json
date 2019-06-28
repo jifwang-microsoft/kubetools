@@ -13,7 +13,7 @@
 				"masterPoolProfileCount": 1,
 				"masterPoolProfilevmSize": "Standard_D2_v2",
 				"storageProfile": "ManagedDisk",
-				"hyperkubeImagesVersion": "1.11",
+				"hyperkubeImagesVersion": "1.13",
 				"aksEngine": {
 					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
 					"aksEngineReleaseVersion": "v0.36.2",

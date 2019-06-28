@@ -8,7 +8,7 @@
 			"githubRepo": "Azure/aks-engine",
 			"githubBranch": "master",
 			"apiModel":"kubernetes-azurestack",
-			"upgradeVersion": "1.12.8",
+			"upgradeVersion": "1.13.7",
 			"nodeCount": 5,
 			"upgrade": "true",
 			"scale": "true"
@@ -30,7 +30,7 @@
 				"masterPoolProfileCount": 1,
 				"masterPoolProfilevmSize": "Standard_D2_v2",
 				"storageProfile": "ManagedDisk",
-				"hyperkubeImagesVersion": "1.11"
+				"hyperkubeImagesVersion": "1.12"
 			}
 		]
 	},

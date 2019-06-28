@@ -324,7 +324,7 @@ validate_testcase_result()
     log_level -i "Comparing $TESTRESULT with $TESTCASE_RANGE_VALUE with condition as $CONDITION_TYPE."
     if [[ -z "$CONDITION_TYPE" ]] || [[ "$CONDITION_TYPE" == "gt" ]]; then
         log_level -i "Comparing values for greater case."
-        if (( $(awk 'BEGIN {print ("'$TESTRESULT'" >= "'$TESTCASE_RANGE_VALUE'")}') )); then
+        if (( $(awk 'BEGIN {print ($TESTRESULT >= $TESTCASE_RANGE_VALUE)}') )); then
             TESTCASE_STATUS="pass"
             log_level -i "Test case \"$testCaseName\" passed with value $TESTRESULT as it is greater than $TESTCASE_RANGE_VALUE."
         fi
