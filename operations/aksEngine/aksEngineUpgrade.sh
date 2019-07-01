@@ -92,9 +92,9 @@ fi
 
 # Basic details of the system
 log_level -i "Running  script as : $(whoami)"
-
 log_level -i "System information: $(sudo uname -a)"
 
+sudo chown -R azureuser /var/lib/waagent/custom-script/download/0
 
 ROOT_PATH=/var/lib/waagent/custom-script/download/0
 cd $ROOT_PATH
@@ -108,7 +108,6 @@ if [ $RESOURCE_GROUP == "" ] ; then
     log_level -i "Resource group not found.Scale can not be performed"
     exit 1
 fi
-
 
 cd $ROOT_PATH/_output
 
@@ -158,9 +157,7 @@ echo "SUBSCRIPTION_ID:$TENANT_SUBSCRIPTION_ID"
 echo "IDENTITY_SYSTEM:$IDENTITY_SYSTEM"
 echo "UPGRADE_VERSION:$UPGRADE_VERSION"
 
-
 cd $ROOT_PATH
-
 
 CLIENT_SECRET=$(cat $ROOT_PATH/_output/$APIMODEL_FILE | jq '.properties.servicePrincipalProfile.secret' | tr -d '"')
 export CLIENT_SECRET=$CLIENT_SECRET
