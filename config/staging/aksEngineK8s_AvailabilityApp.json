@@ -20,7 +20,7 @@
 					"aksEngineReleaseVersion": "v0.36.2",
 					"clusterDefinitionFileName": "clusterDefinition.json",
 					"kubernetesImageBase": "mcr.microsoft.com/k8s/azurestack/core/",
-					"upgradeVersion": "1.13.7",
+					"upgradeVersion": "1.13.7"
 				}
 			}
 		]
