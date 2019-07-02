@@ -53,7 +53,6 @@ touch $LOG_FILENAME
     APPLICATION_FOLDER="applications/common"
     # Github details.
     
-    TEST_DIRECTORY="/home/$USER_NAME/mongodb-replicaset"
     MONGODB_SERVICE_FILENAME="mongodb-replicaset-service.yaml"
     
     curl -o $OUTPUT_FOLDER/$MONGODB_SERVICE_FILENAME \
@@ -81,8 +80,7 @@ touch $LOG_FILENAME
     download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
     $APPLICATION_FOLDER \
     $SCRIPT_FOLDER \
-    $HELM_INSTALL_FILENAME \
-    $MONGODB_SERVICE_FILENAME
+    $HELM_INSTALL_FILENAME
     
     if [[ $? != 0 ]]; then
         log_level -e "Download of file($HELM_INSTALL_FILENAME) failed."
@@ -97,12 +95,8 @@ touch $LOG_FILENAME
     scp -i $IDENTITY_FILE \
     $SCRIPT_FOLDER/$HELM_INSTALL_FILENAME \
     $USER_NAME@$MASTER_IP:$TEST_FOLDER/
-    
-    
-    log_level -i "Copy file($HELM_INSTALL_FILENAME) to VM."
-    scp -i $IDENTITY_FILE \
-    $OUTPUT_FOLDER/$MONGODB_SERVICE_FILENAME \
-    $USER_NAME@$MASTER_IP:$TEST_FOLDER/
+
+ 
     
     # Install Helm chart
     install_helm_chart $IDENTITY_FILE \
@@ -127,21 +121,31 @@ touch $LOG_FILENAME
     else
         printf '{"result":"%s"}\n' "pass" > $OUTPUT_SUMMARYFILE
     fi
-     mongoRelease=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)mongodb-replicaset' | grep -Eo '^[a-z,-]+'")
-     sed -e 's,RELEASENAME,'$mongoRelease',g' < $MONGODB_SERVICE_FILENAME
-     
+
     ssh -t -i $IDENTITY_FILE \
     $USER_NAME@$MASTER_IP \
-    "sudo chmod 744 $TEST_DIRECTORY/$MONGODB_SERVICE_FILENAME; cd $TEST_DIRECTORY;"
-    mongo=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY;kubectl apply -f $MONGODB_SERVICE_FILENAME";sleep 20)
+    "sudo chmod 744 $TEST_FOLDER/$MONGODB_SERVICE_FILENAME; cd $TEST_FOLDER;"
+
+    scp -i $IDENTITY_FILE \
+    $OUTPUT_FOLDER/$MONGODB_SERVICE_FILENAME \
+    $USER_NAME@$MASTER_IP:$TEST_FOLDER/
+
+    MONGORELEASE=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)mongodb-replicaset' | grep -Eo '^[a-z,-]+'")
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sed -e 's,RELEASE-NAME,$MONGORELEASE,g' < $TEST_FOLDER/$MONGODB_SERVICE_FILENAME > $TEST_FOLDER/mongodb-service.yaml;sudo chmod +x $TEST_FOLDER/mongodb-service.yaml"
+    
+    mongo=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_FOLDER;kubectl apply -f mongodb-service.yaml";sleep 20)
     app_mongo=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get services mongodb-replicaset-service -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
     echo $app_mongo > $MONGO_SERVICE
+
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo apt-get install mongodb-clients -y;sleep 10m"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl exec --namespace default $MONGORELEASE-mongodb-replicaset-0 -- sh -c 'mongo --eval=\"printjson(rs.isMaster())\"' >> test_res"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl exec --namespace default $MONGORELEASE-mongodb-replicaset-1 -- sh -c 'mongo --eval=\"printjson(rs.isMaster())\"' >> test_res"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl exec --namespace default $MONGORELEASE-mongodb-replicaset-2 -- sh -c 'mongo --eval=\"printjson(rs.isMaster())\"' >> test_res"
+
+    PRIMARY_MONGODB=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cat test_res | grep 'primary' | head -n 1 | cut -b 15- | cut -d. -f1")
     
-    ssh -t -i $IDENTITYFILE $USER_NAME@$MASTER_IP "for ((i = 0; i < 3; ++i)); do kubectl exec --namespace default $mongoRelease-mongodb-replicaset-$i -- sh -c 'mongo --eval='printjson(rs.isMaster())''; done > test_res"
-    PRIMARY_MONGODB=$(ssh -t -i $IDENTITYFILE $USER_NAME@$MASTER_IP "cat test_res | grep 'primary' | head -n 1 | cut -b 15- | cut -d. -f1 > primary_mongodb")
     
-    ssh -t -i $IDENTITYFILE $USER_NAME@$MASTER_IP "sudo apt install mongodb-clients --assume-yes"
-    ssh -t -i $IDENTITYFILE $USER_NAME@$MASTER_IP "kubectl exec --namespace default $PRIMARY_MONGODB -- mongo --eval=\"db.createCollection('fruits');db.fruits.insert({ name: 'apples', quantity: '5' });db.fruits.insert({ name: 'oranges', quantity: '3' });db.fruits.find()\""
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl exec --namespace default $PRIMARY_MONGODB -- mongo --eval=\"db.createCollection('fruits');db.fruits.insert({ name: 'apples', quantity: '5' });db.fruits.insert({ name: 'oranges', quantity: '3' });db.fruits.find()\""
      
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
