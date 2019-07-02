@@ -103,6 +103,7 @@ cd $ROOT_PATH
 log_level -i "Getting Resource group and region"
 
 export RESOURCE_GROUP=`ls -dt1 _output/* | head -n 1 | cut -d/ -f2 | cut -d. -f1`
+export RES_GROUP=`ls -dt1 _output/* | head -n 1 | cut -d/ -f2 | cut -c-11`
 export APIMODEL_FILE=$RESOURCE_GROUP.json
 
 if [ $RESOURCE_GROUP == "" ] ; then
@@ -177,6 +178,7 @@ fi
         --upgrade-version $UPGRADE_VERSION \
         --client-secret $CLIENT_SECRET \
         --identity-system $IDENTITY_SYSTEM \
+        --resource-group $RES_GROUP
         --force || exit 1
 
 
