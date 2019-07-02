@@ -94,8 +94,8 @@ fi
 log_level -i "Running  script as : $(whoami)"
 log_level -i "System information: $(sudo uname -a)"
 
-sudo chown -R azureuser /var/lib/waagent/custom-script/download/0
-sudo chmod -R u=rwx /var/lib/waagent/custom-script/download/0
+sudo chown -R azureuser /var/lib/waagent
+sudo chmod -R u=rwx /var/lib/waagent
 
 ROOT_PATH=/var/lib/waagent/custom-script/download/0
 cd $ROOT_PATH
