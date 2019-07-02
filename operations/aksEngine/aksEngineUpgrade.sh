@@ -95,6 +95,7 @@ log_level -i "Running  script as : $(whoami)"
 log_level -i "System information: $(sudo uname -a)"
 
 sudo chown -R azureuser /var/lib/waagent/custom-script/download/0
+sudo chmod -R u=rwx /var/lib/waagent/custom-script/download/0
 
 ROOT_PATH=/var/lib/waagent/custom-script/download/0
 cd $ROOT_PATH
@@ -112,6 +113,7 @@ fi
 cd $ROOT_PATH/_output
 
 sudo chown -R azureuser /home/azureuser/src/github.com
+sudo chmod -R u=rwx /home/azureuser
 
 CLIENT_ID=$(cat $ROOT_PATH/_output/$RESOURCE_GROUP/apimodel.json | jq '.properties.servicePrincipalProfile.clientId'| tr -d '"')
 FQDN_ENDPOINT_SUFFIX=$(cat $ROOT_PATH/_output/$RESOURCE_GROUP/apimodel.json | jq '.properties.customCloudProfile.environment.resourceManagerVMDNSSuffix' | tr -d '"')
