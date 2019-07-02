@@ -127,8 +127,6 @@ SUFFIXES_KEYVAULT_DNS=$(cat $ROOT_PATH/_output/$RESOURCE_GROUP/apimodel.json | j
 ENDPOINT_PORTAL=$(cat $ROOT_PATH/_output/$RESOURCE_GROUP/apimodel.json | jq '.properties.customCloudProfile.portalURL' | tr -d '"')
 REGION=$(cat $ROOT_PATH/_output/$RESOURCE_GROUP/apimodel.json | jq '.location' | tr -d '"')
 AZURE_ENV="AzureStackCloud"
-echo $TENANT_ENDPOINT
-echo "CLIENT_ID: $CLIENT_ID"
 
 if [ $CLIENT_ID == "" ] ; then
     log_level -i "Client ID not found.Scale can not be performed"
@@ -149,6 +147,7 @@ export SUBSCRIPTION_ID=$TENANT_SUBSCRIPTION_ID
 export OUTPUT=$ROOT_PATH/_output/$RESOURCE_GROUP/apimodel.json
 export AGENT_POOL="linuxpool"
 
+echo "TENANT_ENDPOINT: $TENANT_ENDPOINT"
 echo "CLIENT_ID: $CLIENT_ID"
 echo "NAME:$RESOURCE_GROUP"
 echo "REGION:$REGION"
@@ -156,6 +155,7 @@ echo "TENANT_ID:$TENANT_ID"
 echo "SUBSCRIPTION_ID:$TENANT_SUBSCRIPTION_ID"
 echo "IDENTITY_SYSTEM:$IDENTITY_SYSTEM"
 echo "UPGRADE_VERSION:$UPGRADE_VERSION"
+rcho "RESOURCE_GROUP:$RES_GROUP"
 
 cd $ROOT_PATH
 
