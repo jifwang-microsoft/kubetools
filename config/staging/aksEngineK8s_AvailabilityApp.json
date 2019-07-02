@@ -41,6 +41,10 @@
 				"deployment": {
 					"scriptName": "deploy.sh",
 					"summaryFile": "deploy.json"
+				},
+				"availability": {
+					"scriptName": "mongo_availability",
+					"summaryFile":"availability.json"
 				}
 			},
 			{
