@@ -158,7 +158,7 @@ echo "UPGRADE_VERSION:$UPGRADE_VERSION"
 
 cd $ROOT_PATH
 
-CLIENT_SECRET=$(cat $ROOT_PATH/_output/$APIMODEL_FILE | jq '.properties.servicePrincipalProfile.secret' | tr -d '"')
+CLIENT_SECRET=$(cat $ROOT_PATH/_output/$RESOURCE_GROUP/apimodel.json | jq '.properties.servicePrincipalProfile.secret' | tr -d '"')
 export CLIENT_SECRET=$CLIENT_SECRET
 
 if [ $CLIENT_SECRET == "" ] ; then
