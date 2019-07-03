@@ -135,6 +135,7 @@ touch $LOG_FILENAME
     
     mongo=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_FOLDER;sleep 10m;kubectl apply -f mongodb-service.yaml";sleep 40)
     app_mongo=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get services mongodb-replicaset-service -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
+    echo "Mongo Service:$app_mongo"
     echo $app_mongo > $MONGO_SERVICE
 
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo apt-get install mongodb-clients -y"
