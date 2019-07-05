@@ -108,7 +108,7 @@ echo ""
 OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
 LOG_FILENAME="$OUTPUT_FOLDER/mongodb.log"
 touch $LOG_FILENAME
-
+{
 NOW=`date +%Y%m%d%H%M%S`
 AZURE_USER="azureuser"
 IDENTITY_FILE_BACKUP_PATH="/home/azureuser/IDENTITY_FILEBACKUP"
@@ -129,3 +129,4 @@ ssh -t -i $IDENTITYFILE $USER@$DVM_HOST "cat /home/azureuser/results | grep '_id
 scp -q -i $IDENTITYFILE $USER@$DVM_HOST:$ROOT_PATH/results $LOG_FILENAME
 ssh -t -i $IDENTITYFILE $USER@$DVM_HOST "while true;do echo $(date +"%Y-%m-%d-%H:%M:%S") >> mongo-availability_logs; mongo --host $APP_IP:27017 < /home/azureuser/testmongodb.js >> mongo-availability_logs;sleep 20;done"
 
+} 2>&1 | tee $LOG_FILENAME
