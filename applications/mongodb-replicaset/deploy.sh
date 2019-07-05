@@ -133,7 +133,7 @@ touch $LOG_FILENAME
     MONGORELEASE=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)mongodb-replicaset' | grep -Eo '^[a-z,-]+'")
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sed -e 's,RELEASE-NAME,$MONGORELEASE,g' < $TEST_FOLDER/$MONGODB_SERVICE_FILENAME > $TEST_FOLDER/mongodb-service.yaml;sudo chmod +x $TEST_FOLDER/mongodb-service.yaml"
     
-    mongo=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_FOLDER;sleep 10m;kubectl apply -f mongodb-service.yaml";sleep 1m)
+    mongo=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_FOLDER;sleep 10m;kubectl apply -f mongodb-service.yaml";sleep 5m)
     app_mongo=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get services mongodb-replicaset-service -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
     echo "Mongo Service:$app_mongo"
     echo $app_mongo > $MONGO_SERVICE
