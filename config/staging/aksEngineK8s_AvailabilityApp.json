@@ -48,8 +48,12 @@
 					"summaryFile": "deploy.json"
 				},
 				"availability": {
-					"scriptName": "mongo_availability",
+					"scriptName": "mongo_availability.sh",
 					"summaryFile":"availability.json"
+				},
+				"availability_validation":{
+					"scriptName": "mongo_validation.sh",
+					"summaryFile": "availability_validation.json"
 				}
 			},
 			{
