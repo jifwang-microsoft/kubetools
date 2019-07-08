@@ -32,7 +32,7 @@
 	},
 	"operations":{
 		"githubRepo": "msazurestackworkloads/kubetools",
-		"githubBrach": "master",
+		"githubBranch": "master",
 		"folderPath": "operations/aksEngine",
 		"upgradeVersion": "1.12.8"
 	},
