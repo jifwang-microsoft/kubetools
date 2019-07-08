@@ -51,8 +51,8 @@
 					"scriptName": "mongo_availability.sh",
 					"summaryFile":"availability.json"
 				},
-				"availability_logs":{
-					"scriptName": "mongo_copylogs.sh",
+				"availability_validation":{
+					"scriptName": "mongo_validation.sh",
 					"summaryFile": "availability_logs.json"
 				}
 			},
