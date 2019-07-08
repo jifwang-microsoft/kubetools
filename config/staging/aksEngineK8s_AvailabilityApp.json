@@ -48,8 +48,12 @@
 					"summaryFile": "deploy.json"
 				},
 				"availability": {
-					"scriptName": "mongo_availability",
+					"scriptName": "mongo_availability.sh",
 					"summaryFile":"availability.json"
+				},
+				"availability_logs":{
+					"scriptName": "mongo_copylogs.sh",
+					"summaryFile": "availability_logs.json"
 				}
 			},
 			{
