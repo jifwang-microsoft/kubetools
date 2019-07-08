@@ -127,6 +127,6 @@ ssh -t -i $IDENTITYFILE $USER@$DVM_HOST "cd $ROOT_PATH; echo 'rs.slaveOk()' >>te
 ssh -t -i $IDENTITYFILE $USER@$DVM_HOST "mongo --host $APP_IP:27017 < $ROOT_PATH/testmongodb.js > results"
 ssh -t -i $IDENTITYFILE $USER@$DVM_HOST "cat /home/azureuser/results | grep '_id' "
 scp -q -i $IDENTITYFILE $USER@$DVM_HOST:$ROOT_PATH/results $LOG_FILENAME
-ssh -t -i $IDENTITYFILE $USER@$DVM_HOST 'while true;do echo $(date +\"%Y-%m-%d-%H:%M:%S\") >> mongo-availability_logs; mongo --host' $APP_IP':27017 < /home/azureuser/testmongodb.js >> mongo-availability_logs;sleep 20;done'
+ssh -t -i $IDENTITYFILE $USER@$DVM_HOST 'while true;do echo $(date +\"%Y-%m-%d-%H:%M:%S\") >> mongo_availability_logs; mongo --host' $APP_IP':27017 < /home/azureuser/testmongodb.js >> mongo_availability_logs;sleep 20;done'
 
 } 2>&1 | tee $LOG_FILENAME
