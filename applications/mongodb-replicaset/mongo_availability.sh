@@ -4,7 +4,7 @@ function printUsage
 {
     echo ""
     echo "Usage:"
-    echo "  $0 -i id_rsa -d 192.168.102.34 -u azureuser --file aks_file --tenant-Id tenant-id --subscription-id subscription-id --disable-host-key-checking"
+    echo "  $0 -i id_rsa -d 192.168.102.34 -u azureuser -a 192.168.102.33 -o availability.json"
     echo ""
     echo "Options:"
     echo "  -u, --user                      User name associated to the identifity-file"
@@ -110,7 +110,7 @@ LOG_FILENAME="$OUTPUT_FOLDER/mongodb.log"
 touch $LOG_FILENAME
 {
 NOW=`date +%Y%m%d%H%M%S`
-AZURE_USER="azureuser"
+AZURE_USER=$USER
 IDENTITY_FILE_BACKUP_PATH="/home/azureuser/IDENTITY_FILEBACKUP"
 
 echo "Backing up identity files at ($IDENTITY_FILE_BACKUP_PATH)"
@@ -119,7 +119,7 @@ ssh -t -i $IDENTITYFILE $USER@$DVM_HOST "if [ -f /home/$AZURE_USER/.ssh/id_rsa ]
 echo -i "Copying over new identity file"
 scp -i $IDENTITYFILE $IDENTITYFILE $USER@$DVM_HOST:/home/$AZURE_USER/.ssh/id_rsa
 
-ROOT_PATH=/home/azureuser
+ROOT_PATH=/home/$USER
 
 scp -q -i $IDENTITYFILE $SCRIPTSFOLDER/*.sh $USER@$DVM_HOST:$ROOT_PATH
 ssh -t -i $IDENTITYFILE $USER@$DVM_HOST "sudo apt install mongodb-clients -y"
