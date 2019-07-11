@@ -167,7 +167,7 @@ log_level -i "script folder: $SCRIPTSFOLDER"
 
 AZURE_USER=$USER
 
-IDENTITY_FILE_BACKUP_PATH="/home/azureuser/IDENTITY_FILEBACKUP"
+IDENTITY_FILE_BACKUP_PATH="/home/$AZURE_USER/IDENTITY_FILEBACKUP"
 
 echo "Backing up identity files at ($IDENTITY_FILE_BACKUP_PATH)"
 ssh -t -i $IDENTITYFILE $USER@$DVM_HOST "if [ -f /home/$AZURE_USER/.ssh/id_rsa ]; then mkdir -p $IDENTITY_FILE_BACKUP_PATH;  sudo mv /home/$AZURE_USER/.ssh/id_rsa $IDENTITY_FILE_BACKUP_PATH; fi;"
