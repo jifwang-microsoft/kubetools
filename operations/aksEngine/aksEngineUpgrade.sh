@@ -4,13 +4,13 @@ set -e
 log_level() 
 { 
     case "$1" in
-       -e) echo "$(date) [Error]  : " ${@:2}
+       -e) echo "$(date) [Err]  : " ${@:2}
           ;;
-       -w) echo "$(date) [Warning]: " ${@:2}
+       -w) echo "$(date) [Warn]: " ${@:2}
           ;;       
        -i) echo "$(date) [Info]   : " ${@:2}
           ;;
-       *)  echo "$(date) [Verbose]: " ${@:2}
+       *)  echo "$(date) [Debug]: " ${@:2}
           ;;
     esac
 }
