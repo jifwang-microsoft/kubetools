@@ -1,5 +1,20 @@
 #!/bin/bash
 
+set -e
+
+log_level() 
+{ 
+    case "$1" in
+       -e) echo "$(date) [Error]  : " ${@:2}
+          ;;
+       -w) echo "$(date) [Warning]: " ${@:2}
+          ;;       
+       -i) echo "$(date) [Info]   : " ${@:2}
+          ;;
+       *)  echo "$(date) [Verbose]: " ${@:2}
+          ;;
+    esac
+}
 function printUsage
 {
     echo ""
@@ -33,7 +48,6 @@ function download_scripts
     fi
     
 }
-
 
 if [ "$#" -eq 0 ]
 then
@@ -76,12 +90,15 @@ do
             PARAMETER="$2"
             shift 2
         ;;
+        -o|--operation)
+            OPERATION="$2"
+            shift 2
+        ;;
         -h|--help)
             printUsage
         ;;
         *)
-            echo ""
-            echo "[ERR] Incorrect option $1"
+            log_level -e  "Incorrect option $1"
             printUsage
         ;;
     esac
@@ -90,36 +107,37 @@ done
 # Validate input
 if [ -z "$USER" ]
 then
-    echo ""
-    echo "[ERR] --user is required"
+    log_level -e "--user is required"
     printUsage
 fi
 
 if [ -z "$IDENTITYFILE" ]
 then
-    echo ""
-    echo "[ERR] --identity-file is required"
+    log_level -e "--identity-file is required"
     printUsage
 fi
 
 if [ -z "$DVM_HOST" ]
-then
-    echo ""
-    echo "[ERR] --vmd-host should be provided"
+then    
+    log_level -e "--vmd-host should be provided"
     printUsage
 fi
 
 if [ -z "$PARAMETER" ]
+then  
+    log_level -e "--parameter should be provided"
+    printusuage
+fi
+
+if [ -z "$OPERATION" ]
 then
-    echo ""
-    echo "[ERR] --parameter should be provided"
+    log_level -e "--operation should be provided"
     printusuage
 fi
 
 if [ ! -f $IDENTITYFILE ]
 then
-    echo ""
-    echo "[ERR] identity-file not found at $IDENTITYFILE"
+    log_level -e "identity-file not found at $IDENTITYFILE"
     printUsage
     exit 1
 else
@@ -128,16 +146,16 @@ else
 fi
 
 # Print user input
-echo ""
-echo "user:             $USER"
-echo "identity-file:    $IDENTITYFILE"
-echo "vmd-host:         $DVM_HOST"
-echo "tenant-id:        $TENANT_ID"
-echo "subscription-id:  $SUBSCRIPTION_ID"
-echo "file:             $FILE"
-echo "parameter:        $PARAMETER"
-echo ""
-
+log_level -i ""
+log_level -i "user:             $USER"
+log_level -i "identity-file:    $IDENTITYFILE"
+log_level -i "vmd-host:         $DVM_HOST"
+log_level -i "tenant-id:        $TENANT_ID"
+log_level -i "subscription-id:  $SUBSCRIPTION_ID"
+log_level -i "file:             $FILE"
+log_level -i "parameter:        $PARAMETER"
+log_level -i "operation:        $OPERATION"
+log_level -i ""
 
 NOW=`date +%Y%m%d%H%M%S`
 SCRIPTSFOLDER="./AksEngineScripts/scripts"
@@ -145,9 +163,9 @@ SCRIPTSFOLDER="./AksEngineScripts/scripts"
 if [ ! -d $SCRIPTSFOLDER ]; then
     mkdir -p $SCRIPTSFOLDER
 fi
-echo "[INFO] $SCRIPTSFOLDER"
+log_level -i "script folder: $SCRIPTSFOLDER"
 
-AZURE_USER="azureuser"
+AZURE_USER=$USER
 
 IDENTITY_FILE_BACKUP_PATH="/home/azureuser/IDENTITY_FILEBACKUP"
 
@@ -157,17 +175,16 @@ ssh -t -i $IDENTITYFILE $USER@$DVM_HOST "if [ -f /home/$AZURE_USER/.ssh/id_rsa ]
 echo -i "Copying over new identity file"
 scp -i $IDENTITYFILE $IDENTITYFILE $USER@$DVM_HOST:/home/$AZURE_USER/.ssh/id_rsa
 
-
-ROOT_PATH=/home/azureuser
+ROOT_PATH=/home/$AZURE_USER
 FILENAME=$(basename $FILE)
 download_scripts $FILE $FILENAME
 
 scp -q -i $IDENTITYFILE $SCRIPTSFOLDER/*.sh $USER@$DVM_HOST:$ROOT_PATH
 
-if [ $FILENAME == "aksEngineScale.sh" ] ; then
-    ssh -t -i $IDENTITYFILE $USER@$DVM_HOST "./$FILENAME --tenant-id $TENANT_ID --subscription-id $SUBSCRIPTION_ID --node-count $PARAMETER"
+if [ $OPERATION == "scale" ] ; then
+    ssh -t -i $IDENTITYFILE $USER@$DVM_HOST "./$FILENAME --tenant-id $TENANT_ID --subscription-id $SUBSCRIPTION_ID --node-count $PARAMETER --user $AZURE_USER"
 fi
 
-if [ $FILENAME == "aksEngineUpgrade.sh" ] ; then
-    ssh -t -i $IDENTITYFILE $USER@$DVM_HOST "./$FILENAME --tenant-id $TENANT_ID --subscription-id $SUBSCRIPTION_ID --upgrade-version $PARAMETER ;"
+if [ $OPERATION == "upgrade" ] ; then
+    ssh -t -i $IDENTITYFILE $USER@$DVM_HOST "./$FILENAME --tenant-id $TENANT_ID --subscription-id $SUBSCRIPTION_ID --upgrade-version $PARAMETER --user $AZURE_USER ;"
 fi
