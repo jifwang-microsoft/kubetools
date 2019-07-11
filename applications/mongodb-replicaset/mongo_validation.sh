@@ -9,7 +9,7 @@ function printUsage
     echo "Options:"
     echo "  -u, --user                      User name associated to the identifity-file"
     echo "  -i, --identity-file             RSA private key tied to the public key used to create the Kubernetes cluster (usually named 'id_rsa')"
-    echo "  -d, --vmd-host                  The DVM's public IP or FQDN (host name starts with 'vmd-')"
+    echo "  -m, --vmd-host                  The DVM's public IP or FQDN (host name starts with 'vmd-')"
     echo "  -o, --output-file               Output file"
     echo "  -h, --help                      Print the command usage"
     exit 1
@@ -28,7 +28,7 @@ do
             IDENTITYFILE="$2"
             shift 2
         ;;
-        -d|--vmd-host)
+        -m|--vmd-host)
             DVM_HOST="$2"
             shift 2
         ;;
@@ -41,7 +41,7 @@ do
             shift 2
         ;;
         -o|--output-file)
-            OUTPUT_FOLDER="$2"
+            OUTPUT_SUMMARYFILE="$2"
             shift 2
         ;;
         -h|--help)
@@ -96,7 +96,7 @@ echo "vmd-host:         $DVM_HOST"
 echo ""
 
 OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
-LOG_FILENAME="$OUTPUT_FOLDER/mongo_availability"
+LOG_FILENAME="$OUTPUT_FOLDER/mongo_availability.log"
 
 {
 ROOT_PATH=/home/azureuser
