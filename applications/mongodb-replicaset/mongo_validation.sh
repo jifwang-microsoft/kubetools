@@ -4,7 +4,7 @@ function printUsage
 {
     echo ""
     echo "Usage:"
-    echo "  $0 -i id_rsa -d 192.168.102.34 -u azureuser --file aks_file --tenant-Id tenant-id --subscription-id subscription-id --disable-host-key-checking"
+    echo "  $0 -i id_rsa -m 192.168.102.34 -u azureuser -o validation.json"
     echo ""
     echo "Options:"
     echo "  -u, --user                      User name associated to the identifity-file"
@@ -99,7 +99,7 @@ OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
 LOG_FILENAME="$OUTPUT_FOLDER/mongo_availability.log"
 
 {
-ROOT_PATH=/home/azureuser
+ROOT_PATH=/home/$USER
 
 scp -q -i $IDENTITYFILE $USER@$DVM_HOST:$ROOT_PATH/mongo_availability_logs $LOG_FILENAME
 } 2>&1 | tee $LOG_FILENAME
