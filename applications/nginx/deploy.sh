@@ -67,7 +67,7 @@ done
 
 OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
 LOG_FILENAME="$OUTPUT_FOLDER/deploy.log"
-APP_SERVICE="$OUTPUT_FOLDER/app-service.txt"
+APP_SERVICE="$OUTPUT_FOLDER/nginx-service.txt"
 touch $LOG_FILENAME
 
 {
