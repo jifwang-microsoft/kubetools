@@ -43,7 +43,7 @@ fi
 # Define all inner varaibles.
 OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
 LOG_FILENAME="$OUTPUT_FOLDER/deploy.log"
-MONGO_SERVICE="$OUTPUT_FOLDER/mongo-service.txt"
+MONGO_SERVICE="$OUTPUT_FOLDER/mongodb-replicaset-service.txt"
 touch $LOG_FILENAME
 
 {
@@ -135,7 +135,6 @@ touch $LOG_FILENAME
     
     mongo=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_FOLDER;sleep 10m;kubectl apply -f mongodb-service.yaml";sleep 5m)
     app_mongo=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get services mongodb-replicaset-service -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
-    echo "Mongo Service:$app_mongo"
     echo $app_mongo > $MONGO_SERVICE
 
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo apt-get install mongodb-clients -y"
@@ -144,7 +143,6 @@ touch $LOG_FILENAME
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl exec --namespace default $MONGORELEASE-mongodb-replicaset-2 -- sh -c 'mongo --eval=\"printjson(rs.isMaster())\"' >> test_res"
 
     PRIMARY_MONGODB=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cat test_res | grep 'primary' | head -n 1 | cut -b 15- | cut -d. -f1")
-    
     
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl exec --namespace default $PRIMARY_MONGODB -- mongo --eval=\"db.createCollection('fruits');db.fruits.insert({ name: 'apples', quantity: '5' });db.fruits.insert({ name: 'oranges', quantity: '3' });db.fruits.find()\""
      
