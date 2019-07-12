@@ -14,6 +14,7 @@
 				"masterPoolProfilevmSize": "Standard_D2_v2",
 				"storageProfile": "ManagedDisk",
 				"hyperkubeImagesVersion": "1.13",
+				"nodeDistro": "ubuntu",
 				"aksEngine": {
 					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
 					"aksEngineReleaseVersion": "v0.36.2",
