@@ -2,7 +2,7 @@
 	"testSuite": [
 		{
 			"testname": "DISK_ATTACH_TIME",
-			"value": "110",
+			"value": "45",
 			"conditionType": "lt"
 		},
 		{

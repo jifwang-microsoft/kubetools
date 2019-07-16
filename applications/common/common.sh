@@ -354,7 +354,7 @@ deploy_and_measure_event_time()
     kubectl apply -f $deploymentFileName
     i=0
     while [ $i -lt 50 ];do
-        kubeEvents=$(kubectl get events --field-selector involvedObject.kind==$objectKind | grep $name | grep $expectedEventName)
+        kubeEvents=$(kubectl get events --field-selector involvedObject.kind==$objectKind -o json | jq --arg items "$name" '.items[] | select(.involvedObject.name == $items) | .reason' | grep $expectedEventName)
         if [ -z "$kubeEvents" ]; then
             log_level -i "$expectedEventName event has not reached for $name $objectKind."
             sleep 10s
@@ -366,6 +366,7 @@ deploy_and_measure_event_time()
 
     if [ -z "$kubeEvents" ]; then
         log_level -e "$expectedEventName has not reached for $name $objectKind."
+        exit 1
     else
         kubeEvents=$(kubectl get events --field-selector involvedObject.kind==$objectKind -o json)
         log_level -i "$kubeEvents"
@@ -418,15 +419,19 @@ process_perflog_files()
     local FILENAME_LIST=$(ls $directoryName/$fileNameStartwith*.log)
     totalTimeTaken=0
     local iteration=0
-    for resultFileName in $FILENAME_LIST
-    do
-        log_level -i "Processing file $resultFileName."
-        totalTime=$(cat $resultFileName | jq '.Time' | sed -e 's/^"//' -e 's/"$//')
-        totalTimeTaken=$(echo $totalTimeTaken+$totalTime | bc);
-        let iteration=iteration+1
-    done
-    
-    averageTimeTaken=$(echo $totalTimeTaken/$iteration| bc);
-    json_string='{ "testSuite": [ {"testname":"%s", "value":"%s" } ] }'
-    printf "$json_string" "$testCaseName" "$averageTimeTaken" > $directoryName/$outputFileName
+    if [ -z "$FILENAME_LIST" ]; then
+        log_level -i "No file found."
+        exit 1
+    else
+        for resultFileName in $FILENAME_LIST
+        do
+            log_level -i "Processing file $resultFileName."
+            totalTime=$(cat $resultFileName | jq '.Time' | sed -e 's/^"//' -e 's/"$//')
+            totalTimeTaken=$(echo $totalTimeTaken+$totalTime | bc);
+            let iteration=iteration+1
+        done
+        averageTimeTaken=$(echo $totalTimeTaken/$iteration| bc);
+        json_string='{ "testSuite": [ {"testname":"%s", "value":"%s" } ] }'
+        printf "$json_string" "$testCaseName" "$averageTimeTaken" > $directoryName/$outputFileName
+    fi
 }

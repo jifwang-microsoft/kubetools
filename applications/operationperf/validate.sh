@@ -18,7 +18,13 @@ e2e_perf_scenario_test()
         randomName=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 3 | head -n 1)
         currentName=$deploymentName$randomName
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; rename_string_infile $TEST_DIRECTORY/$deploymentFileName $previousName $currentName"
-        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; deploy_and_measure_event_time $deploymentFileName $startEventName $endEventName $currentName $kind"
+
+        if [[ "$kind" == "$POD_KIND" ]]; then
+            ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; deploy_and_measure_event_time $deploymentFileName $startEventName $endEventName $currentName-0 $kind"
+        else
+            ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; deploy_and_measure_event_time $deploymentFileName $startEventName $endEventName $currentName $kind"
+        fi
+
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; cleanup_deployment $deploymentFileName 30"
         previousName=$currentName
         let i=i+1
