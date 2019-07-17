@@ -1,0 +1,64 @@
+{
+	"clusterARMTemplate": {
+		"githubRepo": "Bhuvaneswari-Santharam/azurestack-gallery",
+		"githubBranch": "bhsantha-aks-e2e",
+		"folderPath": "AKSEngine-E2E/Template",
+		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
+		"aksEngine": {
+			"githubRepo": "Azure/aks-engine",
+			"githubBranch": "master",
+			"apiModel":"kubernetes-azurestack",
+			"upgradeVersion": "1.13.7",
+			"nodeCount": 5,
+			"upgrade": "true",
+			"scale": "true"
+		},
+		"ScaleandUpgrade":{
+			"githubRepo": "Bhuvaneswari-Santharam/azurestack-gallery",
+			"githubBranch": "bhsantha-aks-e2e",
+			"folderPath": "AKSEngine-E2E/AksTest-Scripts",
+			"fileName": "runAksScript.sh",
+			"scaleScript": "aksEngineScale.sh",
+			"UpgradeScript": "aksEngineUpgrade.sh"
+		},
+		"minNumberofAzsNodes": 1,
+		"removeDeployment": "false",
+		"deploymentMatrix": [
+			{
+				"agentPoolProfileCount": 3,
+				"agentPoolProfilevmSize": "Standard_D2_v2",
+				"masterPoolProfileCount": 1,
+				"masterPoolProfilevmSize": "Standard_D2_v2",
+				"storageProfile": "ManagedDisk",
+				"hyperkubeImagesVersion": "1.12"
+			}
+		]
+	},
+	"diagnosis": {
+		"githubRepo": "msazurestackworkloads/azurestack-gallery",
+		"githubBranch": "master",
+		"folderPath": "diagnosis",
+		"filename": "getkuberneteslogs.sh"
+	},
+	"testSuite": {
+		"githubRepo": "msazurestackworkloads/kubetools",
+		"githubBranch": "master",
+		"applications": [
+			{
+				"name": "wordpress",
+				"deployment": {
+					"scriptName": "deploy.sh",
+					"summaryFile": "deploy.json"
+				},
+				"validation": {
+					"scriptName": "validate.sh",
+					"summaryFile": "validate.json"
+				},
+				"cleanup": {
+					"scriptName": "cleanup.sh",
+					"summaryFile": "cleanup.json"
+				}
+			}
+		]
+	}
+}
