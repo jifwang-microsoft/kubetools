@@ -25,7 +25,7 @@ e2e_perf_scenario_test()
             ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; deploy_and_measure_event_time $deploymentFileName $startEventName $endEventName $currentName $kind"
         fi
 
-        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; cleanup_deployment $deploymentFileName 30"
+        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; cleanup_deployment $deploymentFileName 120"
         previousName=$currentName
         let i=i+1
     done
@@ -132,8 +132,8 @@ touch $LOG_FILENAME
         validate_testcase_result $DISK_RESULTS_FILE $EXPECTED_RESULT_FILE $DISK_PERF_TEST_NAME
     fi
     # ----------------------------------------------------------------------------------------
-    currentName=nginxlb
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; deploy_and_measure_event_time $DEPLOYMENT_LOADBALANCER_FILE $CREATE_LOADBALANCER_EVENT_NAME $SECOND_PUBLIC_IP_RESULTS_FILENAME $currentName $SERVICE_KIND"
+    currentName=nginxsvc
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; deploy_and_measure_event_time $DEPLOYMENT_LOADBALANCER_FILE $CREATE_LOADBALANCER_EVENT_NAME $END_LOADBALANCER_EVENT_NAME $currentName $SERVICE_KIND"
     
     e2e_perf_scenario_test \
     $DEPLOYMENT_LOADBALANCER_FILE_2 \

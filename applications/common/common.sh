@@ -319,28 +319,37 @@ validate_testcase_result()
     local expectedResultFileName=$2
     local testCaseName=$3
     
-    TESTRESULT=`cat "$resultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
+    TEST_RESULT=`cat "$resultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
     TESTCASE_RANGE_VALUE=`cat "$expectedResultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
     CONDITION_TYPE=`cat "$expectedResultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .conditionType' | sed -e 's/^"//' -e 's/"$//'`
     TESTCASE_STATUS="fail"
-    log_level -i "Comparing $TESTRESULT with $TESTCASE_RANGE_VALUE with condition as $CONDITION_TYPE."
-    if [[ -z "$CONDITION_TYPE" ]] || [[ "$CONDITION_TYPE" == "gt" ]]; then
-        log_level -i "Comparing values for greater case."
-        if (( $(awk 'BEGIN {print ($TESTRESULT >= $TESTCASE_RANGE_VALUE)}') )); then
-            TESTCASE_STATUS="pass"
-            log_level -i "Test case \"$testCaseName\" passed with value $TESTRESULT as it is greater than $TESTCASE_RANGE_VALUE."
-        fi
+
+    if [[ -z $TESTCASE_RANGE_VALUE ]] || [[ -z $TEST_RESULT ]]; then
+        log_level -e "Empty values found for (TEST_RESULT=$TEST_RESULT) with (TESTCASE_RANGE_VALUE=$TESTCASE_RANGE_VALUE)"
     else
-        log_level -i "Comparing values for less than case."
-        if (( $(awk 'BEGIN {print ("'$TESTRESULT'" <= "'$TESTCASE_RANGE_VALUE'")}') )); then
-            TESTCASE_STATUS="pass"
-            log_level -i "Test case \"$testCaseName\" passed with value $TESTRESULT as it is less than $TESTCASE_RANGE_VALUE."
+        log_level -i "Comparing $TEST_RESULT with $TESTCASE_RANGE_VALUE with condition as $CONDITION_TYPE."
+        if [[ -z "$CONDITION_TYPE" ]] || [[ "$CONDITION_TYPE" == "gt" ]]; then
+            log_level -i "Comparing values for greater case."
+            value=$(awk -v RESULT=$TEST_RESULT -v CASE_RANGE_VALUE=$TESTCASE_RANGE_VALUE 'BEGIN {print (RESULT >= CASE_RANGE_VALUE)}')
+            log_level -i "Comparison result value is $value."
+            if [[ $value != 0 ]]; then
+                TESTCASE_STATUS="pass"
+                log_level -i "Test case \"$testCaseName\" passed with value $TEST_RESULT as it is greater than $TESTCASE_RANGE_VALUE."
+            fi
+        else
+            log_level -i "Comparing values for less than case."
+            value=$(awk -v RESULT=$TEST_RESULT -v CASE_RANGE_VALUE=$TESTCASE_RANGE_VALUE 'BEGIN {print (RESULT <= CASE_RANGE_VALUE)}')
+            log_level -i "Comparison result value is $value."
+            if [[ $value != 0 ]]; then
+                TESTCASE_STATUS="pass"
+                log_level -i "Test case \"$testCaseName\" passed with value $TEST_RESULT as it is less than $TESTCASE_RANGE_VALUE."
+            fi
         fi
     fi
     log_level -i "Comparison done now checking the status."
     if [ $TESTCASE_STATUS == "fail" ]; then
         FAILED_CASES="$FAILED_CASES,$testCaseName"
-        log_level -e "Test case \"$testCaseName\" failed for value $TESTRESULT in comparison with range value:$TESTCASE_RANGE_VALUE."
+        log_level -e "Test case \"$testCaseName\" failed for value $TEST_RESULT in comparison with range value:$TESTCASE_RANGE_VALUE."
     fi
 }
 
