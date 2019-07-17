@@ -72,8 +72,13 @@ touch $LOG_FILENAME
 
     # ----------------------------------------------------------------------------------------
     # INSTALL PREREQUISITE
-    apt_install_jq
-    
+    apt_install_jq $OUTPUT_DIRECTORY
+    if [[ $? != 0 ]]; then
+        log_level -e "Install of jq was not successfull."
+        printf '{"result":"%s","error":"%s"}\n' "failed" "Install of JQ was not successfull." > $OUTPUT_SUMMARYFILE
+        exit 1
+    fi
+
     download_file_locally $GIT_REPROSITORY \
     $GIT_BRANCH \
     "applications/common" \

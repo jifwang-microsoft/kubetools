@@ -302,11 +302,12 @@ perf_process_net_files()
 apt_install_jq()
 {
     local JQ_INSTALL_LINK="https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe"
+    cd $1
     log_level -i "Install jq on local machine."
     curl -O -L $JQ_INSTALL_LINK
     if [ ! -f jq-win64.exe ]; then
         log_level -e "File(jq-win64.exe) failed to download."
-        exit 1
+        return 1
     fi
     mv jq-win64.exe /usr/bin/jq
 }
