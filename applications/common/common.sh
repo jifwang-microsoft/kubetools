@@ -310,6 +310,7 @@ apt_install_jq()
         return 1
     fi
     mv jq-win64.exe /usr/bin/jq
+    return 0
 }
 
 validate_testcase_result()
