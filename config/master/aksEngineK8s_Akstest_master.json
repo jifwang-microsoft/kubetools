@@ -1,7 +1,7 @@
 {
 	"clusterARMTemplate": {
-		"githubRepo": "Bhuvaneswari-Santharam/azurestack-gallery",
-		"githubBranch": "bhsantha-aks-e2e",
+		"githubRepo": "msazurestackworkloads/azurestack-gallery",
+		"githubBranch": "aks-e2e-release",
 		"folderPath": "AKSEngine-E2E/Template",
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
 		"aksEngine": {
@@ -14,8 +14,8 @@
 			"scale": "true"
 		},
 		"ScaleandUpgrade":{
-			"githubRepo": "Bhuvaneswari-Santharam/azurestack-gallery",
-			"githubBranch": "bhsantha-aks-e2e",
+			"githubRepo": "msazurestackworkloads/azurestack-gallery",
+			"githubBranch": "aks-e2e-release",
 			"folderPath": "AKSEngine-E2E/AksTest-Scripts",
 			"fileName": "runAksScript.sh",
 			"scaleScript": "aksEngineScale.sh",
