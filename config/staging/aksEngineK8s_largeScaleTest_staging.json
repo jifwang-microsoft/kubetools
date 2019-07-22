@@ -1,0 +1,75 @@
+{
+	"clusterARMTemplate": {
+		"galleryRepository": "msazurestackworkloads/azurestack-gallery",
+		"galleryBranch": "master",
+		"folderPath": "kubernetes/template/DeploymentTemplates",
+		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
+		"minNumberofAzsNodes": 1,
+		"removeDeployment": "true",
+		"deploymentMatrix": [
+			{
+				"agentPoolProfileCount": 24,
+				"agentPoolProfilevmSize": "Standard_D2_v2",
+				"masterPoolProfileCount": 3,
+				"masterPoolProfilevmSize": "Standard_D2_v2",
+				"storageProfile": "ManagedDisk",
+				"hyperkubeImagesVersion": "1.13",
+				"nodeDistro": "ubuntu",
+				"aksEngine": {
+					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
+					"aksEngineReleaseVersion": "v0.36.2",
+					"clusterDefinitionFileName": "clusterDefinition.json",
+					"kubernetesImageBase": "mcr.microsoft.com/k8s/azurestack/core/"
+				}
+			}
+		]
+	},
+	"diagnosis": {
+		"githubRepo": "msazurestackworkloads/azurestack-gallery",
+		"githubBranch": "master",
+		"folderPath": "diagnosis",
+		"filename": "getkuberneteslogs.sh"
+	},
+	"operations":{
+		"githubRepo": "msazurestackworkloads/kubetools",
+		"githubBranch": "master",
+		"folderPath": "operations/aksEngine",
+		"upgradeVersion": "1.14.1"
+	},
+	"testSuite": {
+		"githubRepo": "msazurestackworkloads/kubetools",
+		"githubBranch": "master",
+		"applications": [
+			{
+				"name": "tomcat",
+				"deployment": {
+					"scriptName": "deploy.sh",
+					"summaryFile": "deploy.json"
+				},
+				"validation": {
+					"scriptName": "validate.sh",
+					"summaryFile": "validate.json"
+				},
+				"cleanup": {
+					"scriptName": "cleanup.sh",
+					"summaryFile": "cleanup.json"
+				}
+			},
+			{
+				"name": "wordpress",
+				"deployment": {
+					"scriptName": "deploy.sh",
+					"summaryFile": "deploy.json"
+				},
+				"validation": {
+					"scriptName": "validate.sh",
+					"summaryFile": "validate.json"
+				},
+				"cleanup": {
+					"scriptName": "cleanup.sh",
+					"summaryFile": "cleanup.json"
+				}
+			}
+		]
+	}
+}
