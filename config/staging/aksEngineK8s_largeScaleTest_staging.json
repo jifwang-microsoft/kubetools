@@ -4,7 +4,7 @@
 		"galleryBranch": "master",
 		"folderPath": "kubernetes/template/DeploymentTemplates",
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
-		"minNumberofAzsNodes": 1,
+		"minNumberofAzsNodes": 4,
 		"removeDeployment": "true",
 		"deploymentMatrix": [
 			{
@@ -40,21 +40,6 @@
 		"githubRepo": "msazurestackworkloads/kubetools",
 		"githubBranch": "master",
 		"applications": [
-			{
-				"name": "tomcat",
-				"deployment": {
-					"scriptName": "deploy.sh",
-					"summaryFile": "deploy.json"
-				},
-				"validation": {
-					"scriptName": "validate.sh",
-					"summaryFile": "validate.json"
-				},
-				"cleanup": {
-					"scriptName": "cleanup.sh",
-					"summaryFile": "cleanup.json"
-				}
-			},
 			{
 				"name": "wordpress",
 				"deployment": {
