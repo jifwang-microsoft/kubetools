@@ -22,7 +22,7 @@
 			"UpgradeScript": "aksEngineUpgrade.sh"
 		},
 		"minNumberofAzsNodes": 1,
-		"removeDeployment": "false",
+		"removeDeployment": "true",
 		"deploymentMatrix": [
 			{
 				"agentPoolProfileCount": 3,

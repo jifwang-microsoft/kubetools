@@ -6,7 +6,7 @@
 		"folderPath": "kubernetes/template/DeploymentTemplates",
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
 		"minNumberofAzsNodes": 1,
-		"removeDeployment": "false",
+		"removeDeployment": "true",
 		"deploymentMatrix": [
 			{
 				"agentPoolProfileCount": 3,
