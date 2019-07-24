@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch-deployment
+  labels:
+    app: elastic-client
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: elastic-client
+  template:
+    metadata:
+      labels:
+        app: elastic-client
+    spec:
+      containers:
+      - name: elastic-client-container
+        image: delanyo32/elasic-test-client:latest
+        ports:
+        - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: elastic-client-service
+  name: elastic-client-service
+spec:
+  ports:
+    - port: 3000
+  selector:
+    app: elastic-client
+  type: LoadBalancer
+---
+apiVersion: v1 
+kind: Service 
+metadata: 
+  name: external-elasticsearch 
+spec: 
+  ports: 
+  - port: $ELASTIC_PORT 
+--- 
+apiVersion: v1 
+kind: Endpoints 
+metadata: 
+  name: external-elasticsearch 
+subsets: 
+- addresses: 
+  - ip: $ELASTIC_HOST
+  ports: 
+  - port: $ELASTIC_PORT
