@@ -15,6 +15,15 @@
 				"storageProfile": "ManagedDisk",
 				"hyperkubeImagesVersion": "1.13",
 				"nodeDistro": "ubuntu",
+				"customVNET": {
+					"TemplateRepo": "msazurestackworkloads/kubetools",
+					"TemplateBranch": "master",
+					"folderPath": "customVnet/Template",
+					"virtualNetworkName": "k8s-customvnet",
+					"masterSubnetName": "k8s-masterSubnet",
+					"agentSubnetName":"k8s-agentSubnet",
+					"firstConsecutiveStaticIP": "10.100.0.5"
+				}
 				"aksEngine": {
 					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
 					"aksEngineReleaseVersion": "v0.36.2",
