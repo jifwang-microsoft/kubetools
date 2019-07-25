@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-config
+  namespace: ingress-basic
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  tls:
+  - hosts:
+    - test.azurestack.com
+    secretName: azs-ingress-tls
+  rules:
+  - host: test.azurestack.com
+    http:
+      paths:

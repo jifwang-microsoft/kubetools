@@ -97,6 +97,8 @@ touch $LOG_FILENAME
     KUBERNETES_MAJOR_VERSION="${KUBERNETES_VERSION%.*}"
     if [ "$KUBERNETES_MAJOR_VERSION" == "1.11" ]; then
         SONOBUOY_VERSION="0.13.0"
+    else if [ "$KUBERNETES_MAJOR_VERSION" == "1.15" ]; then
+        SONOBUOY_VERSION="0.15.0"
     else
         SONOBUOY_VERSION="0.14.0"
     fi

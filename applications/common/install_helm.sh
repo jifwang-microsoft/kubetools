@@ -20,11 +20,19 @@ if [[ -z $helmcmd ]]; then
     
     # Download and install helm
     echo "Download installation script..."
-    curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh
-    chmod 700 get_helm.sh
-    dir=$(pwd)
-    cd dir
-    ./get_helm.sh
+
+    HELM_VERSION="2.11.0"
+    curl https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-amd64.tar.gz > helm-v${HELM_VERSION}-linux-amd64.tar.gz
+    tar -zxvf helm-v${HELM_VERSION}-linux-amd64.tar.gz
+    sudo mv linux-amd64/helm /usr/local/bin/helm
+    helm version
+    helm init || true
+
+    #curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh
+    #chmod 700 get_helm.sh
+    #dir=$(pwd)
+    #cd dir
+    #./get_helm.sh
     
     # Check again, if still not available, test fail
     helmcmd="$(helm)"
@@ -40,7 +48,7 @@ echo -e "${GREEN}Helm client is ready.${NC}"
 
 # Initial helm
 echo "Initial helm..."
-helm init --upgrade
+#helm init --upgrade
 
 # Wait for Tiller ready
 echo "Check Helm client and Tiller availability..."

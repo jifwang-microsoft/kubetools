@@ -36,39 +36,43 @@ LOG_FILENAME="$OUTPUT_FOLDER/cleanup.log"
 touch $LOG_FILENAME
 
 {
-    APPLICATION_NAME="tomcat"
-    TEST_DIRECTORY="/home/$USER_NAME/$APPLICATION_NAME"
+    APPLICATION_NAME="ingress"
+    NAMESPACE_NAME="ingress-basic"
+    TEST_FOLDER="/home/$USER_NAME/$APPLICATION_NAME"
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Inner Variables"
     log_level -i "------------------------------------------------------------------------"
     log_level -i "APPLICATION_NAME           : $APPLICATION_NAME"
-    log_level -i "TEST_DIRECTORY             : $TEST_DIRECTORY"
+    log_level -i "NAMESPACE_NAME             : $NAMESPACE_NAME"
+    log_level -i "TEST_FOLDER                : $TEST_FOLDER"
     log_level -i "------------------------------------------------------------------------"
     
-    # Cleanup Tomcat app.
-    tomcatReleaseName=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)$APPLICATION_NAME' | grep -Eo '^[a-z,-]+' || true")
-    if [ -z "$tomcatReleaseName" ]; then
+    # Cleanup.
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl delete namespace $NAMESPACE_NAME || true"
+    # Wait for Namespace to be deleted.
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm repo remove azure-samples || true"
+    
+    releaseNames=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)$APPLICATION_NAME' | grep -Eo '^[a-z0-9,-]+' || true")
+    if [ -z "$releaseNames" ]; then
         log_level -w "No deployment found."
     else
-        log_level -i "Removing helm deployment($tomcatReleaseName)"
-        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm delete --purge $tomcatReleaseName"
+        for releaseName in $releaseNames
+        do
+            releaseName=$(echo "$releaseName" | tr -d '"')
+            log_level -i "Removing helm deployment($releaseName)"
+            ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm delete --purge $releaseName"
+        done 
         log_level -i "Wait for 30s for all pods to be deleted and removed."
         sleep 30s
     fi
-    
-    check_helm_app_release_cleanup $IDENTITY_FILE \
-    $USER_NAME \
-    $MASTER_IP \
-    $APPLICATION_NAME
-    
+
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo rm -rf $TEST_FOLDER;"
     if [[ $? != 0 ]]; then
         printf '{"result":"%s","error":"%s"}\n' "failed" "App($APPLICATION_NAME) cleanup was not successfull" > $OUTPUT_SUMMARYFILE
     else
         printf '{"result":"%s"}\n' "pass" > $OUTPUT_SUMMARYFILE
     fi
-    
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo rm -rf $TEST_DIRECTORY;"
-    
+
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
 } 2>&1 | tee $LOG_FILENAME

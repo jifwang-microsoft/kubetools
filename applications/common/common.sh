@@ -71,14 +71,15 @@ download_file_locally()
     local outputFolder=$4;
     local fileName=$5;
     
-    # Download file locally.
-    curl -o $outputFolder/$fileName \
-    https://raw.githubusercontent.com/$gitRepository/$gitBranch/$folderPath/$fileName
     if [ ! -f $outputFolder/$fileName ]; then
-        log_level -e "File($fileName) failed to download."
-        return 1
+        # Download file locally.
+        curl -o $outputFolder/$fileName \
+        https://raw.githubusercontent.com/$gitRepository/$gitBranch/$folderPath/$fileName
+        if [ ! -f $outputFolder/$fileName ]; then
+            log_level -e "File($fileName) failed to download."
+            return 1
+        fi
     fi
-    
     log_level -i "Converting parameters file($outputFolder/$fileName) to unix format"
     dos2unix $outputFolder/$fileName
 
@@ -445,4 +446,23 @@ process_perflog_files()
         json_string='{ "testSuite": [ {"testname":"%s", "value":"%s" } ] }'
         printf "$json_string" "$testCaseName" "$averageTimeTaken" > $directoryName/$outputFileName
     fi
+}
+
+create_cert()
+{
+    local crtFileName=$1
+    local keyFileName=$2
+    local cnName=$3
+    local organizationName=$4
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out $crtFileName -keyout $keyFileName -subj "/CN=$cnName/O=$organizationName"
+}
+
+install_ingress_application()
+{
+    local helmApplicationName=$1
+    local namespaceName=$2
+    local title=$3
+    local serviceName=$4
+
+    helm install $helmApplicationName --namespace $namespaceName --set title="$title" --set serviceName="$serviceName"
 }
