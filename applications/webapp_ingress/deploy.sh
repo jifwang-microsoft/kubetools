@@ -4,7 +4,7 @@ FILE_NAME=$0
 
 SCRIPT_FOLDER="$(dirname $FILE_NAME)"
 GIT_REPROSITORY="${GIT_REPROSITORY:-msazurestackworkloads/kubetools}"
-GIT_BRANCH="${GIT_BRANCH:-ingress}"
+GIT_BRANCH="${GIT_BRANCH:-master}"
 COMMON_SCRIPT_FILENAME="common.sh"
 
 # Download common script file.
@@ -100,7 +100,7 @@ touch $LOG_FILENAME
     $INGRESS_CONFIG_FILENAME
 
     log_level -i "Create test folder($TEST_FOLDER)"
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $TEST_FOLDER"
+    ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $TEST_FOLDER"
     
     log_level -i "Copy file($HELM_INSTALL_FILENAME) to VM."
     scp -i $IDENTITY_FILE \
@@ -125,10 +125,10 @@ touch $LOG_FILENAME
     fi
 
     # Cleanup.
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl delete namespace $NAMESPACE_NAME || true"
+    ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl delete namespace $NAMESPACE_NAME || true"
     sleep 5s
     log_level -i "Create namespace ($NAMESPACE_NAME)."
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl create namespace $NAMESPACE_NAME"
+    ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl create namespace $NAMESPACE_NAME"
     sleep 5s
 
     i=1    
