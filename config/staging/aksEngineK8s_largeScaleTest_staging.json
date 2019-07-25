@@ -23,7 +23,7 @@
 					"masterSubnetName": "k8s-masterSubnet",
 					"agentSubnetName":"k8s-agentSubnet",
 					"firstConsecutiveStaticIP": "10.100.0.5"
-				}
+				},
 				"aksEngine": {
 					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
 					"aksEngineReleaseVersion": "v0.36.2",
