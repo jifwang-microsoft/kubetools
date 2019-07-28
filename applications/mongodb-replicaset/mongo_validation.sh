@@ -102,4 +102,8 @@ LOG_FILENAME="$OUTPUT_FOLDER/mongo_availability.log"
 ROOT_PATH=/home/$USER
 
 scp -q -i $IDENTITYFILE $USER@$DVM_HOST:$ROOT_PATH/mongo_availability_logs $LOG_FILENAME
+
+log_level -i "Mongo Validation done."
+printf '{"result":"%s"}\n' "pass" > $OUTPUT_SUMMARYFILE
+
 } 2>&1 | tee $LOG_FILENAME
