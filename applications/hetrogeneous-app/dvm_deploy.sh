@@ -92,7 +92,6 @@ CONFIG_FILENAME="nginx.conf"
 curl -o $CONFIG_FILENAME https://raw.githubusercontent.com/msazurestackworkloads/kubetools/$GIT_BRANCH/applications/hetrogeneous-app/elastic-client/nginx.conf
 
 log_level -i "Install Nginx to route elasticsearch traffic"
-sudo fuser -k 5000/tcp
 sudo nginx -p $TEST_DIRECTORY -c $CONFIG_FILENAME
 
 log_level -i "Downloading template"
@@ -107,6 +106,88 @@ envsubst < $TEMPLATE_NAME > elastic-client.yaml
 
 log_level -i "Deploy Template"
 kubectl apply -f elastic-client.yaml
+
+log_level -i "Copying over apimodel"
+API_CONFIG_LOCATION=$(sudo find /var/lib/waagent/custom-script/download/0/_output -type f -iname 'apimodel*')
+API_CONFIG_FILENAME=$(basename $API_CONFIG_LOCATION)
+sudo cp $API_CONFIG_LOCATION $TEST_DIRECTORY
+
+log_level -i "Changing apimodel permissions"
+sudo chmod a+r $TEST_DIRECTORY/$API_CONFIG_FILENAME
+
+API_CONFIG_LOCAL_LOCATION=$TEST_DIRECTORY/$API_CONFIG_FILENAME
+
+log_level -i "Reading variables "
+SUBSCRIPTIONS_API_VERSION="2016-06-01"
+LOCATION=$(jq -r '.location' ${API_CONFIG_LOCAL_LOCATION})
+SERVICE_MANAGEMENT_ENDPOINT=$(jq -r '.properties.customCloudProfile.environment.serviceManagementEndpoint' ${API_CONFIG_LOCAL_LOCATION})
+ACTIVE_DIRECTORY_ENDPOINT=$(jq -r '.properties.customCloudProfile.environment.activeDirectoryEndpoint' ${API_CONFIG_LOCAL_LOCATION})
+RESOURCE_MANAGER_ENDPOINT=$(jq -r '.properties.customCloudProfile.environment.resourceManagerEndpoint' ${API_CONFIG_LOCAL_LOCATION})
+IDENTITY_SYSTEM=$(jq -r '.properties.customCloudProfile.identitySystem' ${API_CONFIG_LOCAL_LOCATION})
+SERVICE_PRINCIPAL_CLIENT_ID=$(jq -r '.properties.servicePrincipalProfile.clientId' ${API_CONFIG_LOCAL_LOCATION})
+SERVICE_PRINCIPAL_CLIENT_SECRET=$(jq -r '.properties.servicePrincipalProfile.secret' ${API_CONFIG_LOCAL_LOCATION})
+
+log_level -i "Getting resource group name"
+RG_TEMP_NAME=$(sudo ls /var/lib/waagent/custom-script/download/0/_output)
+RESOURCE_GROUP=${RG_TEMP_NAME%-*}
+
+if [[ $IDENTITY_SYSTEM == "adfs" ]]; then
+    TOKEN_URL="${ACTIVE_DIRECTORY_ENDPOINT}adfs/oauth2/token"
+else
+    TOKEN_URL="${ACTIVE_DIRECTORY_ENDPOINT}${TENANT_ID}/oauth2/token"
+fi
+
+log_level -i "SERVICE_MANAGEMENT_ENDPOINT: $SERVICE_MANAGEMENT_ENDPOINT"
+log_level -i "TOKEN_URL: $TOKEN_URL"
+log_level -i "ACTIVE_DIRECTORY_ENDPOINT: $ACTIVE_DIRECTORY_ENDPOINT"
+log_level -i "IDENTITY_SYSTEM: $IDENTITY_SYSTEM"
+log_level -i "RESOURCE_GROUP: $RESOURCE_GROUP"
+log_level -i "LOCATION: $LOCATION"
+
+TOKEN=$(curl -s --retry 5 --retry-delay 10 --max-time 60 -f -X POST \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "grant_type=client_credentials" \
+    -d "client_id=$SERVICE_PRINCIPAL_CLIENT_ID" \
+    --data-urlencode "client_secret=$SERVICE_PRINCIPAL_CLIENT_SECRET" \
+    --data-urlencode "resource=$SERVICE_MANAGEMENT_ENDPOINT" \
+    ${TOKEN_URL} | jq '.access_token' | xargs)
+
+log_level -i "Getting Subscription ID"
+
+SUBSCRIPTIONS=$(curl -s --retry 5 --retry-delay 10 --max-time 60 -f -X GET \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    "${RESOURCE_MANAGER_ENDPOINT}subscriptions?api-version=$SUBSCRIPTIONS_API_VERSION")
+
+SUBSCRIPTION_ID=$(echo $SUBSCRIPTIONS | jq -r '.value[0].subscriptionId')
+
+log_level -i "SUBSCRIPTION_ID:$SUBSCRIPTION_ID"
+
+log_level -i "Getting all network security group names"
+NETWORK_API_VERSION="2017-10-01"
+
+PARAMETERS=$( jq -n \
+                --arg location "$LOCATION" \
+                '{"location":$location,"properties": {"securityRules": [{"name": "Allow5000","properties": {"protocol": "*","sourceAddressPrefix": "*","destinationAddressPrefix": "*","access": "Allow","destinationPortRange": "5000","sourcePortRange": "*","priority": 130,"direction": "Inbound"}}]}}'
+)
+
+log_level -i "PARAMETERS:$PARAMETERS"
+
+NETWORK_SECURITY_GROUPS=$(curl -s --retry 5 --retry-delay 10 --max-time 60 -f -X GET \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    "${RESOURCE_MANAGER_ENDPOINT}subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Network/networkSecurityGroups?api-version=$NETWORK_API_VERSION")
+
+VDM_SECURITY_GROUP=$(echo $NETWORK_SECURITY_GROUPS | jq -c '.value | map(select ( .name | contains ("vmd")))')
+VDM_SECURITY_GROUP_NAME=$(echo $VDM_SECURITY_GROUP | jq -r '.[0].name')
+
+log_level -i "VDM_SECURITY_GROUP_NAME:$VDM_SECURITY_GROUP_NAME"
+
+RESPONSE=$(curl -s --retry 5 --retry-delay 10 --max-time 60 -f -X PUT \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "$PARAMETERS" \
+    "${RESOURCE_MANAGER_ENDPOINT}subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Network/networkSecurityGroups/$VDM_SECURITY_GROUP_NAME?api-version=$NETWORK_API_VERSION")
 
 log_level -i "Hetrogeneous Application Deployment Complete"
 
