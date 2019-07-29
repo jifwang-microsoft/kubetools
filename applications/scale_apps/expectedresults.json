@@ -1,0 +1,17 @@
+{
+	"testSuite": [
+		{
+			"testname": "NGINX_PVC_TEST_POD_COUNT",
+			"value": "50"	
+		},
+		{
+			"testname": "NGINX_PVC_TEST_PVC_COUNT",
+			"value": "50"
+		},
+		{
+			"testname": "NGINX_TEST_POD_COUNT",
+			"value": "100"
+		}
+	]
+}
+

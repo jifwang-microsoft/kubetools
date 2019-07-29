@@ -395,6 +395,27 @@ deploy_and_measure_event_time()
     fi
 }
 
+deploy_application()
+{
+    local deploymentFileName=$1
+    local expectedEventName=$2
+    local deploymentName=$3
+    local objectKind=$4
+
+    kubectl apply -f $deploymentFileName
+    i=0
+    while [ $i -lt 50 ];do
+        kubeEvents=$(kubectl get events --field-selector involvedObject.kind==$objectKind -o json | jq --arg items "$deploymentName" '.items[] | select(.involvedObject.name == $items) | .reason' | grep $expectedEventName)
+        if [ -z "$kubeEvents" ]; then
+            log_level -i "$expectedEventName event has not reached for $deploymentName $objectKind."
+            sleep 20s
+        else
+            break
+        fi
+        let i=i+1
+    done
+}
+
 cleanup_deployment()
 {
     local deploymentFileName=$1
