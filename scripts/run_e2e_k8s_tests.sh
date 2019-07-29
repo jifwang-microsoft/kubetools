@@ -79,11 +79,7 @@ create_secretfile()
 {
     echo "Creds.ClientID = $CLIENT_ID" >> $AZURE_CREDS_PATH
     echo "Creds.ClientSecret = $CLIENT_SECRET" >> $AZURE_CREDS_PATH
-    if [$IDENTITY_TYPE -eq "adfs"]; then
-        echo "Creds.TenantID = adfs" >> $AZURE_CREDS_PATH
-    else
-        echo "Creds.TenantID = $TENANT_ID" >> $AZURE_CREDS_PATH
-    fi
+    echo "Creds.TenantID = $TENANT_ID" >> $AZURE_CREDS_PATH
     echo "Creds.SubscriptionID = $SUBSCRIPTION_ID" >> $AZURE_CREDS_PATH
     echo "Creds.StorageAccountName = none" >> $AZURE_CREDS_PATH
     echo "Creds.StorageAccountKey = none" >> $AZURE_CREDS_PATH
