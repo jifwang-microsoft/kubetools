@@ -60,7 +60,7 @@ touch $LOG_FILENAME
     # get external ip
     i=1
     FAILED_SERVICES=""
-    FAILED_INGRESS=""
+    FAILED_INGRESS_SERVERS=""
     
     while [ $i -le $MAX_INGRESS_COUNT ]; do
         ingressName=$APPLICATION_NAME-$i
@@ -70,8 +70,9 @@ touch $LOG_FILENAME
         ipAddress=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get services -n $NAMESPACE_NAME -o json | jq --arg release $ingressName --arg component 'controller' '.items[] | select(.spec.selector.component == \$component) | select(.metadata.labels.release == \$release) | .status.loadBalancer.ingress[0].ip' | grep -oP '(\d{1,3}\.){1,3}\d{1,3}' || true")
         if [ -z "$ipAddress" ]; then
             log_level -e "External IP not found for ingress $ingressName."
-            FAILED_INGRESS="$FAILED_INGRESS$ingressName,"
-            continue
+            FAILED_INGRESS_SERVERS="$FAILED_INGRESS_SERVERS$ingressName,"
+            let i=i+1
+            continue            
         fi
         ipAddress=$(echo "$ipAddress" | tr -d '"')
         ipAddress="${ipAddress## }"
@@ -80,8 +81,9 @@ touch $LOG_FILENAME
         cnName=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cname=\$(kubectl get ingress -n ingress-basic -o json | jq --arg name $ingressName '.items[] | select(.metadata.name == \$name) | .spec.rules[0].host'); echo \$cname")
         if [ -z "$cnName" ]; then
             log_level -e "CN Name can not be found for ingress($ingressName)."
-            FAILED_INGRESS="$FAILED_INGRESS$ingressName,"
-            continue
+            FAILED_INGRESS_SERVERS="$FAILED_INGRESS_SERVERS$ingressName,"
+            let i=i+1
+            continue            
         fi
         cnName=$(echo "$cnName" | tr -d '"')
         cnName="${cnName## }"
@@ -90,8 +92,9 @@ touch $LOG_FILENAME
         serviceNames=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cname=\$(kubectl get ingress -n ingress-basic -o json | jq --arg name $ingressName '.items[] | select(.metadata.name == \$name) | .spec.rules[0].http.paths[] | .backend.serviceName'); echo \$cname")
         if [ -z "$serviceNames" ]; then
             log_level -e "No services found for ingress($ingressName)."
-            FAILED_INGRESS="$FAILED_INGRESS$ingressName,"
-            continue
+            FAILED_INGRESS_SERVERS="$FAILED_INGRESS_SERVERS$ingressName,"
+            let i=i+1
+            continue            
         fi
 
         for serviceName in $serviceNames
@@ -115,10 +118,14 @@ touch $LOG_FILENAME
         let i=i+1
     done
 
-    if [ -z "$FAILED_SERVICES" ]; then
-        printf '{"result":"%s"}\n' "pass" > $OUTPUT_SUMMARYFILE
+    if [ -z "$FAILED_INGRESS_SERVERS" ]; then
+        if [ -z "$FAILED_SERVICES" ]; then
+            printf '{"result":"%s"}\n' "pass" > $OUTPUT_SUMMARYFILE
+        else
+            printf '{"result":"%s","error":"%s"}\n' "failed" "Communication to ingress services($FAILED_SERVICES) was not successfull." > $OUTPUT_SUMMARYFILE
+        fi
     else
-        printf '{"result":"%s","error":"%s"}\n' "failed" "Communication to ingress services($FAILED_SERVICES) was not successfull." > $OUTPUT_SUMMARYFILE
+        printf '{"result":"%s","error":"%s"}\n' "failed" "Communication to ingress server ($FAILED_INGRESS_SERVERS) was not successfull." > $OUTPUT_SUMMARYFILE
     fi
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
