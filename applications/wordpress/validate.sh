@@ -85,6 +85,13 @@ touch $LOG_FILENAME
     
     # Check if pod is up and running
     log_level -i "Validate if pods are created and running."
+    log_level -i "Get all nodes details."
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get nodes -o wide"
+    log_level -i "Get Helm deployment details."
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r"
+    log_level -i "Get all pods details ."
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get all -o wide"
+
     wordPressDeploymentName=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+'")
     mariadbPodstatus=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --selector app=mariadb | grep 'Running'")
     wdpressPodstatus=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --selector app=${wordPressDeploymentName}-wordpress | grep 'Running'")
