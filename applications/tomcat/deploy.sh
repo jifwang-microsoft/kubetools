@@ -55,9 +55,7 @@ touch $LOG_FILENAME
     TEMPLATE_FOLDER="applications/tomcat"
     NAMESPACE="ns-tomcat"
     KUBE_CERT_LOCATION="/etc/kubernetes/certs"
-    CREDENTIAL_NAME="tomcat-credentials"
     CLUSTER_USERNAME="tomcat-user"
-    CLUSTER_NAME="tomcat-cluster"
     CONTEXT_NAME="tomcat-context"
     ROLE_BINDING_FILENAME="role-binding-deployment-manager.yaml"
     ROLE_DEPLOYMENT_FILENAME="role-deployment-manager.yaml"
@@ -67,9 +65,7 @@ touch $LOG_FILENAME
     log_level -i "------------------------------------------------------------------------"
     log_level -i "APPLICATION_FOLDER          : $APPLICATION_FOLDER"
     log_level -i "APPLICATION_NAME            : $APPLICATION_NAME"
-    log_level -i "CREDENTIAL_NAME             : $CREDENTIAL_NAME"
     log_level -i "CLUSTER_USERNAME            : $CLUSTER_USERNAME"
-    log_level -i "CLUSTER_NAME                : $CLUSTER_NAME"
     log_level -i "CONTEXT_NAME                : $CONTEXT_NAME"
     log_level -i "GIT_BRANCH                  : $GIT_BRANCH"
     log_level -i "GIT_REPROSITORY             : $GIT_REPROSITORY"
@@ -88,13 +84,13 @@ touch $LOG_FILENAME
 
     download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
     $TEMPLATE_FOLDER \
-    $ROLE_BINDING_FILENAME \
-    $HELM_INSTALL_FILENAME
+    $SCRIPT_FOLDER \
+    $ROLE_BINDING_FILENAME
 
     download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
     $TEMPLATE_FOLDER \
-    $ROLE_DEPLOYMENT_FILENAME \
-    $HELM_INSTALL_FILENAME
+    $SCRIPT_FOLDER \
+    $ROLE_DEPLOYMENT_FILENAME
 
     if [[ $? != 0 ]]; then
         log_level -e "Download of file($HELM_INSTALL_FILENAME) failed."
@@ -137,15 +133,23 @@ touch $LOG_FILENAME
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "openssl genrsa -out $TEST_FOLDER/tomcat.key 2048"
 
     log_level -i "Creating certificate"
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "openssl req -new -key $TEST_FOLDER/tomcat.key -out $TEST_FOLDER/tomcat.csr -subj '/CN=employee/O=tomcat'"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "openssl req -new -key $TEST_FOLDER/tomcat.key -out $TEST_FOLDER/tomcat.csr -subj '/CN=$CLUSTER_USERNAME/O=tomcat'"
 
     log_level -i "Signing certificate"
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP " sudo openssl x509 -req -in $TEST_FOLDER/tomcat.csr -CA $KUBE_CERT_LOCATION/ca.crt -CAkey $KUBE_CERT_LOCATION/ca.key -CAcreateserial -out $TEST_FOLDER/tomcat.crt -days 500"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo openssl x509 -req -in $TEST_FOLDER/tomcat.csr -CA $KUBE_CERT_LOCATION/ca.crt -CAkey $KUBE_CERT_LOCATION/ca.key -CAcreateserial -out $TEST_FOLDER/tomcat.crt -days 500"
+
+    log_level -i "Moving certificates to secure location"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $TEST_FOLDER/.certs"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo mv $TEST_FOLDER/tomcat.crt $TEST_FOLDER/.certs/tomcat.crt"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo mv $TEST_FOLDER/tomcat.key $TEST_FOLDER/.certs/tomcat.key"
 
     log_level -i "Setting credentials for context"
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl config set-credentials $CREDENTIAL_NAME --client-certificate=$TEST_FOLDER/tomcat.crt  --client-key=$TEST_FOLDER/tomcat.key"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl config set-credentials $CLUSTER_USERNAME --client-certificate=$TEST_FOLDER/.certs/tomcat.crt  --client-key=$TEST_FOLDER/.certs/tomcat.key"
 
-    log_level -i "Creating the context for the the new user"
+    log_level -i "Get cluster name"
+    CLUSTER_NAME=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl config current-context")
+
+    log_level -i "Creating the context for the the new user with cluster name ($CLUSTER_NAME)"
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl config set-context $CONTEXT_NAME --cluster=$CLUSTER_NAME --namespace=$NAMESPACE --user=$CLUSTER_USERNAME"
 
     log_level -i "Creating role for cluster"
@@ -153,16 +157,6 @@ touch $LOG_FILENAME
 
     log_level -i "Creating role binding"
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl create -f $TEST_FOLDER/$ROLE_BINDING_FILENAME"
-
-    log_level -i "Switch to $CONTEXT_NAME context"
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl config use-context $CONTEXT_NAME"
-
-    log_level -i "Check if context is selected"
-    CONTEXT_STATUS=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl config current-context")
-
-    if [[ $CONTEXT_STATUS == $CONTEXT_NAME ]]; then
-        log_level -i "Correct context is selected"
-    fi
 
     install_helm_app $IDENTITY_FILE \
     $USER_NAME \

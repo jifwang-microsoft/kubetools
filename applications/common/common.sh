@@ -1,24 +1,26 @@
 #!/bin/bash -e
 
-log_level()
-{
+log_level() {
     case "$1" in
-        -e) echo "$(date) [Err]  " ${@:2}
+        -e)
+            echo "$(date) [Err]  " ${@:2}
         ;;
-        -w) echo "$(date) [Warn] " ${@:2}
+        -w)
+            echo "$(date) [Warn] " ${@:2}
         ;;
-        -i) echo "$(date) [Info] " ${@:2}
+        -i)
+            echo "$(date) [Info] " ${@:2}
         ;;
-        *)  echo "$(date) [Debug] " ${@:2}
+        *)
+            echo "$(date) [Debug] " ${@:2}
         ;;
     esac
 }
 
-print_usage()
-{
+print_usage() {
     echo "      Usage:"
     echo "      $FILENAME --identity-file id_rsa --master 192.168.102.34 --user azureuser --output-file c:/test/output.json"
-    echo  ""
+    echo ""
     echo "            -i, --identity-file                         RSA Private Key file to connect master VM, it starts with -----BEGIN RSA PRIVATE KEY-----"
     echo "            -m, --master                                Public ip of master VM."
     echo "            -u, --user                                  User Name to be used to connect master VM."
@@ -26,24 +28,22 @@ print_usage()
     exit 1
 }
 
-parse_commandline_arguments()
-{
-    while [[ "$#" -gt 0 ]]
-    do
+parse_commandline_arguments() {
+    while [[ "$#" -gt 0 ]]; do
         case $1 in
-            -i|--identity-file)
+            -i | --identity-file)
                 IDENTITY_FILE="$2"
             ;;
-            -m|--master)
+            -m | --master)
                 MASTER_IP="$2"
             ;;
-            -u|--user)
+            -u | --user)
                 USER_NAME="$2"
             ;;
-            -o|--output-file)
+            -o | --output-file)
                 OUTPUT_SUMMARYFILE="$2"
             ;;
-            -c|--configFile)
+            -c | --configFile)
                 CONFIG_FILE="$2"
             ;;
             *)
@@ -54,8 +54,7 @@ parse_commandline_arguments()
             ;;
         esac
         
-        if [ "$#" -ge 2 ]
-        then
+        if [ "$#" -ge 2 ]; then
             shift 2
         else
             shift
@@ -63,13 +62,12 @@ parse_commandline_arguments()
     done
 }
 
-download_file_locally()
-{
-    local gitRepository=$1;
-    local gitBranch=$2;
-    local folderPath=$3;
-    local outputFolder=$4;
-    local fileName=$5;
+download_file_locally() {
+    local gitRepository=$1
+    local gitBranch=$2
+    local folderPath=$3
+    local outputFolder=$4
+    local fileName=$5
     
     if [ ! -f $outputFolder/$fileName ]; then
         # Download file locally.
@@ -82,17 +80,16 @@ download_file_locally()
     fi
     log_level -i "Converting parameters file($outputFolder/$fileName) to unix format"
     dos2unix $outputFolder/$fileName
-
+    
     return 0
 }
 
-install_helm_chart()
-{
-    local identityFile=$1;
-    local userName=$2;
-    local connectionIP=$3;
-    local testFolder=$4;
-    local fileName=$5;
+install_helm_chart() {
+    local identityFile=$1
+    local userName=$2
+    local connectionIP=$3
+    local testFolder=$4
+    local fileName=$5
     
     log_level -i "=========================================================================="
     log_level -i "Installing Helm chart."
@@ -115,35 +112,34 @@ install_helm_app() {
     local connectionIP=$3
     local appName=$4
     local namespace=$5
-
+    
     log_level -i "Installing App($appName)."
     # Install Helm passed app
-    if [[-z $namespace]]; then
+    if [[ -z $namespace ]]; then
         ssh -t -i $identityFile \
-            $userName@$connectionIP \
-            "helm install stable/$appName"
+        $userName@$connectionIP \
+        "helm install stable/$appName"
     else
         ssh -t -i $identityFile \
-            $userName@$connectionIP \
-            "helm install stable/$appName --namespace $namespace"
+        $userName@$connectionIP \
+        "helm install stable/$appName --namespace $namespace"
     fi
     appReleaseName=$(ssh -t -i $identityFile $userName@$connectionIP "helm ls -d -r | grep 'DEPLOYED\(.*\)$appName' | grep -Eo '^[a-z,-]+'")
     if [ -z "$appReleaseName" ]; then
         log_level -e "App($appName) deployment failed using Helm."
         return 1
     fi
-
+    
     log_level -i "Helm deployed app($appName) with deployment name as: $appReleaseName."
     return 0
 }
 
-check_app_pod_status()
-{
-    local identityFile=$1;
-    local userName=$2;
-    local connectionIP=$3;
-    local appName=$4;
-    local appStatus=$5;
+check_app_pod_status() {
+    local identityFile=$1
+    local userName=$2
+    local connectionIP=$3
+    local appName=$4
+    local appStatus=$5
     
     # Check if pod is up and running
     log_level -i "Validate if pod for $appName app is created and running."
@@ -169,19 +165,25 @@ check_app_pod_status()
     return 0
 }
 
-check_app_has_externalip()
-{
-    local identityFile=$1;
-    local userName=$2;
-    local connectionIP=$3;
-    local appName=$4;
-    local releaseName=$5;
+check_app_has_externalip() {
+    local identityFile=$1
+    local userName=$2
+    local connectionIP=$3
+    local appName=$4
+    local releaseName=$5
     local serviceName=$releaseName"-"$appName
+    local namespace=$6
     # Check if App got external IP
     log_level -i "Validate if service($serviceName) got external IP address."
     i=0
-    while [ $i -lt 20 ];do
-        IP_ADDRESS=$(ssh -t -i $identityFile $userName@$connectionIP "sudo kubectl get services $serviceName -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
+    while [ $i -lt 20 ]; do
+        if [[ -z $namespace ]]; then
+            IP_ADDRESS=$(ssh -t -i $identityFile $userName@$connectionIP "sudo kubectl get services $serviceName -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
+        else
+            IP_ADDRESS=$(ssh -t -i $identityFile $userName@$connectionIP "sudo kubectl get services -n $namespace $serviceName -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
+        fi
+        
+        log_level -i $IP_ADDRESS
         if [ -z "$IP_ADDRESS" ]; then
             log_level -i "External IP is not assigned. We we will retry after some time."
             sleep 30s
@@ -200,12 +202,14 @@ check_app_has_externalip()
     return 0
 }
 
-check_app_listening_at_externalip()
-{
-    local externalIp=$1;
+check_app_listening_at_externalip() {
+    local externalIp=$1
     i=0
-    while [ $i -lt 20 ];do
-        portalState=$(curl --connect-timeout 30 http://${externalIp}; if [ $? -eq 0 ]; then echo "HTTP OK 200"; fi;)
+    while [ $i -lt 20 ]; do
+        portalState=$(
+            curl --connect-timeout 30 http://${externalIp}
+            if [ $? -eq 0 ]; then echo "HTTP OK 200"; fi
+        )
         if [ -z "$portalState" ]; then
             log_level -i "Portal communication validation failed. We we will retry after some time."
             sleep 30s
@@ -225,17 +229,16 @@ check_app_listening_at_externalip()
     
 }
 
-check_helm_app_release_cleanup()
-{
+check_helm_app_release_cleanup() {
     
-    local identityFile=$1;
-    local userName=$2;
-    local connectionIP=$3;
-    local appName=$4;
+    local identityFile=$1
+    local userName=$2
+    local connectionIP=$3
+    local appName=$4
     
     # Rechecking to make sure deployment cleanup done successfully.
     i=0
-    while [ $i -lt 20 ];do
+    while [ $i -lt 20 ]; do
         releaseName=$(ssh -t -i $identityFile $userName@$connectionIP "helm ls -d -r | grep 'DEPLOYED\(.*\)$appName' | grep -Eo '^[a-z,-]+' || true")
         if [ ! -z "$releaseName" ]; then
             log_level -i "Removal of app($appName) with release name($releaseName) is in progress."
@@ -255,38 +258,35 @@ check_helm_app_release_cleanup()
     return 0
 }
 
-perf_process_net_files()
-{
+perf_process_net_files() {
     local directoryName=$1
     local outputFileName=$2
     local FILENAME_LIST=$(ls $directoryName/*.csv)
     declare -A RESULT_MAP
     local testCaseCount=0
-    while [ $testCaseCount -lt 14 ];do
+    while [ $testCaseCount -lt 14 ]; do
         RESULT_MAP[$testCaseCount]=0.00
         let testCaseCount=testCaseCount+1
     done
     local iteration=0
-    for resultFileName in $FILENAME_LIST
-    do
+    for resultFileName in $FILENAME_LIST; do
         log_level -i "Processing file $resultFileName."
         testCaseCount=0
-        while IFS= read -r line;
-        do
-            currentLine=$(echo $line | tr -d " ");
-            currentLine=$(echo $currentLine | tr "," " ");
-            currentLine=($currentLine);
+        while IFS= read -r line; do
+            currentLine=$(echo $line | tr -d " ")
+            currentLine=$(echo $currentLine | tr "," " ")
+            currentLine=($currentLine)
             if [[ $testCaseCount != 0 ]]; then
-                RESULT_MAP[$testCaseCount]=$(echo ${RESULT_MAP[$testCaseCount]}+${currentLine[1]}| bc);
+                RESULT_MAP[$testCaseCount]=$(echo ${RESULT_MAP[$testCaseCount]}+${currentLine[1]} | bc)
             fi
             let testCaseCount=testCaseCount+1
-        done < $resultFileName
+        done <$resultFileName
         let iteration=iteration+1
     done
     
     testCaseCount=1
-    while [ $testCaseCount -lt 14 ];do
-        RESULT_MAP[$testCaseCount]=$(echo ${RESULT_MAP[$testCaseCount]}/$iteration| bc);
+    while [ $testCaseCount -lt 14 ]; do
+        RESULT_MAP[$testCaseCount]=$(echo ${RESULT_MAP[$testCaseCount]}/$iteration | bc)
         let testCaseCount=testCaseCount+1
     done
     json_string='{ "testSuite": [ {"testname":"Iperf_TCP_SameVM_Pod_IP", "value":"%s" },{"testname":"Iperf_TCP_SameVM_Virtual_IP", "value":"%s"},'
@@ -297,16 +297,15 @@ perf_process_net_files()
     json_string=$json_string'{"testname":"NetPerf_SameVM_Virtual_IP", "value":"%s"},{"testname":"NetPerf_RemoteVM_Pod_IP", "value":"%s"},'
     json_string=$json_string'{"testname":"NetPerf_RemoteVM_Virtual_IP", "value":"%s"} ] }'
     printf "$json_string" "${RESULT_MAP[1]}" "${RESULT_MAP[2]}" \
-                          "${RESULT_MAP[3]}" "${RESULT_MAP[4]}" \
-                          "${RESULT_MAP[5]}" "${RESULT_MAP[6]}" \
-                          "${RESULT_MAP[7]}" "${RESULT_MAP[8]}" \
-                          "${RESULT_MAP[9]}" "${RESULT_MAP[10]}" \
-                          "${RESULT_MAP[11]}" "${RESULT_MAP[12]}" \
-                          "${RESULT_MAP[13]}" > $directoryName/$outputFileName
+    "${RESULT_MAP[3]}" "${RESULT_MAP[4]}" \
+    "${RESULT_MAP[5]}" "${RESULT_MAP[6]}" \
+    "${RESULT_MAP[7]}" "${RESULT_MAP[8]}" \
+    "${RESULT_MAP[9]}" "${RESULT_MAP[10]}" \
+    "${RESULT_MAP[11]}" "${RESULT_MAP[12]}" \
+    "${RESULT_MAP[13]}" >$directoryName/$outputFileName
 }
 
-apt_install_jq()
-{
+apt_install_jq() {
     local JQ_INSTALL_LINK="https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe"
     cd $1
     log_level -i "Install jq on local machine."
@@ -319,17 +318,16 @@ apt_install_jq()
     return 0
 }
 
-validate_testcase_result()
-{
+validate_testcase_result() {
     local resultFileName=$1
     local expectedResultFileName=$2
     local testCaseName=$3
     
-    TEST_RESULT=`cat "$resultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
-    TESTCASE_RANGE_VALUE=`cat "$expectedResultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
-    CONDITION_TYPE=`cat "$expectedResultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .conditionType' | sed -e 's/^"//' -e 's/"$//'`
+    TEST_RESULT=$(cat "$resultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//')
+    TESTCASE_RANGE_VALUE=$(cat "$expectedResultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//')
+    CONDITION_TYPE=$(cat "$expectedResultFileName" | jq --arg v "$testCaseName" '.testSuite[] | select(.testname == $v) | .conditionType' | sed -e 's/^"//' -e 's/"$//')
     TESTCASE_STATUS="fail"
-
+    
     if [[ -z $TESTCASE_RANGE_VALUE ]] || [[ -z $TEST_RESULT ]]; then
         log_level -e "Empty values found for (TEST_RESULT=$TEST_RESULT) with (TESTCASE_RANGE_VALUE=$TESTCASE_RANGE_VALUE)"
     else
@@ -359,18 +357,17 @@ validate_testcase_result()
     fi
 }
 
-deploy_and_measure_event_time()
-{
+deploy_and_measure_event_time() {
     local deploymentFileName=$1
     local startEventName=$2
     local expectedEventName=$3
     local name=$4
     local objectKind=$5
     local waitTime=${6:-120}
-
+    
     kubectl apply -f $deploymentFileName
     i=0
-    while [ $i -lt 50 ];do
+    while [ $i -lt 50 ]; do
         kubeEvents=$(kubectl get events --field-selector involvedObject.kind==$objectKind -o json | jq --arg items "$name" '.items[] | select(.involvedObject.name == $items) | .reason' | grep $expectedEventName)
         if [ -z "$kubeEvents" ]; then
             log_level -i "$expectedEventName event has not reached for $name $objectKind."
@@ -380,7 +377,7 @@ deploy_and_measure_event_time()
         fi
         let i=i+1
     done
-
+    
     if [ -z "$kubeEvents" ]; then
         log_level -e "$expectedEventName has not reached for $name $objectKind."
         exit 1
@@ -396,20 +393,19 @@ deploy_and_measure_event_time()
         log_level -i "Total time taken to reach from $startEventName to $expectedEventName event is $difference"
         sleep $waitTime
         json_string='{ "Time":"%s" }'
-        printf "$json_string" "$difference" > $name.log
+        printf "$json_string" "$difference" >$name.log
     fi
 }
 
-deploy_application()
-{
+deploy_application() {
     local deploymentFileName=$1
     local expectedEventName=$2
     local deploymentName=$3
     local objectKind=$4
-
+    
     kubectl apply -f $deploymentFileName
     i=0
-    while [ $i -lt 50 ];do
+    while [ $i -lt 50 ]; do
         kubeEvents=$(kubectl get events --field-selector involvedObject.kind==$objectKind -o json | jq --arg items "$deploymentName" '.items[] | select(.involvedObject.name == $items) | .reason' | grep $expectedEventName)
         if [ -z "$kubeEvents" ]; then
             log_level -i "$expectedEventName event has not reached for $deploymentName $objectKind."
@@ -421,8 +417,7 @@ deploy_application()
     done
 }
 
-cleanup_deployment()
-{
+cleanup_deployment() {
     local deploymentFileName=$1
     local waitTime=${2:-300}
     kubectl delete -f $deploymentFileName
@@ -438,18 +433,16 @@ cleanup_deployment()
     fi
 }
 
-rename_string_infile()
-{
+rename_string_infile() {
     local fileName=$1
     local findstring=$2
     local replaceString=$3
-
-    file_contents=$(< $fileName)
-    echo "${file_contents//$findstring/$replaceString}" > $fileName
+    
+    file_contents=$(<$fileName)
+    echo "${file_contents//$findstring/$replaceString}" >$fileName
 }
 
-process_perflog_files()
-{
+process_perflog_files() {
     local directoryName=$1
     local outputFileName=$2
     local testCaseName=$3
@@ -461,21 +454,19 @@ process_perflog_files()
         log_level -i "No file found."
         exit 1
     else
-        for resultFileName in $FILENAME_LIST
-        do
+        for resultFileName in $FILENAME_LIST; do
             log_level -i "Processing file $resultFileName."
             totalTime=$(cat $resultFileName | jq '.Time' | sed -e 's/^"//' -e 's/"$//')
-            totalTimeTaken=$(echo $totalTimeTaken+$totalTime | bc);
+            totalTimeTaken=$(echo $totalTimeTaken+$totalTime | bc)
             let iteration=iteration+1
         done
-        averageTimeTaken=$(echo $totalTimeTaken/$iteration| bc);
+        averageTimeTaken=$(echo $totalTimeTaken/$iteration | bc)
         json_string='{ "testSuite": [ {"testname":"%s", "value":"%s" } ] }'
-        printf "$json_string" "$testCaseName" "$averageTimeTaken" > $directoryName/$outputFileName
+        printf "$json_string" "$testCaseName" "$averageTimeTaken" >$directoryName/$outputFileName
     fi
 }
 
-create_cert()
-{
+create_cert() {
     local crtFileName=$1
     local keyFileName=$2
     local cnName=$3
@@ -483,12 +474,11 @@ create_cert()
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out $crtFileName -keyout $keyFileName -subj "/CN=$cnName/O=$organizationName"
 }
 
-install_ingress_application()
-{
+install_ingress_application() {
     local helmApplicationName=$1
     local namespaceName=$2
     local title=$3
     local serviceName=$4
-
+    
     helm install $helmApplicationName --namespace $namespaceName --set title="$title" --set serviceName="$serviceName"
 }

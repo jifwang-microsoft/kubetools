@@ -1,6 +1,5 @@
 #!/bin/bash -e
 
-
 FILE_NAME=$0
 
 SCRIPT_FOLDER="$(dirname $FILE_NAME)"
@@ -22,10 +21,12 @@ log_level -i "OUTPUT_SUMMARYFILE  : $OUTPUT_SUMMARYFILE"
 log_level -i "USER_NAME           : $USER_NAME"
 log_level -i "------------------------------------------------------------------------"
 
-if [[ -z "$IDENTITY_FILE" ]] || \
+if
+[[ -z "$IDENTITY_FILE" ]] || \
 [[ -z "$MASTER_IP" ]] || \
 [[ -z "$USER_NAME" ]] || \
-[[ -z "$OUTPUT_SUMMARYFILE" ]]; then
+[[ -z "$OUTPUT_SUMMARYFILE" ]]
+then
     log_level -e "One of mandatory parameter is not passed correctly."
     print_usage
     exit 1
@@ -34,6 +35,7 @@ fi
 OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
 LOG_FILENAME="$OUTPUT_FOLDER/cleanup.log"
 touch $LOG_FILENAME
+NAMESPACE="ns-tomcat"
 
 {
     APPLICATION_NAME="tomcat"
@@ -62,10 +64,13 @@ touch $LOG_FILENAME
     $APPLICATION_NAME
     
     if [[ $? != 0 ]]; then
-        printf '{"result":"%s","error":"%s"}\n' "failed" "App($APPLICATION_NAME) cleanup was not successfull" > $OUTPUT_SUMMARYFILE
+        printf '{"result":"%s","error":"%s"}\n' "failed" "App($APPLICATION_NAME) cleanup was not successfull" >$OUTPUT_SUMMARYFILE
     else
-        printf '{"result":"%s"}\n' "pass" > $OUTPUT_SUMMARYFILE
+        printf '{"result":"%s"}\n' "pass" >$OUTPUT_SUMMARYFILE
     fi
+    
+    log_level -i "Removing namespace"
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl delete namespace $NAMESPACE"
     
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo rm -rf $TEST_DIRECTORY;"
     
