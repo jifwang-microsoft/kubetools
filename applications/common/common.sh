@@ -109,25 +109,30 @@ install_helm_chart()
     return 0
 }
 
-install_helm_app()
-{
-    local identityFile=$1;
-    local userName=$2;
-    local connectionIP=$3;
-    local appName=$4;
-    
+install_helm_app() {
+    local identityFile=$1
+    local userName=$2
+    local connectionIP=$3
+    local appName=$4
+    local namespace=$5
+
     log_level -i "Installing App($appName)."
     # Install Helm passed app
-    ssh -t -i $identityFile \
-    $userName@$connectionIP \
-    "helm install stable/$appName"
-    
+    if [[-z $namespace]]; then
+        ssh -t -i $identityFile \
+            $userName@$connectionIP \
+            "helm install stable/$appName"
+    else
+        ssh -t -i $identityFile \
+            $userName@$connectionIP \
+            "helm install stable/$appName --namespace $namespace"
+    fi
     appReleaseName=$(ssh -t -i $identityFile $userName@$connectionIP "helm ls -d -r | grep 'DEPLOYED\(.*\)$appName' | grep -Eo '^[a-z,-]+'")
     if [ -z "$appReleaseName" ]; then
         log_level -e "App($appName) deployment failed using Helm."
         return 1
     fi
-    
+
     log_level -i "Helm deployed app($appName) with deployment name as: $appReleaseName."
     return 0
 }
