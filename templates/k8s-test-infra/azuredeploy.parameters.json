@@ -1,0 +1,78 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {        
+      "adminUserName": {
+        "value": ""
+      },
+      "sshPublicKey": {
+        "value": ""
+      },
+      "storageProfile": {
+        "value": ""
+      },      
+      "bazelBuildVersion": {
+        "value": ""
+      },
+      "bazelTestVersion": {
+        "value": ""
+      },
+      "goVersion": {
+        "value": ""
+      },
+      "kubernetesGitBranch": {
+        "value": ""
+      },
+      "kubernetesGitRepository": {
+        "value": ""
+      },
+      "kubernetesTestGitBranch": {
+        "value": ""
+      },
+      "kubernetesTestGitRepository": {
+        "value": ""
+      },
+      "aksEngineBaseURL": {
+        "value": ""
+      },
+      "aksEngineVersion": {
+        "value": ""
+      },
+      "agentPoolProfileCount": {
+        "value": 1
+      },
+      "agentPoolProfileVMSize": {
+        "value": ""
+      },
+      "masterPoolProfileCount": {
+        "value": 1
+      },
+      "masterPoolProfileVMSize": {
+        "value": ""
+      },
+      "buildHyperKube": {
+        "value": ""
+      },
+      "clusterDefinitionURL": {
+        "value": ""
+      },      
+      "clusterDefinitionFile": {
+        "value": ""
+      },
+      "identitySystem": {
+        "value": ""
+      },
+      "kubernetesOrchestratorVersion": {
+        "value": ""
+      },
+      "servicePrincipalClientId": {
+        "value": ""
+      },
+      "servicePrincipalClientSecret": {
+        "value": ""
+      },      
+      "nodeDistro": {
+        "value": ""
+      }
+    }
+  }

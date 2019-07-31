@@ -1,0 +1,382 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "adminUserName": {
+        "type": "string",
+        "defaultValue": "azureuser",
+        "metadata": {
+          "description": "User name for Linux Virtual Machines."
+        }
+      },
+      "sshPublicKey": {
+        "metadata": {
+          "description": "SSH public key used for auth to all Linux machines created as part of deployment."
+        },
+        "type": "string"
+      },      
+      "bazelBuildVersion": {
+        "type": "string",
+        "defaultValue": "0.28.0",
+        "metadata": {
+          "description": "Bazel version which will be used to build kubetest binary."
+        }
+      },
+      "bazelTestVersion": {
+        "type": "string",
+        "defaultValue": "0.23.2",
+        "metadata": {
+          "description": "Bazel version which will be used to build launch kubetest."
+        }
+      },
+      "goVersion": {
+        "type": "string",
+        "defaultValue": "1.12.6",
+        "metadata": {
+          "description": "Go version which needs to be installed."
+        }
+      },
+      "kubernetesGitBranch": {
+        "type": "string",
+        "defaultValue": "release-1.13",
+        "metadata": {
+          "description": "Kubernetes branch from which kubelet will be build."
+        }
+      },
+      "kubernetesGitRepository": {
+        "type": "string",
+        "defaultValue": "msazurestackworkloads/kubernetes",
+        "metadata": {
+          "description": "Kubernetes repository which will be checked out."
+        }
+      },
+      "kubernetesTestGitBranch": {
+        "type": "string",
+        "defaultValue": "azurestack",
+        "metadata": {
+          "description": "Kubernetes test infra branch from which kubetest will be build."
+        }
+      },
+      "kubernetesTestGitRepository": {
+        "type": "string",
+        "defaultValue": "rjaini/test-infra",
+        "metadata": {
+          "description": "Kubernetes test infra branch from which kubetest will be build."
+        }
+      },
+      "aksEngineBaseURL": {
+        "type": "string",
+        "defaultValue": "https://github.com/Azure/aks-engine/releases/download",
+        "metadata": {
+          "description": "The beginning of the URL for downloading the AKS Engine binary"
+        }
+      },
+      "aksEngineReleaseVersion": {
+        "type": "string",
+        "defaultValue": "v0.36.4",
+        "metadata": {
+          "description": "The version of AKS Engine to download"
+        }
+      },
+      "agentPoolProfileCount": {
+        "defaultValue": 3,
+        "metadata": {
+          "description": "Kubernetes Node Pool Profile Count"
+        },
+        "type": "int"
+      },
+      "agentPoolProfileVMSize": {
+        "defaultValue": "Standard_D2_v2",
+        "metadata": {
+          "description": "The VMSize of Kubernetes node VMs"
+        },
+        "type": "string"
+      },
+      "masterPoolProfileCount": {
+        "defaultValue": 1,
+        "metadata": {
+          "description": "Kubernetes Master Pool Profile Count"
+        },
+        "type": "int"
+      },
+      "masterPoolProfileVMSize": {
+        "defaultValue": "Standard_D2_v2",
+        "metadata": {
+          "description": "The VMSize of Kubernetes master VMs"
+        },
+        "type": "string"
+      },
+      "buildHyperKube": {
+        "defaultValue": "false",
+        "metadata": {
+          "description": "Flag to define if hyperKube image needs to be built."
+        },
+        "type": "string"
+      },
+      "clusterDefinitionURL": {
+        "type": "string",
+        "defaultValue": "https://raw.githubusercontent.com/Azure/aks-engine/master/examples/azure-stack",
+        "metadata": {
+          "description": "The Base URL path where cluster definition file is present"
+        }
+      },
+      "clusterDefinitionFileName": {
+        "type": "string",
+        "defaultValue": "kubernetes-azurestack.json",
+        "metadata": {
+          "description": "The name of the file containing the cluster definition"
+        }
+      },
+      "identitySystem": {
+        "defaultValue": "AzureAD",
+        "allowedValues": [
+          "AzureAD",
+          "ADFS"
+        ],
+        "metadata": {
+          "description": "The identity system of Azure Stack. The value could be AzureAD or ADFS"
+        },
+        "type": "string"
+      },
+      "kubernetesOrchestratorVersion": {
+        "type": "string",
+        "defaultValue": "1.13",
+        "metadata": {
+          "description": "This is the version for the Kubernetes Azure cloud provider. We would use a custom Kubernetes build specifically for Azure Stack for each version."
+        }
+      },
+      "servicePrincipalClientId": {
+        "metadata": {
+          "description": "The Service Principal application ID (used by the Kubernetes Azure cloud provider). More help here: https://github.com/Azure/aks-engine/blob/master/docs/topics/service-principals.md"
+        },
+        "type": "securestring"
+      },
+      "servicePrincipalClientSecret": {
+        "metadata": {
+          "description": "The Service Principal Client Secret."
+        },
+        "type": "securestring"
+      },
+      "nodeDistro": {
+        "type": "string",
+        "defaultValue": "ubuntu",
+        "metadata": {
+          "description": "Node distro to be used to deploy Kubernetes on Azure Stack."
+        }
+      }
+    },
+    "variables": {
+      "resourceGroupName": "[resourceGroup().name]",
+      "dnsNameForPublicIP": "[toLower(concat('vmd-dns-', resourceGroup().name))]",
+      "location": "[resourceGroup().location]",
+      "imagePublisher": "Canonical",
+      "imageOffer": "UbuntuServer",
+      "imageSku": "16.04-LTS",
+      "imageVersion": "latest",
+      "vmSize": "Standard_D2_v2",
+      "OSDiskName": "osdisk",
+      "nicName": "[concat('vmd-vnic', uniqueString(resourceGroup().id))]",
+      "addressPrefix": "10.0.0.0/24",
+      "subnetName": "mySubnet",
+      "subnetPrefix": "10.0.0.0/24",
+      "storageAccountName": "[concat('vmdsa', uniquestring(resourceGroup().id))]",
+      "storageAccountType": "Standard_LRS",
+      "publicIPAddressName": "[concat('vmd-publicIP', uniqueString(resourceGroup().id))]",
+      "publicIPAddressType": "Static",
+      "vmStorageAccountContainerName": "vhds",
+      "vmName": "[concat('vmd-', uniqueString(resourceGroup().id))]",
+      "virtualNetworkName": "[concat('vmd-vnet-', uniqueString(resourceGroup().id))]",
+      "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
+      "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
+      "networkSecurityGroupName": "[tolower(concat('vmd-nsg',uniquestring(resourceGroup().id)))]",
+      "sshKeyPath": "[concat('/home/',parameters('adminUserName'),'/.ssh/authorized_keys')]",
+      "tenantSubscriptionId": "[subscription().subscriptionId]",
+      "scriptName": "script",
+      "singleQuote": "'",
+      "scriptParameters": "[concat('ADMIN_USERNAME=','\"',parameters('adminUserName'),'\"' ,' SSH_PUBLICKEY=','\"',parameters('sshPublicKey'),'\"' ,' BAZEL_BUILD_VERSION=','\"',parameters('bazelBuildVersion'),'\"' ,' BAZEL_TEST_VERSION=','\"',parameters('bazelTestVersion'),'\"' ,' GO_VERSION=','\"',parameters('goVersion'),'\"' ,' KUBERNETES_GIT_BRANCH=','\"',parameters('kubernetesGitBranch'),'\"' ,' KUBERNETES_GIT_REPOSITORY=','\"',parameters('kubernetesGitRepository'),'\"' ,' KUBERNETES_TEST_GIT_BRANCH=','\"',parameters('kubernetesTestGitBranch'),'\"' ,' KUBERNETES_TEST_GIT_REPOSITORY=','\"',parameters('kubernetesTestGitRepository'),'\"' ,' AKSE_BASE_URL=','\"',parameters('aksEngineBaseURL'),'\"' ,' AKSE_RELEASE_VERSION=','\"',parameters('aksEngineReleaseVersion'),'\"' ,' AGENT_COUNT=','\"',parameters('agentPoolProfileCount'),'\"' ,' AGENT_SIZE=','\"',parameters('agentPoolProfileVMSize'),'\"' ,' MASTER_COUNT=','\"',parameters('masterPoolProfileCount'),'\"' ,' MASTER_SIZE=','\"',parameters('masterPoolProfileVMSize'),'\"' ,' BUILD_HYPERKUBE=','\"',parameters('buildHyperKube'),'\"' ,' CLUSTER_DEFINITION_BASE_URL=','\"',parameters('clusterDefinitionURL'),'\"' ,' DEFINITION_TEMPLATE_NAME=','\"',parameters('clusterDefinitionFileName'),'\"' ,' IDENTITY_SYSTEM=','\"',parameters('identitySystem'),'\"' ,' K8S_ORCHESTRATOR_VERSION=','\"',parameters('kubernetesOrchestratorVersion'),'\"' ,' SPN_CLIENT_ID=','\"',parameters('servicePrincipalClientId'),'\"' ,' SPN_CLIENT_SECRET=','\"',parameters('servicePrincipalClientSecret'),'\"' ,' NODE_DISTRO=','\"',parameters('nodeDistro'),'\"' ,' REGION_NAME=','\"',variables('location'),'\"' ,' TENANT_ID=','\"',subscription().tenantId,'\"' ,' TENANT_SUBSCRIPTION_ID=','\"',variables('tenantSubscriptionId'),'\"' ,' RESOURCE_GROUP_NAME=','\"',variables('resourceGroupName'),'\"' ,' PUBLICIP_DNS=','\"',variables('dnsNameForPublicIP'),'\"')]"
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Storage/storageAccounts",
+        "name": "[toLower(variables('storageAccountName'))]",
+        "apiVersion": "2015-06-15",
+        "location": "[variables('location')]",
+        "properties": {
+          "accountType": "[variables('storageAccountType')]"
+        }
+      },
+      {
+        "apiVersion": "2015-06-15",
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "name": "[variables('networkSecurityGroupName')]",
+        "location": "[resourceGroup().location]",
+        "properties": {
+          "securityRules": [
+            {
+              "name": "ssh",
+              "properties": {
+                "description": "Allow SSH",
+                "protocol": "Tcp",
+                "sourcePortRange": "*",
+                "destinationPortRange": "22",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 200,
+                "direction": "Inbound"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "apiVersion": "2015-06-15",
+        "type": "Microsoft.Network/publicIPAddresses",
+        "name": "[variables('publicIPAddressName')]",
+        "location": "[variables('location')]",
+        "properties": {
+          "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+          "dnsSettings": {
+            "domainNameLabel": "[variables('dnsNameForPublicIP')]"
+          }
+        }
+      },
+      {
+        "apiVersion": "2015-06-15",
+        "type": "Microsoft.Network/virtualNetworks",
+        "name": "[variables('virtualNetworkName')]",
+        "location": "[variables('location')]",
+        "properties": {
+          "addressSpace": {
+            "addressPrefixes": [
+              "[variables('addressPrefix')]"
+            ]
+          },
+          "subnets": [
+            {
+              "name": "[variables('subnetName')]",
+              "properties": {
+                "addressPrefix": "[variables('subnetPrefix')]"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "apiVersion": "2015-06-15",
+        "type": "Microsoft.Network/networkInterfaces",
+        "name": "[variables('nicName')]",
+        "location": "[variables('location')]",
+        "dependsOn": [
+          "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
+          "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+          "[variables('networkSecurityGroupName')]"
+        ],
+        "properties": {
+          "networkSecurityGroup": {
+            "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+          },
+          "ipConfigurations": [
+            {
+              "name": "ipconfig1",
+              "properties": {
+                "privateIPAllocationMethod": "Dynamic",
+                "publicIPAddress": {
+                  "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
+                },
+                "subnet": {
+                  "id": "[variables('subnetRef')]"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "apiVersion": "2016-03-30",
+        "type": "Microsoft.Compute/virtualMachines",
+        "name": "[variables('vmName')]",
+        "location": "[variables('location')]",
+        "dependsOn": [
+          "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
+          "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+        ],
+        "properties": {
+          "hardwareProfile": {
+            "vmSize": "[variables('vmSize')]"
+          },
+          "osProfile": {
+            "customData": "[base64(concat('#cloud-config\n\nwrite_files:\n- path: \"/opt/azure/containers/script.sh\"\n  permissions: \"0744\"\n  encoding: gzip\n  owner: \"root\"\n  content: !!binary |\n    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'))]",
+            "computerName": "[variables('vmName')]",
+            "adminUsername": "[parameters('adminUserName')]",
+            "linuxConfiguration": {
+              "disablePasswordAuthentication": "true",
+              "ssh": {
+                "publicKeys": [
+                  {
+                    "keyData": "[parameters('sshPublicKey')]",
+                    "path": "[variables('sshKeyPath')]"
+                  }
+                ]
+              }
+            }
+          },
+          "storageProfile": {
+            "imageReference": {
+              "publisher": "[variables('imagePublisher')]",
+              "offer": "[variables('imageOffer')]",
+              "sku": "[variables('imageSku')]",
+              "version": "[variables('imageVersion')]"
+            },
+            "osDisk": {
+              "name": "osdisk",
+              "vhd": {
+                "uri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).primaryEndpoints.blob, variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),'.vhd')]"
+              },
+              "caching": "ReadWrite",
+              "createOption": "FromImage"
+            }
+          },
+          "networkProfile": {
+            "networkInterfaces": [
+              {
+                "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
+              }
+            ]
+          },
+          "diagnosticsProfile": {
+            "bootDiagnostics": {
+              "enabled": "true",
+              "storageUri": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).primaryEndpoints.blob]"
+            }
+          }
+        }
+      },
+      {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "name": "[concat(variables('vmName'),'/LinuxCustomScriptExtension')]",
+        "apiVersion": "2016-03-30",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+          "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
+          "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
+        ],
+        "properties": {
+          "publisher": "Microsoft.Azure.Extensions",
+          "type": "CustomScript",
+          "typeHandlerVersion": "2.0",
+          "autoUpgradeMinorVersion": "true",
+          "protectedSettings": {
+            "commandToExecute": "[concat(variables('scriptParameters'), ' PUBLICIP_FQDN=', '\"', reference(resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName')),'2015-06-15').dnsSettings.fqdn,'\"',' /bin/bash /opt/azure/containers/script.sh >> /var/log/azure/deploy-script-dvm.log 2>&1')]"
+          }
+        }
+      }
+    ],
+    "outputs": {
+      "dvmPublicIpFqdn": {
+        "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName')),'2015-06-15').dnsSettings.fqdn]",
+        "type": "string"
+      }
+    }
+  }
+  
