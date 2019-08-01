@@ -22,8 +22,8 @@ rename_and_deploy()
     while [ $i -lt $numDeployments ];do
         randomName=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 3 | head -n 1)
         currentName=$deploymentName$randomName
-        currentServiceName=$serviceName+'-'+$randomName
-        currentAppName=$appName+'-'+$randomName
+        currentServiceName=$serviceName-$randomName
+        currentAppName=$appName-$randomName
         #replace the deployment,service and app name 
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; rename_string_infile $TEST_DIRECTORY/$deploymentFileName $previousName $currentName"
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; rename_string_infile $TEST_DIRECTORY/$deploymentFileName $previousServiceName $currentServiceName"
