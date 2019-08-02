@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 FILE_NAME=$0
 
@@ -92,11 +92,21 @@ NAMESPACE="ns-tomcat"
     fi
     
     log_level -i "Check if context can create deployments in default namespace"
-    CAN_DEPLOY_STATUS=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl auth can-i create deployments --namespace ns-tomcat")
+    CAN_DEPLOY_NS=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl auth can-i create deployments --namespace ns-tomcat || echo error")
     
-    log_level -i "CAN_DEPLOY_STATUS:$CAN_DEPLOY_STATUS"
+    log_level -i "CAN_DEPLOY_NS:$CAN_DEPLOY_NS"
     
-    if [[ $CAN_DEPLOY_STATUS !=  *"no"* ]]; then
+    if [[ $CAN_DEPLOY_NS !=  *"yes"* ]]; then
+        printf '{"result":"%s","error":"%s"}\n' "failed" "Permission error ($CONTEXT_NAME) cannot deploy in ns-tomcat" >$OUTPUT_SUMMARYFILE
+        exit 1
+    fi
+
+    log_level -i "Check if context can create deployments in default namespace"
+    CAN_DEPLOY_DEFAULT=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl auth can-i create deployments --namespace default || echo error")
+    
+    log_level -i "CAN_DEPLOY_DEFAULT:$CAN_DEPLOY_DEFAULT"
+    
+    if [[ $CAN_DEPLOY_DEFAULT ==  *"yes"* ]]; then
         printf '{"result":"%s","error":"%s"}\n' "failed" "Permission error ($CONTEXT_NAME) can deploy in default namespace" >$OUTPUT_SUMMARYFILE
         exit 1
     fi

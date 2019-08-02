@@ -59,6 +59,10 @@
 				"validation": {
 					"scriptName": "validate.sh",
 					"summaryFile": "validate.json"
+				},
+				"cleanup": {
+					"scriptName": "cleanup.sh",
+					"summaryFile": "cleanup.json"
 				}
 			},
 			{
