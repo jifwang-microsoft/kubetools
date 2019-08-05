@@ -3,17 +3,17 @@ set -e
 
 log_level() {
     case "$1" in
-    -e)
-        echo "$(date) [Err]  " ${@:2}
+        -e)
+            echo "$(date) [Err]  " ${@:2}
         ;;
-    -w)
-        echo "$(date) [Warn] " ${@:2}
+        -w)
+            echo "$(date) [Warn] " ${@:2}
         ;;
-    -i)
-        echo "$(date) [Info] " ${@:2}
+        -i)
+            echo "$(date) [Info] " ${@:2}
         ;;
-    *)
-        echo "$(date) [Debug] " ${@:2}
+        *)
+            echo "$(date) [Debug] " ${@:2}
         ;;
     esac
 }
@@ -22,20 +22,20 @@ FILENAME=$0
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-    -m | --master)
-        HOST="$2"
+        -m | --master)
+            HOST="$2"
         ;;
-    -t | --test-directory)
-        TEST_DIRECTORY="$2"
+        -t | --test-directory)
+            TEST_DIRECTORY="$2"
         ;;
-    *)
-        log_level -i ""
-        log_level -i "Incorrect parameter $1"
-        log_level -i ""
-        printUsage
+        *)
+            log_level -i ""
+            log_level -i "Incorrect parameter $1"
+            log_level -i ""
+            printUsage
         ;;
     esac
-
+    
     if [ "$#" -ge 2 ]; then
         shift 2
     else
@@ -127,9 +127,15 @@ IDENTITY_SYSTEM=$(jq -r '.properties.customCloudProfile.identitySystem' ${API_CO
 SERVICE_PRINCIPAL_CLIENT_ID=$(jq -r '.properties.servicePrincipalProfile.clientId' ${API_CONFIG_LOCAL_LOCATION})
 SERVICE_PRINCIPAL_CLIENT_SECRET=$(jq -r '.properties.servicePrincipalProfile.secret' ${API_CONFIG_LOCAL_LOCATION})
 
+log_level -i "Getting tenant id"
+TENANT_STRING=$(cat /var/log/azure/deploy-script-dvm.log | grep 'TENANT_ID')
+TENANT_ID=${TENANT_STRING##*:}
+TENANT_ID=${TENANT_ID//[[:blank:]]/}
+
 log_level -i "Getting resource group name"
-RG_TEMP_NAME=$(sudo ls /var/lib/waagent/custom-script/download/0/_output)
-RESOURCE_GROUP=${RG_TEMP_NAME%-*}
+RESOURCE_GROUP_STRING=$(cat /var/log/azure/deploy-script-dvm.log | grep 'RESOURCE_GROUP')
+RESOURCE_GROUP=${RESOURCE_GROUP_STRING##*:}
+RESOURCE_GROUP=${RESOURCE_GROUP//[[:blank:]]/}
 
 if [[ $IDENTITY_SYSTEM == "adfs" ]]; then
     TOKEN_URL="${ACTIVE_DIRECTORY_ENDPOINT}adfs/oauth2/token"
@@ -143,6 +149,7 @@ log_level -i "ACTIVE_DIRECTORY_ENDPOINT: $ACTIVE_DIRECTORY_ENDPOINT"
 log_level -i "IDENTITY_SYSTEM: $IDENTITY_SYSTEM"
 log_level -i "RESOURCE_GROUP: $RESOURCE_GROUP"
 log_level -i "LOCATION: $LOCATION"
+log_level -i "TENANT_ID: $TENANT_ID"
 
 TOKEN=$(curl -s --retry 5 --retry-delay 10 --max-time 60 -f -X POST \
     -H "Content-Type: application/x-www-form-urlencoded" \
@@ -150,14 +157,14 @@ TOKEN=$(curl -s --retry 5 --retry-delay 10 --max-time 60 -f -X POST \
     -d "client_id=$SERVICE_PRINCIPAL_CLIENT_ID" \
     --data-urlencode "client_secret=$SERVICE_PRINCIPAL_CLIENT_SECRET" \
     --data-urlencode "resource=$SERVICE_MANAGEMENT_ENDPOINT" \
-    ${TOKEN_URL} | jq '.access_token' | xargs)
+${TOKEN_URL} | jq '.access_token' | xargs)
 
 log_level -i "Getting Subscription ID"
 
 SUBSCRIPTIONS=$(curl -s --retry 5 --retry-delay 10 --max-time 60 -f -X GET \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
-    "${RESOURCE_MANAGER_ENDPOINT}subscriptions?api-version=$SUBSCRIPTIONS_API_VERSION")
+"${RESOURCE_MANAGER_ENDPOINT}subscriptions?api-version=$SUBSCRIPTIONS_API_VERSION")
 
 SUBSCRIPTION_ID=$(echo $SUBSCRIPTIONS | jq -r '.value[0].subscriptionId')
 
@@ -167,8 +174,8 @@ log_level -i "Getting all network security group names"
 NETWORK_API_VERSION="2017-10-01"
 
 PARAMETERS=$( jq -n \
-                --arg location "$LOCATION" \
-                '{"location":$location,"properties": {"securityRules": [{"name": "Allow5000","properties": {"protocol": "*","sourceAddressPrefix": "*","destinationAddressPrefix": "*","access": "Allow","destinationPortRange": "5000","sourcePortRange": "*","priority": 130,"direction": "Inbound"}}]}}'
+    --arg location "$LOCATION" \
+    '{"location":$location,"properties": {"securityRules": [{"name": "Allow5000","properties": {"protocol": "*","sourceAddressPrefix": "*","destinationAddressPrefix": "*","access": "Allow","destinationPortRange": "5000","sourcePortRange": "*","priority": 130,"direction": "Inbound"}}]}}'
 )
 
 log_level -i "PARAMETERS:$PARAMETERS"
@@ -176,7 +183,7 @@ log_level -i "PARAMETERS:$PARAMETERS"
 NETWORK_SECURITY_GROUPS=$(curl -s --retry 5 --retry-delay 10 --max-time 60 -f -X GET \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
-    "${RESOURCE_MANAGER_ENDPOINT}subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Network/networkSecurityGroups?api-version=$NETWORK_API_VERSION")
+"${RESOURCE_MANAGER_ENDPOINT}subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Network/networkSecurityGroups?api-version=$NETWORK_API_VERSION")
 
 VDM_SECURITY_GROUP=$(echo $NETWORK_SECURITY_GROUPS | jq -c '.value | map(select ( .name | contains ("vmd")))')
 VDM_SECURITY_GROUP_NAME=$(echo $VDM_SECURITY_GROUP | jq -r '.[0].name')
@@ -187,7 +194,7 @@ RESPONSE=$(curl -s --retry 5 --retry-delay 10 --max-time 60 -f -X PUT \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
     -d "$PARAMETERS" \
-    "${RESOURCE_MANAGER_ENDPOINT}subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Network/networkSecurityGroups/$VDM_SECURITY_GROUP_NAME?api-version=$NETWORK_API_VERSION")
+"${RESOURCE_MANAGER_ENDPOINT}subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Network/networkSecurityGroups/$VDM_SECURITY_GROUP_NAME?api-version=$NETWORK_API_VERSION")
 
 log_level -i "Hetrogeneous Application Deployment Complete"
 
