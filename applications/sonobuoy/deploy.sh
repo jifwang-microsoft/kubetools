@@ -97,10 +97,12 @@ touch $LOG_FILENAME
     KUBERNETES_MAJOR_VERSION="${KUBERNETES_VERSION%.*}"
     if [ "$KUBERNETES_MAJOR_VERSION" == "1.11" ]; then
         SONOBUOY_VERSION="0.13.0"
-    else if [ "$KUBERNETES_MAJOR_VERSION" == "1.15" ]; then
-        SONOBUOY_VERSION="0.15.0"
-    else
-        SONOBUOY_VERSION="0.14.0"
+    else 
+        if [ "$KUBERNETES_MAJOR_VERSION" == "1.15" ]; then
+            SONOBUOY_VERSION="0.15.0"
+        else
+            SONOBUOY_VERSION="0.14.0"
+        fi
     fi
     
     SONOBUOY_TAR_FILENAME="sonobuoy_"$SONOBUOY_VERSION"_linux_amd64.tar.gz"
@@ -143,7 +145,7 @@ touch $LOG_FILENAME
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $TEST_DIRECTORY"
     log_level -i "Copy file($INSTALL_PREREQUISITE) to VM."
     scp -i $IDENTITY_FILE \
-    $OUTPUT_FOLDER/$INSTALL_PREREQUISITE \
+    $SCRIPT_DIRECTORY/$INSTALL_PREREQUISITE \
     $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/
     
     # INSTALL PREREQUISITE

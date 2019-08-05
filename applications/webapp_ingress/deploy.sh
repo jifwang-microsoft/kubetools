@@ -136,8 +136,8 @@ touch $LOG_FILENAME
         ingressName=$APPLICATION_NAME-$i
         ingressFileName=$APPLICATION_NAME-$i.yaml
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm install stable/nginx-ingress --namespace $NAMESPACE_NAME --set controller.replicaCount=2 --name $ingressName || true"
-        log_level -i "Copy $SCRIPT_FOLDER/$INGRESS_CONFIG_FILENAME to $SCRIPT_FOLDER/$ingressFileName."
-        cp -f $SCRIPT_FOLDER/$INGRESS_CONFIG_FILENAME $SCRIPT_FOLDER/$ingressFileName
+        log_level -i "Copy $SCRIPT_FOLDER/$INGRESS_CONFIG_FILENAME to $OUTPUT_FOLDER/$ingressFileName."
+        cp -f $SCRIPT_FOLDER/$INGRESS_CONFIG_FILENAME $OUTPUT_FOLDER/$ingressFileName
         
         loop=0        
         while [ $loop -lt 20 ]; do
@@ -167,9 +167,9 @@ touch $LOG_FILENAME
         scp -r -i $IDENTITY_FILE $USER_NAME@$MASTER_IP:$TEST_FOLDER/$secretkeyFileName $OUTPUT_FOLDER/$secretkeyFileName
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl create secret tls $organizationName --namespace $NAMESPACE_NAME --key $TEST_FOLDER/$secretkeyFileName --cert $TEST_FOLDER/$certificateFileName"
 
-        rename_string_infile $SCRIPT_FOLDER/$ingressFileName $INGRESS_METADATA_NAME $ingressName
-        rename_string_infile $SCRIPT_FOLDER/$ingressFileName $CN_NAME $cnName
-        rename_string_infile $SCRIPT_FOLDER/$ingressFileName $ORGANIZATION_NAME $organizationName
+        rename_string_infile $OUTPUT_FOLDER/$ingressFileName $INGRESS_METADATA_NAME $ingressName
+        rename_string_infile $OUTPUT_FOLDER/$ingressFileName $CN_NAME $cnName
+        rename_string_infile $OUTPUT_FOLDER/$ingressFileName $ORGANIZATION_NAME $organizationName
 
         let i=i+1
     done
@@ -191,14 +191,15 @@ touch $LOG_FILENAME
         echo "      - backend:
           serviceName: $serviceName 
           servicePort: 80
-        path: /$serviceName(/|$)(.*)" >> $SCRIPT_FOLDER/$ingressConfigFileName
+        path: /$serviceName(/|$)(.*)" >> $OUTPUT_FOLDER/$ingressConfigFileName
+        dos2unix $OUTPUT_FOLDER/$ingressConfigFileName
         sleep 15s    
         let i=i+1
     done
 
     log_level -i "Copy ingress deployment files to VM."
     scp -i $IDENTITY_FILE \
-    $SCRIPT_FOLDER/$APPLICATION_NAME-*.yaml \
+    $OUTPUT_FOLDER/$APPLICATION_NAME-*.yaml \
     $USER_NAME@$MASTER_IP:$TEST_FOLDER/
     
     i=1
@@ -218,6 +219,7 @@ touch $LOG_FILENAME
         printf '{"result":"%s","error":"%s"}\n' "failed" "Only $deploymentCount were successful." > $OUTPUT_SUMMARYFILE
     fi
     
+    $SCRIPT_FOLDER/$ingressConfigFileName
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
 } 2>&1 | tee $LOG_FILENAME
