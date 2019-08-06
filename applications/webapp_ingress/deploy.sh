@@ -219,7 +219,6 @@ touch $LOG_FILENAME
         printf '{"result":"%s","error":"%s"}\n' "failed" "Only $deploymentCount were successful." > $OUTPUT_SUMMARYFILE
     fi
     
-    $SCRIPT_FOLDER/$ingressConfigFileName
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
 } 2>&1 | tee $LOG_FILENAME

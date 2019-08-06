@@ -62,6 +62,11 @@ touch $LOG_FILENAME
     FAILED_SERVICES=""
     FAILED_INGRESS_SERVERS=""
     
+    log_level -i "Get all objects from given namespace."
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get all -n $NAMESPACE_NAME"
+    log_level -i "Get ingress details."
+    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get ingress -n $NAMESPACE_NAME -o json"
+
     while [ $i -le $MAX_INGRESS_COUNT ]; do
         ingressName=$APPLICATION_NAME-$i
 
@@ -78,23 +83,24 @@ touch $LOG_FILENAME
         ipAddress="${ipAddress## }"
         ipAddress="${ipAddress%% }"
 
-        cnName=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cname=\$(kubectl get ingress -n ingress-basic -o json | jq --arg name $ingressName '.items[] | select(.metadata.name == \$name) | .spec.rules[0].host'); echo \$cname")
+        log_level -i "IP address of $ingressName is $ipAddress"
+        cnName=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cname=\$(kubectl get ingress -n $NAMESPACE_NAME -o json | jq --arg name $ingressName '.items[] | select(.metadata.name == \$name) | .spec.rules[0].host'); echo \$cname")
         if [ -z "$cnName" ]; then
             log_level -e "CN Name can not be found for ingress($ingressName)."
             FAILED_INGRESS_SERVERS="$FAILED_INGRESS_SERVERS$ingressName,"
             let i=i+1
-            continue            
+            continue
         fi
         cnName=$(echo "$cnName" | tr -d '"')
         cnName="${cnName## }"
         cnName="${cnName%% }"
-
-        serviceNames=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cname=\$(kubectl get ingress -n ingress-basic -o json | jq --arg name $ingressName '.items[] | select(.metadata.name == \$name) | .spec.rules[0].http.paths[] | .backend.serviceName'); echo \$cname")
+        log_level -i "CN Name of $ingressName is $cnName"
+        serviceNames=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cname=\$(kubectl get ingress -n $NAMESPACE_NAME -o json | jq --arg name $ingressName '.items[] | select(.metadata.name == \$name) | .spec.rules[0].http.paths[] | .backend.serviceName'); echo \$cname")
         if [ -z "$serviceNames" ]; then
             log_level -e "No services found for ingress($ingressName)."
             FAILED_INGRESS_SERVERS="$FAILED_INGRESS_SERVERS$ingressName,"
             let i=i+1
-            continue            
+            continue
         fi
 
         for serviceName in $serviceNames

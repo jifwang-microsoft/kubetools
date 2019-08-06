@@ -59,10 +59,6 @@
 				"validation": {
 					"scriptName": "validate.sh",
 					"summaryFile": "validate.json"
-				},
-				"cleanup": {
-					"scriptName": "cleanup.sh",
-					"summaryFile": "cleanup.json"
 				}
 			},
 			{
@@ -81,8 +77,7 @@
 				}
 			},
 			{
-				"name": "hetrogeneous-app",
-				"deploymentVMType": "dvm",
+				"name": "webapp_ingress",
 				"deployment": {
 					"scriptName": "deploy.sh",
 					"summaryFile": "deploy.json"
@@ -97,7 +92,8 @@
 				}
 			},
 			{
-				"name": "webapp_ingress",
+				"name": "hetrogeneous-app",
+				"deploymentVMType": "dvm",
 				"deployment": {
 					"scriptName": "deploy.sh",
 					"summaryFile": "deploy.json"
