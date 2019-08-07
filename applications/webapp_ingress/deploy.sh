@@ -95,7 +95,7 @@ touch $LOG_FILENAME
     fi
     
     download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
-    "applications/$APPLICATION_NAME" \
+    "applications/webapp_$APPLICATION_NAME" \
     $SCRIPT_FOLDER \
     $INGRESS_CONFIG_FILENAME
 
