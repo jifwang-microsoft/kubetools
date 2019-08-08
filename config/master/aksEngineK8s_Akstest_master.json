@@ -36,7 +36,7 @@
 	},
 	"diagnosis": {
 		"githubRepo": "msazurestackworkloads/azurestack-gallery",
-		"githubBranch": "master",
+		"githubBranch": "release-diagnosis-v.1.0",
 		"folderPath": "diagnosis",
 		"filename": "getkuberneteslogs.sh"
 	},
