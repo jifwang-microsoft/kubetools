@@ -15,7 +15,7 @@ rename_and_deploy()
     previousServiceName=$serviceName
     previousAppName=$appName
 
-    if [-z $numDeployments]; then
+    if [[ -z "$numDeployments" ]]; then
         $numDeployments=5
     fi
 
@@ -24,17 +24,19 @@ rename_and_deploy()
         currentName=$deploymentName$randomName
         currentServiceName=$serviceName-$randomName
         currentAppName=$appName-$randomName
-        #replace the deployment,service and app name 
+        
+        replicaCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; cat $TEST_DIRECTORY/$deploymentFileName | grep replicas | cut -d':' -f2 | xargs |  cut -d' ' -f1")
+        #replace the deployment,service and app name
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; rename_string_infile $TEST_DIRECTORY/$deploymentFileName $previousName $currentName"
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; rename_string_infile $TEST_DIRECTORY/$deploymentFileName $previousServiceName $currentServiceName"
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; rename_string_infile $TEST_DIRECTORY/$deploymentFileName $previousAppName $currentAppName"
-        #deploy 
-        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; deploy_application $deploymentFileName $endEventName $currentName $kind"
+        #deploy
+        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; deploy_application $deploymentFileName $endEventName $currentName $kind $replicaCount"
         
         #restore the previous file name
-        $previousName=$currentName
-        $previousServiceName=$currentServiceName
-        $previousAppName=$currentAppName
+        previousName=$currentName
+        previousServiceName=$currentServiceName
+        previousAppName=$currentAppName
 
         let i=i+1
     done
@@ -87,7 +89,6 @@ LOG_FILENAME="$OUTPUT_DIRECTORY/deploy.log"
 touch $LOG_FILENAME
 
 {
-
     # Details.
     APPLICATION_NAME="scale_apps"
     ATTACH_VOLUME_EVENT_NAME="SuccessfulAttachVolume"

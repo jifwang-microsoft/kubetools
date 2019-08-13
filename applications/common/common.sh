@@ -357,6 +357,31 @@ validate_testcase_result() {
     fi
 }
 
+check_Kubernetes_events() {
+    local expectedEventName=$1
+    local objectName=$2
+    local objectKind=$3
+    i=0
+    while [ $i -lt 50 ]; do
+        kubeEvents=$(kubectl get events --field-selector involvedObject.kind==$objectKind -o json | jq --arg items "$objectName" '.items[] | select(.involvedObject.name == $items) | .reason' | grep $expectedEventName)
+        if [ -z "$kubeEvents" ]; then
+            log_level -i "$expectedEventName event has not reached for $objectName $objectKind."
+            sleep 20s
+        else
+            break
+        fi
+        let i=i+1
+    done
+
+    if [ -z "$kubeEvents" ]; then
+        log_level -e "$expectedEventName has not reached for $objectName $objectKind."
+         return 1
+    fi
+    
+    log_level -i "$expectedEventName event has reached for $objectName $objectKind."
+    return 0
+}
+
 deploy_and_measure_event_time() {
     local deploymentFileName=$1
     local startEventName=$2
@@ -402,19 +427,41 @@ deploy_application() {
     local expectedEventName=$2
     local deploymentName=$3
     local objectKind=$4
+    local totalReplicaCount=$5
     
+    if [[ -z $totalReplicaCount ]]; then
+        $totalReplicaCount=1
+    fi
+
     kubectl apply -f $deploymentFileName
-    i=0
-    while [ $i -lt 50 ]; do
-        kubeEvents=$(kubectl get events --field-selector involvedObject.kind==$objectKind -o json | jq --arg items "$deploymentName" '.items[] | select(.involvedObject.name == $items) | .reason' | grep $expectedEventName)
-        if [ -z "$kubeEvents" ]; then
-            log_level -i "$expectedEventName event has not reached for $deploymentName $objectKind."
-            sleep 20s
-        else
-            break
+    replicaCount=0
+    deploymentStatus="pass"
+    log_level -i "Validate deployment has all replica(count=$totalReplicaCount) in running state."
+
+    if [[ "$objectKind" == "Pod" ]]; then
+        while [ $replicaCount -lt $totalReplicaCount ]; do
+            i=0
+            name=$deploymentName-$replicaCount
+            check_Kubernetes_events $expectedEventName $name $objectKind
+            if [[ $? != 0 ]]; then
+                log_level -e "Could not reach event($expectedEventName) for $name $objectKind."
+                deploymentStatus="fail"
+            fi
+
+            let replicaCount=replicaCount+1
+        done
+
+        if [[ "$deploymentStatus" != "pass" ]]; then
+            log_level -e "$expectedEventName has not reached for $deploymentName $objectKind with replica count $totalReplicaCount."
+            exit 1
         fi
-        let i=i+1
-    done
+    else
+        check_Kubernetes_events $expectedEventName $deploymentName $objectKind
+        if [[ $? != 0 ]]; then
+            log_level -e "Could not reach event($expectedEventName) for $deploymentName $objectKind."
+            exit 1
+        fi
+    fi
 }
 
 cleanup_deployment() {

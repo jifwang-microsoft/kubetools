@@ -36,15 +36,6 @@ LOG_FILENAME="$OUTPUT_FOLDER/validate.log"
 touch $LOG_FILENAME
 
 {
-    log_level -i "------------------------------------------------------------------------"
-    log_level -i "Input Parameters"
-    log_level -i "------------------------------------------------------------------------"
-    log_level -i "IDENTITY_FILE         : $IDENTITY_FILE"
-    log_level -i "MASTER_IP             : $MASTER_IP"
-    log_level -i "OUTPUT_SUMMARYFILE    : $OUTPUT_SUMMARYFILE"
-    log_level -i "USER_NAME             : $USER_NAME"
-    log_level -i "------------------------------------------------------------------------"
-    
     APPLICATION_NAME="scale_apps"
     TEST_DIRECTORY="/home/$USER_NAME/$APPLICATION_NAME"
     EXPECTED_RESULT_FILENAME="expectedresults.json"
@@ -77,12 +68,12 @@ touch $LOG_FILENAME
         expectedNginxPvcCount=`cat "$EXPECTED_RESULT_FILE" | jq --arg v "NGINX_PVC_TEST_PVC_COUNT" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
     
         # Check if nginx_pvc_test pods are running and up
-        nginxPvcPodCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep 'web*' > nginx_pvc_pods.txt; wc -l nginx_pvc_pods.txt ")
+        nginxPvcPodCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep 'web*' > $TEST_DIRECTORY/nginx_pvc_pods.txt; wc -l $TEST_DIRECTORY/nginx_pvc_pods.txt | cut -d' ' -f1")
         if [ $nginxPvcPodCount!=$expectedNginxPvcPodCount ]; then
             result="failed"
             log_level -e "nginx_pvc_test pods's count are not matching the expected count." "$nginxPvcPodCount" "$expectedNginxPvcPodCount"
         fi
-        nginxPvcCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pvc --field-selector metadata.namespace=default | grep 'Bound' | grep 'www-web*' > nginx_pvc.txt; wc -l nginx_pvc.txt ")
+        nginxPvcCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pvc --field-selector metadata.namespace=default | grep 'Bound' | grep 'www-web*' > $TEST_DIRECTORY/nginx_pvc.txt; wc -l $TEST_DIRECTORY/nginx_pvc.txt | cut -d' ' -f1")
         if [ $nginxPvcCount!=$expectedNginxPvcCount ]; then
             result="failed"
             log_level -e "nginx pods's count are not matching the expected count." "$nginxPvcCount" "$expectedNginxPvcCount"
@@ -92,7 +83,7 @@ touch $LOG_FILENAME
     if [[ $NGINX_APP_TEST ]]; then
         expectedNginxPodCount=`cat "$EXPECTED_RESULT_FILE" | jq --arg v "NGINX_TEST_POD_COUNT" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
 
-        nginxPodCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep 'nginx-scale*' > nginx_pods.txt; wc -l nginx_pods.txt ")
+        nginxPodCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep 'nginx-scale*' > $TEST_DIRECTORY/nginx_pods.txt; wc -l $TEST_DIRECTORY/nginx_pods.txt | cut -d' ' -f1")
         if [ $nginxPodCount!=$expectedNginxPodCount ]; then
             result="failed"
             log_level -e "nginx pods's count are not matching the expected count." "$nginxPodCount" "$expectedNginxPodCount"
