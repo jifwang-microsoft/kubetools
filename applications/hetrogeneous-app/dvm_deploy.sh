@@ -175,7 +175,7 @@ NETWORK_API_VERSION="2017-10-01"
 
 PARAMETERS=$( jq -n \
     --arg location "$LOCATION" \
-    '{"location":$location,"properties": {"securityRules": [{"name": "Allow5000","properties": {"protocol": "*","sourceAddressPrefix": "*","destinationAddressPrefix": "*","access": "Allow","destinationPortRange": "5000","sourcePortRange": "*","priority": 130,"direction": "Inbound"}}]}}'
+    '{"location":$location,"properties": {"securityRules": [{"name": "Allow5000","properties": {"protocol": "*","sourceAddressPrefix": "*","destinationAddressPrefix": "*","access": "Allow","destinationPortRange": "5000","sourcePortRange": "*","priority": 210,"direction": "Inbound"}},{"name": "ssh","properties": {"protocol": "TCP","sourceAddressPrefix": "*","destinationAddressPrefix": "*","access": "Allow","destinationPortRange": "22","sourcePortRange": "*","priority": 200,"direction": "Inbound"}}]}}'
 )
 
 log_level -i "PARAMETERS:$PARAMETERS"
@@ -198,4 +198,4 @@ RESPONSE=$(curl -s --retry 5 --retry-delay 10 --max-time 60 -f -X PUT \
 
 log_level -i "Hetrogeneous Application Deployment Complete"
 
-echo 0
+exit 0

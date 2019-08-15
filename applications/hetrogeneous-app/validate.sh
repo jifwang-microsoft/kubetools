@@ -23,7 +23,6 @@ source $SCRIPT_DIRECTORY/$COMMON_SCRIPT_FILENAME
 # IDENTITY_FILE, MASTER_IP, OUTPUT_SUMMARYFILE, USER_NAME
 parse_commandline_arguments $@
 
-
 if [ -z "$OUTPUT_SUMMARYFILE" ]; then
     log_level -e "Summary file not set"
     exit 1
@@ -34,7 +33,6 @@ LOG_FILE_NAME=$OUTPUT_DIRECTORY/validate.log
 TEST_DIRECTORY="hetro_app_assets"
 touch $LOG_FILE_NAME
 IDENTITY_FILE_BACKUP_PATH="/home/$USER_NAME/IDENTITY_FILEBACKUP"
-
 
 {
     if [[ -z $IDENTITY_FILE ]]; then
@@ -73,25 +71,40 @@ IDENTITY_FILE_BACKUP_PATH="/home/$USER_NAME/IDENTITY_FILEBACKUP"
     KUBE_CONFIG_FILENAME=$(basename $KUBE_CONFIG_LOCATION)
     log_level -i "KUBE_CONFIG_FILENAME($KUBE_CONFIG_FILENAME)"
     
-    EXTERNAL_IP=$(ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "export KUBECONFIG='/home/$USER_NAME/$TEST_DIRECTORY/$KUBE_CONFIG_FILENAME'; kubectl get services -o custom-columns=IP:.status.loadBalancer.ingress[0].ip --no-headers  --field-selector metadata.name=elastic-client-service")
+    i=0
+    while [ $i -lt 20 ]; do
+        EXTERNAL_IP=$(ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "export KUBECONFIG='/home/$USER_NAME/$TEST_DIRECTORY/$KUBE_CONFIG_FILENAME'; kubectl get services -o custom-columns=IP:.status.loadBalancer.ingress[0].ip --no-headers  --field-selector metadata.name=elastic-client-service | grep -oP '(\d{1,3}\.){1,3}\d{1,3}' || true")
+        if [ -z "$EXTERNAL_IP" ]; then
+            log_level -i "External IP is not assigned. We we will retry after some time."
+            sleep 30s
+        else
+            break
+        fi
+        let i=i+1
+    done
+    
     log_level -i "EXTERNAL_IP($EXTERNAL_IP)"
-    
+    if [ -z "$EXTERNAL_IP" ]; then
+        log_level -e "External IP not found."
+        printf '{"result":"%s","error":"%s"}\n' "failed" "External IP not found." >$OUTPUT_SUMMARYFILE
+        exit 1
+    fi
+
     log_level -i "Checking if Elasticsearch client is running"
-    APP_CHECK_STATUS=$(ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "curl http://$EXTERNAL_IP:3000")
-    
-    if [[ $APP_CHECK_STATUS == *"Yup"* ]]; then
-        log_level -i "Elasticsearch client is up and running"
-    else
+    check_app_listening_at_externalip "$EXTERNAL_IP:3000"
+    if [[ $? != 0 ]]; then
         log_level -e "Elasticsearch client is not running"
         printf '{"result":"%s","error":"%s"}\n' "failed" "Elasticsearch client is not running" >$OUTPUT_SUMMARYFILE
         exit 1
+    else
+        log_level -i "Elasticsearch client is up and running"
     fi
-    
+
     log_level -i "Checking if client can insert data"
-    APP_INSERT_STATUS=$(ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "curl http://$EXTERNAL_IP:3000/insertData")
-    
+    APP_INSERT_STATUS=$(curl http://$EXTERNAL_IP:3000/insertData)
+    log_level -i "App insert result status: $APP_INSERT_STATUS"
     if [[ $APP_INSERT_STATUS == *"created"* ]]; then
-        log_level -i "Elasticsearch client insert data test passed"
+        log_level -i "Elasticsearch client insert data test passed. "
     else
         log_level -e "Elasticsearch client insert data test failed"
         printf '{"result":"%s","error":"%s"}\n' "failed" "Elasticsearch client could not insert data to database" >$OUTPUT_SUMMARYFILE
@@ -99,20 +112,32 @@ IDENTITY_FILE_BACKUP_PATH="/home/$USER_NAME/IDENTITY_FILEBACKUP"
     fi
     
     log_level -i "Checking if client can read data"
-    APP_READ_STATUS=$(ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "curl http://$EXTERNAL_IP:3000/readData")
+    i=0
+    while [ $i -lt 20 ]; do
+        APP_READ_STATUS=$(
+            curl http://$EXTERNAL_IP:3000/readData
+            if [ $? -eq 0 ]; then echo "HTTP OK 200"; fi
+        )
+        if [[ $APP_READ_STATUS != *"Daenerys Targaryen"* ]]; then
+            log_level -i "Read data failed. We we will retry after some time."
+            sleep 10s
+        else
+            break
+        fi
+        let i=i+1
+    done
     
+    log_level -e "Elasticsearch client read data value: $APP_READ_STATUS"
     if [[ $APP_READ_STATUS == *"Daenerys Targaryen"* ]]; then
         log_level -i "Elasticsearch client read data test passed"
+        printf '{"result":"%s"}\n' "pass" >$OUTPUT_SUMMARYFILE
     else
-        log_level -e "Elasticsearch client read data test failed"
+        log_level -e "Elasticsearch client read data test failed."
         printf '{"result":"%s","error":"%s"}\n' "failed" "Elasticsearch client could not read data from database" >$OUTPUT_SUMMARYFILE
         exit 1
     fi
     
-    log_level -i "All tests passed"
-    result="pass"
-    printf '{"result":"%s"}\n' "$result" >$OUTPUT_SUMMARYFILE
-    
+    log_level -i "All tests passed"    
 } \
 2>&1 |
 tee $LOG_FILE_NAME

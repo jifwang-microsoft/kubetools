@@ -211,7 +211,7 @@ check_app_listening_at_externalip() {
             if [ $? -eq 0 ]; then echo "HTTP OK 200"; fi
         )
         if [ -z "$portalState" ]; then
-            log_level -i "Portal communication validation failed. We we will retry after some time."
+            log_level -i "Endpoint communication validation failed. We we will retry after some time."
             sleep 30s
         else
             break
