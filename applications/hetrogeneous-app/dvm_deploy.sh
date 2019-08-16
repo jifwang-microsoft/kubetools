@@ -198,4 +198,4 @@ RESPONSE=$(curl -s --retry 5 --retry-delay 10 --max-time 60 -f -X PUT \
 
 log_level -i "Hetrogeneous Application Deployment Complete"
 
-exit 0
+echo 0

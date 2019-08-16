@@ -99,7 +99,7 @@ touch $LOG_FILENAME
     EXPECTED_RESULT_FILE="expectedresults.json"
     LINUX_SCRIPT_PATH="applications/common/Scripts/linux"
     NGINX_APP_NAME="nginxtest"
-    NGINX_NUM_DEPLOYMENTS=20
+    NGINX_NUM_DEPLOYMENTS=4
     NGINX_SERVICE_NAME="nginxservice"
     TEST_DIRECTORY="/home/$USER_NAME/$APPLICATION_NAME"
     POD_KIND="Pod"
