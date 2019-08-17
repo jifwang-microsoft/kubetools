@@ -63,30 +63,68 @@ touch $LOG_FILENAME
         exit 1
     fi
 
+    result="pass"
     if [[ $NGINX_PVC_TEST ]]; then
         expectedNginxPvcPodCount=`cat "$EXPECTED_RESULT_FILE" | jq --arg v "NGINX_PVC_TEST_POD_COUNT" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
         expectedNginxPvcCount=`cat "$EXPECTED_RESULT_FILE" | jq --arg v "NGINX_PVC_TEST_PVC_COUNT" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
     
         # Check if nginx_pvc_test pods are running and up
-        nginxPvcPodCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep 'web*' > $TEST_DIRECTORY/nginx_pvc_pods.txt; wc -l $TEST_DIRECTORY/nginx_pvc_pods.txt | cut -d' ' -f1")
-        if [ $nginxPvcPodCount!=$expectedNginxPvcPodCount ]; then
+        i=0
+        while [ $i -lt 20 ]; do
+            nginxPvcPodCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep 'web*' > $TEST_DIRECTORY/nginx_pvc_pods.txt; wc -l $TEST_DIRECTORY/nginx_pvc_pods.txt | cut -d' ' -f1")
+            if [[ "$nginxPvcPodCount" == "$expectedNginxPvcPodCount" ]]; then
+                break
+            else
+                log_level -i "nginx_pvc_test pods's count($nginxPvcPodCount) are not matching the expected count($expectedNginxPvcPodCount). We will try again."
+            fi
+
+            sleep 30s
+            let i=i+1
+        done
+
+        if [[ "$nginxPvcPodCount" != "$expectedNginxPvcPodCount" ]]; then
             result="failed"
-            log_level -e "nginx_pvc_test pods's count are not matching the expected count." "$nginxPvcPodCount" "$expectedNginxPvcPodCount"
+            log_level -e "PVC pods's count($nginxPvcPodCount) are not matching expected count($expectedNginxPvcPodCount)."
         fi
-        nginxPvcCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pvc --field-selector metadata.namespace=default | grep 'Bound' | grep 'www-web*' > $TEST_DIRECTORY/nginx_pvc.txt; wc -l $TEST_DIRECTORY/nginx_pvc.txt | cut -d' ' -f1")
-        if [ $nginxPvcCount!=$expectedNginxPvcCount ]; then
+
+        i=0
+        while [ $i -lt 20 ]; do
+            nginxPvcCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pvc --field-selector metadata.namespace=default | grep 'Bound' | grep 'www-web*' > $TEST_DIRECTORY/nginx_pvc.txt; wc -l $TEST_DIRECTORY/nginx_pvc.txt | cut -d' ' -f1")
+            if [[ "$nginxPvcCount" == "$expectedNginxPvcCount" ]]; then
+                break
+            else
+                log_level -i "nginx pods's count($nginxPvcCount) are not matching the expected count($expectedNginxPvcCount). We will try again."
+            fi
+
+            sleep 30s
+            let i=i+1
+        done
+
+        if [[ "$nginxPvcCount" != "$expectedNginxPvcCount" ]]; then
             result="failed"
-            log_level -e "nginx pods's count are not matching the expected count." "$nginxPvcCount" "$expectedNginxPvcCount"
-        fi    
+            log_level -e "Nginx pods's count($nginxPvcCount) are not matching the expected count($expectedNginxPvcCount)."
+        fi
     fi
 
     if [[ $NGINX_APP_TEST ]]; then
         expectedNginxPodCount=`cat "$EXPECTED_RESULT_FILE" | jq --arg v "NGINX_TEST_POD_COUNT" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
 
-        nginxPodCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep 'nginx-scale*' > $TEST_DIRECTORY/nginx_pods.txt; wc -l $TEST_DIRECTORY/nginx_pods.txt | cut -d' ' -f1")
-        if [ $nginxPodCount!=$expectedNginxPodCount ]; then
+         i=0
+        while [ $i -lt 20 ]; do
+            nginxPodCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep 'nginx-scale*' > $TEST_DIRECTORY/nginx_pods.txt; wc -l $TEST_DIRECTORY/nginx_pods.txt | cut -d' ' -f1")
+            if [[ "$nginxPodCount" == "$expectedNginxPodCount" ]]; then
+                break
+            else
+                log_level -e "nginx pods's count($nginxPodCount) are not matching the expected count($expectedNginxPodCount). We will try again to validate the count."
+            fi
+
+            sleep 30s
+            let i=i+1
+        done
+
+        if [[ "$nginxPodCount" != "$expectedNginxPodCount" ]]; then
             result="failed"
-            log_level -e "nginx pods's count are not matching the expected count." "$nginxPodCount" "$expectedNginxPodCount"
+            log_level -e "nginx pods's count($nginxPodCount) are not matching the expected count($expectedNginxPodCount)."
         fi
     fi
 

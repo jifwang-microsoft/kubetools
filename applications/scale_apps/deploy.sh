@@ -159,6 +159,28 @@ touch $LOG_FILENAME
     $SCRIPT_DIRECTORY/$COMMON_SCRIPT_FILENAME \
     $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/
 
+    if [[ $NGINX_APP_TEST ]]; then
+
+        download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
+        $LINUX_SCRIPT_PATH \
+        $SCRIPT_DIRECTORY \
+        $DEPLOYMENT_NGINX_FILE
+
+        log_level -i "Copy file($DEPLOYMENT_NGINX_FILE) to VM."
+        scp -i $IDENTITY_FILE \
+        $SCRIPT_DIRECTORY/$DEPLOYMENT_NGINX_FILE \
+        $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/
+
+        rename_and_deploy \
+        $DEPLOYMENT_NGINX_FILE \
+        $DEPLOYMENT_KIND \
+        "nginx-scale" \
+        $NGINX_SERVICE_NAME \
+        $NGINX_APP_NAME \
+        $DEPLOYMENT_EVENT_NAME \
+        $NGINX_NUM_DEPLOYMENTS
+    fi 
+
     if [[ $NGINX_PVC_TEST ]]; then
 
         download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
@@ -181,28 +203,6 @@ touch $LOG_FILENAME
         $PVC_NUM_DEPLOYMENTS
     fi
 
-    if [[ $NGINX_APP_TEST ]]; then
-
-        download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
-        $LINUX_SCRIPT_PATH \
-        $SCRIPT_DIRECTORY \
-        $DEPLOYMENT_NGINX_FILE
-
-        log_level -i "Copy file($DEPLOYMENT_NGINX_FILE) to VM."
-        scp -i $IDENTITY_FILE \
-        $SCRIPT_DIRECTORY/$DEPLOYMENT_NGINX_FILE \
-        $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/
-
-        rename_and_deploy \
-        $DEPLOYMENT_NGINX_FILE \
-        $DEPLOYMENT_KIND \
-        "nginx-scale" \
-        $NGINX_SERVICE_NAME \
-        $NGINX_APP_NAME \
-        $DEPLOYMENT_EVENT_NAME \
-        $NGINX_NUM_DEPLOYMENTS
-    fi 
-    
     log_level -i "Scale Operation setup done."
     printf '{"result":"%s"}\n' "pass" > $OUTPUT_SUMMARYFILE
 } 2>&1 | tee $LOG_FILENAME
