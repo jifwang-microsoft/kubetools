@@ -29,7 +29,7 @@ echo "Update helm repository..."
 helm repo update
 
 echo "Install wordpress..."
-helm install stable/wordpress --set wordpressSkipInstall=false
+helm install stable/wordpress --set wordpressSkipInstall=false --version 5.7.0
 
 echo "Done with installation, checking release status..."
 wpRelease=$(helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+')
