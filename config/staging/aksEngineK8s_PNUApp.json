@@ -5,7 +5,7 @@
 		"galleryBranch": "master",
 		"folderPath": "kubernetes/template/DeploymentTemplates",
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
-		"minNumberofAzsNodes": 1,
+		"minNumberofAzsNodes": 4,
 		"removeDeployment": "false",
 		"deploymentMatrix": [
 			{
