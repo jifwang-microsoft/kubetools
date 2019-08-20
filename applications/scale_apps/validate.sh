@@ -128,9 +128,9 @@ touch $LOG_FILENAME
         fi
     fi
 
-    if [[ $result=="failed" ]]; then
+    if [[ "$result" == "failed" ]]; then
        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get all -o wide"
-       printf '{"result":"%s","error":"%s","CurrentPvcPodCount":"%s","ExpectedPvcPodCount":"%s","CurrentPvcCount":"%s","ExpectedPvcCount":"%s",,"CurrentPodCount":"%s","ExpectedPodCount":"%s"}\n' "$result" "One of the count are not matching the expected count." "$nginxPvcPodCount" "$expectedNginxPvcPodCount" "$nginxPodCount" "$expectedNginxPodCount" "$nginxPvcCount" "$expectedNginxPvcCount"> $OUTPUT_SUMMARYFILE
+       printf '{"result":"%s","error":"%s","CurrentPvcPodCount":"%s","ExpectedPvcPodCount":"%s","CurrentPvcCount":"%s","ExpectedPvcCount":"%s","CurrentPodCount":"%s","ExpectedPodCount":"%s"}\n' "$result" "One of the count are not matching the expected count." "$nginxPvcPodCount" "$expectedNginxPvcPodCount" "$nginxPodCount" "$expectedNginxPodCount" "$nginxPvcCount" "$expectedNginxPvcCount"> $OUTPUT_SUMMARYFILE
        exit 1
     else
         result="pass"
