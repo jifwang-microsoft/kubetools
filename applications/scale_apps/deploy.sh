@@ -8,17 +8,17 @@ rename_and_deploy()
     local serviceName=$4;
     local appName=$5;
     local endEventName=$6;
-    local numDeployments=$7;    
+    local numDeployments=$7;
     
     i=0
     previousName=$deploymentName
     previousServiceName=$serviceName
     previousAppName=$appName
-
+    
     if [[ -z "$numDeployments" ]]; then
         $numDeployments=5
     fi
-
+    
     while [ $i -lt $numDeployments ];do
         randomName=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 3 | head -n 1)
         currentName=$deploymentName$randomName
@@ -37,7 +37,7 @@ rename_and_deploy()
         previousName=$currentName
         previousServiceName=$currentServiceName
         previousAppName=$currentAppName
-
+        
         let i=i+1
     done
     return 0
@@ -108,7 +108,7 @@ touch $LOG_FILENAME
     PVC_APP_NAME="nginx-sts"
     NGINX_PVC_TEST=true
     NGINX_APP_TEST=true
-
+    
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Inner Variables"
     log_level -i "------------------------------------------------------------------------"
@@ -132,18 +132,18 @@ touch $LOG_FILENAME
     log_level -i "PVC_NUM_DEPLOYMENTS            : $PVC_NUM_DEPLOYMENTS "
     log_level -i "PVC_SERVICE_NAME               : $PVC_SERVICE_NAME"
     log_level -i "PVC_APP_NAME                   : $PVC_APP_NAME"
-    log_level -i "------------------------------------------------------------------------"    
-
+    log_level -i "------------------------------------------------------------------------"
+    
     # ----------------------------------------------------------------------------------------
     # INSTALL PREREQUISITE
-
+    
     apt_install_jq $OUTPUT_DIRECTORY
     if [[ $? != 0 ]]; then
         log_level -e "Install of jq was not successfull."
         printf '{"result":"%s","error":"%s"}\n' "failed" "Install of JQ was not successfull." > $OUTPUT_SUMMARYFILE
         exit 1
     fi
-
+    
     download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
     "applications/$APPLICATION_NAME" \
     $SCRIPT_DIRECTORY \
@@ -153,24 +153,24 @@ touch $LOG_FILENAME
     # Copy all files inside master VM for execution.
     log_level -i "Create test directory($TEST_DIRECTORY)"
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $TEST_DIRECTORY"
-
+    
     log_level -i "Copy file($COMMON_SCRIPT_FILENAME) to VM."
     scp -i $IDENTITY_FILE \
     $SCRIPT_DIRECTORY/$COMMON_SCRIPT_FILENAME \
     $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/
-
-    if [[ $NGINX_APP_TEST ]]; then
-
+    
+    if [[ "$NGINX_APP_TEST" == "true" ]]; then
+        
         download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
         $LINUX_SCRIPT_PATH \
         $SCRIPT_DIRECTORY \
         $DEPLOYMENT_NGINX_FILE
-
+        
         log_level -i "Copy file($DEPLOYMENT_NGINX_FILE) to VM."
         scp -i $IDENTITY_FILE \
         $SCRIPT_DIRECTORY/$DEPLOYMENT_NGINX_FILE \
         $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/
-
+        
         rename_and_deploy \
         $DEPLOYMENT_NGINX_FILE \
         $DEPLOYMENT_KIND \
@@ -179,20 +179,20 @@ touch $LOG_FILENAME
         $NGINX_APP_NAME \
         $DEPLOYMENT_EVENT_NAME \
         $NGINX_NUM_DEPLOYMENTS
-    fi 
-
-    if [[ $NGINX_PVC_TEST ]]; then
-
+    fi
+    
+    if [[ "$NGINX_PVC_TEST" == "true" ]]; then
+        
         download_file_locally $GIT_REPROSITORY $GIT_BRANCH \
         $LINUX_SCRIPT_PATH \
         $SCRIPT_DIRECTORY \
         $DEPLOYMENT_PVC_FILE
-
+        
         log_level -i "Copy file($DEPLOYMENT_PVC_FILE) to VM."
         scp -i $IDENTITY_FILE \
         $SCRIPT_DIRECTORY/$DEPLOYMENT_PVC_FILE \
         $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/
-
+        
         rename_and_deploy \
         $DEPLOYMENT_PVC_FILE \
         $POD_KIND \
@@ -202,7 +202,7 @@ touch $LOG_FILENAME
         $ATTACH_VOLUME_EVENT_NAME \
         $PVC_NUM_DEPLOYMENTS
     fi
-
+    
     log_level -i "Scale Operation setup done."
     printf '{"result":"%s"}\n' "pass" > $OUTPUT_SUMMARYFILE
 } 2>&1 | tee $LOG_FILENAME

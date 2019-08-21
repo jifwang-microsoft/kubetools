@@ -372,10 +372,10 @@ check_Kubernetes_events() {
         fi
         let i=i+1
     done
-
+    
     if [ -z "$kubeEvents" ]; then
         log_level -e "$expectedEventName has not reached for $objectName $objectKind."
-         return 1
+        return 1
     fi
     
     log_level -i "$expectedEventName event has reached for $objectName $objectKind."
@@ -432,12 +432,12 @@ deploy_application() {
     if [[ -z $totalReplicaCount ]]; then
         $totalReplicaCount=1
     fi
-
+    
     kubectl apply -f $deploymentFileName
     replicaCount=0
     deploymentStatus="pass"
     log_level -i "Validate deployment has all replica(count=$totalReplicaCount) in running state."
-
+    
     if [[ "$objectKind" == "Pod" ]]; then
         while [ $replicaCount -lt $totalReplicaCount ]; do
             i=0
@@ -447,10 +447,10 @@ deploy_application() {
                 log_level -e "Could not reach event($expectedEventName) for $name $objectKind."
                 deploymentStatus="fail"
             fi
-
+            
             let replicaCount=replicaCount+1
         done
-
+        
         if [[ "$deploymentStatus" != "pass" ]]; then
             log_level -e "$expectedEventName has not reached for $deploymentName $objectKind with replica count $totalReplicaCount."
             exit 1
