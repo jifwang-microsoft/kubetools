@@ -170,8 +170,7 @@ check_app_has_externalip() {
     local userName=$2
     local connectionIP=$3
     local appName=$4
-    local releaseName=$5
-    local serviceName=$releaseName"-"$appName
+    local serviceName=$5
     local namespace=$6
     # Check if App got external IP
     log_level -i "Validate if service($serviceName) got external IP address."

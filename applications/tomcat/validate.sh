@@ -61,12 +61,14 @@ NAMESPACE="ns-tomcat"
     # check_app_has_externalip set global variable IP_ADDRESS.
     APPLICATION_RELEASE_NAME=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)$APPLICATION_NAME' | grep -Eo '^[a-z,-]+'")
     log_level -i "APPLICATION_RELEASE_NAME:$APPLICATION_RELEASE_NAME"
+    SERVICE_NAME=$APPLICATION_RELEASE_NAME"-"$APPLICATION_NAME
+    log_level -i "SERVICE_NAME:$SERVICE_NAME"
     
     check_app_has_externalip $IDENTITY_FILE \
     $USER_NAME \
     $MASTER_IP \
     $APPLICATION_NAME \
-    $APPLICATION_RELEASE_NAME \
+    $SERVICE_NAME \
     $NAMESPACE
     
     if [[ $? != 0 ]]; then
@@ -100,7 +102,7 @@ NAMESPACE="ns-tomcat"
         printf '{"result":"%s","error":"%s"}\n' "failed" "Permission error ($CONTEXT_NAME) cannot deploy in ns-tomcat" >$OUTPUT_SUMMARYFILE
         exit 1
     fi
-
+    
     log_level -i "Check if context can create deployments in default namespace"
     CAN_DEPLOY_DEFAULT=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl auth can-i create deployments --namespace default || echo error")
     

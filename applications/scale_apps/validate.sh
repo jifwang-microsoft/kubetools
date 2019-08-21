@@ -64,11 +64,10 @@ touch $LOG_FILENAME
     fi
     
     result="pass"
-    if [[ $NGINX_PVC_TEST ]]; then
+    if [[ "$NGINX_PVC_TEST" == "true" ]]; then
         expectedNginxPvcPodCount=`cat "$EXPECTED_RESULT_FILE" | jq --arg v "NGINX_PVC_TEST_POD_COUNT" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
         expectedNginxPvcCount=`cat "$EXPECTED_RESULT_FILE" | jq --arg v "NGINX_PVC_TEST_PVC_COUNT" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
         nginxPvcPodName=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get pods -o=name | sed 's/^.\{4\}//' | grep web*")
-        
         
         for pod in $nginxPvcPodName
         do
@@ -89,7 +88,7 @@ touch $LOG_FILENAME
             if [[ "$nginxPvcPodCount" == "$expectedNginxPvcPodCount" ]]; then
                 break
             else
-                log_level -i "nginx_pvc_test pods's count($nginxPvcPodCount) are not matching the expected count($expectedNginxPvcPodCount). We will try again."
+                log_level -i "nginx_pvc_test pods's count($nginxPvcPodCount) are not matching the expected count($expectedNginxPvcPodCount). Trying again."
             fi
             
             sleep 30s
@@ -107,7 +106,7 @@ touch $LOG_FILENAME
             if [[ "$nginxPvcCount" == "$expectedNginxPvcCount" ]]; then
                 break
             else
-                log_level -i "nginx pods's count($nginxPvcCount) are not matching the expected count($expectedNginxPvcCount). We will try again."
+                log_level -i "nginx pods's count($nginxPvcCount) are not matching the expected count($expectedNginxPvcCount). Trying again."
             fi
             
             sleep 30s
@@ -120,7 +119,24 @@ touch $LOG_FILENAME
         fi
     fi
     
-    if [[ $NGINX_APP_TEST ]]; then
+    if [[ "$NGINX_APP_TEST" == "true" ]]; then
+        serviceNames=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get svc -o=name | sed 's/^.\{8\}//' | grep nginxservice*")
+        
+        for svc in $serviceNames
+        do
+            svc=$(echo $svc|tr -d '\r')
+            SERVICE_NAME=$svc
+            APPLICATION_NAME="nginxtest"
+            
+            check_app_has_externalip $IDENTITY_FILE \
+            $USER_NAME \
+            $MASTER_IP \
+            $APPLICATION_NAME \
+            $SERVICE_NAME
+            
+            check_app_listening_at_externalip $IP_ADDRESS
+        done
+        
         expectedNginxPodCount=`cat "$EXPECTED_RESULT_FILE" | jq --arg v "NGINX_TEST_POD_COUNT" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
         
         i=0
@@ -129,7 +145,7 @@ touch $LOG_FILENAME
             if [[ "$nginxPodCount" == "$expectedNginxPodCount" ]]; then
                 break
             else
-                log_level -e "nginx pods's count($nginxPodCount) are not matching the expected count($expectedNginxPodCount). We will try again to validate the count."
+                log_level -e "nginx pods's count($nginxPodCount) are not matching the expected count($expectedNginxPodCount). Trying again to validate the count."
             fi
             
             sleep 30s
