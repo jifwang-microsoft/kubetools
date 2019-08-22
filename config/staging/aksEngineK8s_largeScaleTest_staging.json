@@ -21,7 +21,7 @@
 					"folderPath": "customVnet/Template",
 					"virtualNetworkName": "k8s-customvnet",
 					"masterSubnetName": "k8s-masterSubnet",
-					"agentSubnetName":"k8s-agentSubnet",
+					"agentSubnetName": "k8s-agentSubnet",
 					"firstConsecutiveStaticIP": "10.100.0.5"
 				},
 				"aksEngine": {
@@ -39,7 +39,7 @@
 		"folderPath": "diagnosis",
 		"filename": "getkuberneteslogs.sh"
 	},
-	"operations":{
+	"operations": {
 		"githubRepo": "msazurestackworkloads/kubetools",
 		"githubBranch": "master",
 		"folderPath": "operations/aksEngine",
@@ -58,10 +58,6 @@
 				"validation": {
 					"scriptName": "validate.sh",
 					"summaryFile": "validate.json"
-				},
-				"cleanup": {
-					"scriptName": "cleanup.sh",
-					"summaryFile": "cleanup.json"
 				}
 			}
 		]

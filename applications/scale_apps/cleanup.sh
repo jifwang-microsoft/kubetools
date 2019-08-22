@@ -38,7 +38,7 @@ touch $LOG_FILENAME
 {
     APPLICATION_NAME="scale_apps"
     TEST_DIRECTORY="/home/$USER_NAME/$APPLICATION_NAME"
-
+    
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Inner Variables"
     log_level -i "------------------------------------------------------------------------"
@@ -47,15 +47,21 @@ touch $LOG_FILENAME
     log_level -i "------------------------------------------------------------------------"
     
     # Todo cleanup apps.
+    #Get all the scale_apps yaml file
+    ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; ls nginx_deploy_* > list.txt; ls nginx_pvc_test_*.yaml >> list.txt"
+    
+    log_level -i "Deleting Deployment"
+    ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; if [[ -e list.txt ]]; then while read file_name; do sudo kubectl delete -f \$file_name; done<list.txt; fi"
+    
     log_level -i "Removing test directory"
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo rm -rf $TEST_DIRECTORY;"
-
+    
     if [[ $? != 0 ]]; then
         printf '{"result":"%s","error":"%s"}\n' "failed" "App($APPLICATION_NAME) cleanup was not successfull" >$OUTPUT_SUMMARYFILE
     else
         printf '{"result":"%s"}\n' "pass" >$OUTPUT_SUMMARYFILE
     fi
-
+    
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
 } 2>&1 | tee $LOG_FILENAME

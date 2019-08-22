@@ -21,13 +21,6 @@ spec:
         name: nginx
         ports:
         - containerPort: 80
-        resources:
-          limits:
-            memory: "2Gi"
-            cpu: "1000m"
-          requests: 
-            memory: "1Gi"
-            cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
