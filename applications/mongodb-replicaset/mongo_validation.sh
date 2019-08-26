@@ -103,12 +103,11 @@ MONGODB_ERROR_COUNT=10
     ROOT_PATH=/home/$USER
     
     scp -q -i $IDENTITYFILE $USER@$DVM_HOST:$ROOT_PATH/mongo_availability_logs $LOG_FILENAME
-    MONGO_CONNECTIVITY_ERROR=grep -c "Error: couldn't connect to server" $LOG_FILENAME
+    MONGO_CONNECTIVITY_ERROR=$(ssh -t -i $IDENTITYFILE $USER@$DVM_HOST "grep -c \"Error: couldn't connect to server\" $ROOT_PATH/mongo_availability_logs")
     if [[ "$MONGO_CONNECTIVITY_ERROR" -gt "$MONGODB_ERROR_COUNT" ]]; then
         printf '{"result":"%s"}\n' "fail" > $OUTPUT_SUMMARYFILE
     else
         printf '{"result":"%s"}\n' "pass" > $OUTPUT_SUMMARYFILE
     fi
-    log_level -i "Mongo Validation done."
     
 } 2>&1 | tee $LOG_FILENAME
