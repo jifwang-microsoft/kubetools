@@ -39,6 +39,8 @@ spec:
         volumeMounts:
         - name: www
           mountPath: /usr/share/nginx/html
+      nodeSelector:
+        beta.kubernetes.io/os: linux
   volumeClaimTemplates:
   - metadata:
       name: www

@@ -96,7 +96,7 @@ touch $LOG_FILENAME
     DEPLOYMENT_NGINX_FILE="nginx_deploy.yaml"
     DEPLOYMENT_PVC_FILE="nginx_pvc_test.yaml"
     EXPECTED_RESULT_FILE="expectedresults.json"
-    LINUX_SCRIPT_PATH="applications/common/Scripts/linux"
+    LINUX_SCRIPT_PATH="applications/common/deploymentConfig/linux"
     NGINX_APP_NAME="nginxtest"
     NGINX_NUM_DEPLOYMENTS=2
     NGINX_SERVICE_NAME="nginxservice"

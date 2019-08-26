@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aspnetapp
+  labels:
+    app: aspnetapptest
+  annotations:
+    monitoring: "true"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: aspnetapptest
+  template:
+    metadata:
+      labels:
+        app: aspnetapptest
+    spec:
+      containers:
+      - image: mcr.microsoft.com/dotnet/framework/samples:aspnetapp-windowsservercore-ltsc2019
+        name: aspnetapp
+        ports:
+        - containerPort: 80
+      nodeSelector:
+        beta.kubernetes.io/os: windows
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: aspnetappservice
+  name: aspnetappservice
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: aspnetapptest
+  type: LoadBalancer

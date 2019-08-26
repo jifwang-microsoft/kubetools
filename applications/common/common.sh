@@ -365,7 +365,7 @@ check_Kubernetes_events() {
         kubeEvents=$(kubectl get events --field-selector involvedObject.kind==$objectKind -o json | jq --arg items "$objectName" '.items[] | select(.involvedObject.name == $items) | .reason' | grep $expectedEventName)
         if [ -z "$kubeEvents" ]; then
             log_level -i "$expectedEventName event has not reached for $objectName $objectKind."
-            sleep 20s
+            sleep 30s
         else
             break
         fi

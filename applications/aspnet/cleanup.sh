@@ -2,10 +2,10 @@
 
 FILE_NAME=$0
 
-SCRIPT_FOLDER="$(dirname $FILE_NAME)"
+SCRIPT_DIRECTORY="$(dirname $FILE_NAME)"
 COMMON_SCRIPT_FILENAME="common.sh"
 
-source $SCRIPT_FOLDER/$COMMON_SCRIPT_FILENAME
+source $SCRIPT_DIRECTORY/$COMMON_SCRIPT_FILENAME
 
 ###########################################################################################################
 # The function will read parameters and populate below global variables.
@@ -36,7 +36,7 @@ OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
 LOG_FILENAME="$OUTPUT_FOLDER/cleanup.log"
 touch $LOG_FILENAME
 {
-    APPLICATION_NAME="scale_apps"
+    APPLICATION_NAME="aspnet"
     TEST_DIRECTORY="/home/$USER_NAME/$APPLICATION_NAME"
     
     log_level -i "------------------------------------------------------------------------"
@@ -47,9 +47,9 @@ touch $LOG_FILENAME
     log_level -i "------------------------------------------------------------------------"
     
     #Get all the scale_apps yaml file
-    ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; ls nginx_deploy_* > list.txt; ls nginx_pvc_test_*.yaml >> list.txt"
+    ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; ls *.yaml > list.txt"
     
-    log_level -i "Deleting Deployment"
+    log_level -i "Deleting Deployments"
     ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; if [[ -e list.txt ]]; then while read file_name; do sudo kubectl delete -f \$file_name; done<list.txt; fi"
     
     log_level -i "Removing test directory"
