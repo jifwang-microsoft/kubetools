@@ -15,6 +15,12 @@
 				"storageProfile": "ManagedDisk",
 				"hyperkubeImagesVersion": "1.13",
 				"nodeDistro": "ubuntu",
+				"networkPlugin": "flannel",
+				"availabilityProfile": "AvailabilitySet",
+				"windowsAgentPoolProfileCount": "0",
+				"windowsAgentPoolProfileVMSize": "Standard_D2_v2",
+				"windowsPackageBaseURL": "https://azurestackk8s.blob.core.windows.net/windowsk8simages",
+				"windowsPackageName": "v1.13.10-v1int.zip",
 				"customVNET": {
 					"TemplateRepo": "msazurestackworkloads/kubetools",
 					"TemplateBranch": "master",
@@ -26,7 +32,7 @@
 				},
 				"aksEngine": {
 					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
-					"aksEngineReleaseVersion": "v0.39.1",
+					"aksEngineReleaseVersion": "v0.39.2",
 					"clusterDefinitionFileName": "clusterDefinition.json",
 					"kubernetesImageBase": "mcr.microsoft.com/k8s/azurestack/core/"
 				}
