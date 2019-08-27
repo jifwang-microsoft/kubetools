@@ -177,9 +177,9 @@ check_app_has_externalip() {
     i=0
     while [ $i -lt 20 ]; do
         if [[ -z $namespace ]]; then
-            IP_ADDRESS=$(ssh -t -i $identityFile $userName@$connectionIP "sudo kubectl get services $serviceName -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
+            IP_ADDRESS=$(ssh -t -i $identityFile $userName@$connectionIP "sudo kubectl get services $serviceName -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}' || true")
         else
-            IP_ADDRESS=$(ssh -t -i $identityFile $userName@$connectionIP "sudo kubectl get services -n $namespace $serviceName -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
+            IP_ADDRESS=$(ssh -t -i $identityFile $userName@$connectionIP "sudo kubectl get services -n $namespace $serviceName -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}' || true")
         fi
         
         log_level -i $IP_ADDRESS
