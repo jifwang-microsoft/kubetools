@@ -25,7 +25,7 @@
 	},
 	"diagnosis": {
 		"githubRepo": "msazurestackworkloads/azurestack-gallery",
-		"githubBranch": "master",
+		"githubBranch": "patch-release-v0.39.2-azs-1908-22",
 		"folderPath": "diagnosis",
 		"filename": "getkuberneteslogs.sh"
 	},
