@@ -19,8 +19,6 @@
 				"availabilityProfile": "AvailabilitySet",
 				"windowsAgentPoolProfileCount": "0",
 				"windowsAgentPoolProfileVMSize": "Standard_D2_v2",
-				"windowsPackageBaseURL": "https://azurestackk8s.blob.core.windows.net/windowsk8simages",
-				"windowsPackageName": "v1.13.10-v1int.zip",
 				"customVNET": {
 					"TemplateRepo": "msazurestackworkloads/kubetools",
 					"TemplateBranch": "master",
