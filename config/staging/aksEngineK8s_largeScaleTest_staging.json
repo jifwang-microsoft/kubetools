@@ -32,7 +32,7 @@
 				},
 				"aksEngine": {
 					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
-					"aksEngineReleaseVersion": "v0.39.2",
+					"aksEngineReleaseVersion": "v0.40.0",
 					"clusterDefinitionFileName": "clusterDefinition.json",
 					"kubernetesImageBase": "mcr.microsoft.com/k8s/azurestack/core/"
 				}
