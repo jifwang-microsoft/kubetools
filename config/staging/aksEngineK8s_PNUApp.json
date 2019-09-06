@@ -1,4 +1,3 @@
-
 {
 	"clusterARMTemplate": {
 		"galleryRepository": "msazurestackworkloads/azurestack-gallery",
@@ -31,14 +30,14 @@
 	},
 	"diagnosis": {
 		"githubRepo": "msazurestackworkloads/azurestack-gallery",
-		"githubBranch": "patch-release-v0.39.2-azs-1908-22",
+		"githubBranch": "release-diagnosis-v0.1.0",
 		"folderPath": "diagnosis",
 		"filename": "getkuberneteslogs.sh"
 	},
 	"testSuite": {
 		"githubRepo": "msazurestackworkloads/kubetools",
 		"githubBranch": "master",
-		"applications": [		
+		"applications": [
 			{
 				"name": "mongodb-replicaset",
 				"availabilityTest": "true",
@@ -48,9 +47,9 @@
 				},
 				"availability": {
 					"scriptName": "mongo_availability.sh",
-					"summaryFile":"availability.json"
+					"summaryFile": "availability.json"
 				},
-				"availability_validation":{
+				"availability_validation": {
 					"scriptName": "mongo_validation.sh",
 					"summaryFile": "availability_validation.json"
 				}

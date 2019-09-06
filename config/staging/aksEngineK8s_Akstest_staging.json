@@ -7,13 +7,13 @@
 		"aksEngine": {
 			"githubRepo": "Azure/aks-engine",
 			"githubBranch": "master",
-			"apiModel":"https://raw.githubusercontent.com/msazurestackworkloads/azurestack-gallery/aks-e2e-release/AKSEngine-E2E/Template/azurestack_template.json",
+			"apiModel": "https://raw.githubusercontent.com/msazurestackworkloads/azurestack-gallery/aks-e2e-release/AKSEngine-E2E/Template/azurestack_template.json",
 			"upgradeVersion": "1.14.6",
 			"nodeCount": 5,
 			"upgrade": "true",
 			"scale": "true"
 		},
-		"ScaleandUpgrade":{
+		"ScaleandUpgrade": {
 			"githubRepo": "msazurestackworkloads/azurestack-gallery",
 			"githubBranch": "aks-e2e-release",
 			"folderPath": "AKSEngine-E2E/AksTest-Scripts",
@@ -40,7 +40,7 @@
 	},
 	"diagnosis": {
 		"githubRepo": "msazurestackworkloads/azurestack-gallery",
-		"githubBranch": "patch-release-v0.39.2-azs-1908-22",
+		"githubBranch": "release-diagnosis-v0.1.0",
 		"folderPath": "diagnosis",
 		"filename": "getkuberneteslogs.sh"
 	},
