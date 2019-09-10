@@ -15,6 +15,8 @@
 				"storageProfile": "ManagedDisk",
 				"hyperkubeImagesVersion": "1.13",
 				"nodeDistro": "ubuntu",
+				"linuxNodeDistroVersion": "2019.08.21",
+				"linuxNodeDistroSKU": "aks-ubuntu-1604-201908",
 				"networkPlugin": "flannel",
 				"availabilityProfile": "AvailabilitySet",
 				"windowsAgentPoolProfileCount": "0",
