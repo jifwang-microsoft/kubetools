@@ -14,9 +14,16 @@
 				"masterPoolProfilevmSize": "Standard_D2_v2",
 				"storageProfile": "ManagedDisk",
 				"hyperkubeImagesVersion": "1.13",
+				"nodeDistro": "ubuntu",
+				"linuxNodeDistroVersion": "2019.08.21",
+				"linuxNodeDistroSKU": "aks-ubuntu-1604-201908",
+				"networkPlugin": "flannel",
+				"availabilityProfile": "AvailabilitySet",
+				"windowsAgentPoolProfileCount": "0",
+				"windowsAgentPoolProfileVMSize": "Standard_D2_v2",
 				"aksEngine": {
 					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
-					"aksEngineReleaseVersion": "v0.39.1",
+					"aksEngineReleaseVersion": "v0.40.0",
 					"clusterDefinitionFileName": "clusterDefinition.json",
 					"kubernetesImageBase": "mcr.microsoft.com/k8s/azurestack/core/"
 				}
@@ -66,6 +73,37 @@
 			},
 			{
 				"name": "wordpress",
+				"deployment": {
+					"scriptName": "deploy.sh",
+					"summaryFile": "deploy.json"
+				},
+				"validation": {
+					"scriptName": "validate.sh",
+					"summaryFile": "validate.json"
+				},
+				"cleanup": {
+					"scriptName": "cleanup.sh",
+					"summaryFile": "cleanup.json"
+				}
+			},
+			{
+				"name": "webapp_ingress",
+				"deployment": {
+					"scriptName": "deploy.sh",
+					"summaryFile": "deploy.json"
+				},
+				"validation": {
+					"scriptName": "validate.sh",
+					"summaryFile": "validate.json"
+				},
+				"cleanup": {
+					"scriptName": "cleanup.sh",
+					"summaryFile": "cleanup.json"
+				}
+			},
+			{
+				"name": "hetrogeneous-app",
+				"deploymentVMType": "dvm",
 				"deployment": {
 					"scriptName": "deploy.sh",
 					"summaryFile": "deploy.json"
