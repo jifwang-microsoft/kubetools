@@ -31,7 +31,7 @@
 				"masterPoolProfilevmSize": "Standard_D2_v2",
 				"storageProfile": "ManagedDisk",
 				"hyperkubeImagesVersion": "1.13",
-				"networkPlugin": "flannel",
+				"networkPlugin": "kubenet",
 				"availabilityProfile": "AvailabilitySet",
 				"windowsAgentPoolProfileCount": "0",
 				"windowsAgentPoolProfileVMSize": "Standard_D2_v2"
