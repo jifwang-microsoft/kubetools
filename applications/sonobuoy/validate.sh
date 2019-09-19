@@ -86,6 +86,9 @@ touch $LOG_FILENAME
     log_level -i "TEST_DIRECTORY           : $TEST_DIRECTORY"
     log_level -i "------------------------------------------------------------------------"
     # Check if Sonobuoy pods are running and up
+    log_level -i "Based on K8s define which version of SONOBUOY to be used."
+    KUBERNETES_VERSION=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP 'kubectl version -o json | jq -r .serverVersion.gitVersion | cut -c 2-')
+    KUBERNETES_MAJOR_VERSION="${KUBERNETES_VERSION%.*}"
     i=0
     while [ $i -lt 10 ];do
         sonobuoyPod=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --all-namespaces | grep 'sonobuoy' | grep 'Running' || true")
@@ -165,8 +168,13 @@ touch $LOG_FILENAME
     
     # Todo check if file exist.
     log_level -i "Copy junit file(junit_01.xml) locally to $OUTPUT_FOLDER"
-    scp -r -i $IDENTITY_FILE $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/$resultfolder/plugins/e2e/results/junit_01.xml $OUTPUT_FOLDER
-    
+    case "$KUBERNETES_MAJOR_VERSION" in
+    1.16)  scp -r -i $IDENTITY_FILE $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/$resultfolder/plugins/e2e/results/global/junit_01.xml $OUTPUT_FOLDER
+        ;;
+    *) scp -r -i $IDENTITY_FILE $USER_NAME@$MASTER_IP:$TEST_DIRECTORY/$resultfolder/plugins/e2e/results/junit_01.xml $OUTPUT_FOLDER
+        ;;
+    esac
+
     result="pass"
     printf '{"result":"%s"}\n' "$result" > $OUTPUT_SUMMARYFILE
     
