@@ -95,16 +95,19 @@ touch $LOG_FILENAME
     log_level -i "Based on K8s define which version of SONOBUOY to be used."
     KUBERNETES_VERSION=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP 'kubectl version -o json | jq -r .serverVersion.gitVersion | cut -c 2-')
     KUBERNETES_MAJOR_VERSION="${KUBERNETES_VERSION%.*}"
-    if [ "$KUBERNETES_MAJOR_VERSION" == "1.11" ]; then
-        SONOBUOY_VERSION="0.13.0"
-    else 
-        if [ "$KUBERNETES_MAJOR_VERSION" == "1.15" ]; then
-            SONOBUOY_VERSION="0.15.0"
-        else
-            SONOBUOY_VERSION="0.14.0"
-        fi
-    fi
-    
+
+    case "$KUBERNETES_MAJOR_VERSION" in
+
+    1.11)  SONOBUOY_VERSION="0.13.0"
+        ;;
+    1.15)  SONOBUOY_VERSION="0.15.0"
+        ;;
+    1.16)  SONOBUOY_VERSION="0.16.0"
+        ;;
+    *) SONOBUOY_VERSION="0.14.0"
+        ;;
+    esac
+
     SONOBUOY_TAR_FILENAME="sonobuoy_"$SONOBUOY_VERSION"_linux_amd64.tar.gz"
     log_level -i "------------------------------------------------------------------------"
     log_level -i "                Inner Variables"
