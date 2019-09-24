@@ -13,7 +13,7 @@
 				"masterPoolProfileCount": 1,
 				"masterPoolProfilevmSize": "Standard_DS5_v2",
 				"storageProfile": "ManagedDisk",
-				"hyperkubeImagesVersion": "1.13",
+				"hyperkubeImagesVersion": "1.14",
 				"nodeDistro": "ubuntu",
 				"linuxNodeDistroVersion": "2019.08.21",
 				"linuxNodeDistroSKU": "aks-ubuntu-1604-201908",
@@ -23,7 +23,7 @@
 				"windowsAgentPoolProfileVMSize": "Standard_D2_v2",
 				"aksEngine": {
 					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
-					"aksEngineReleaseVersion": "v0.41.0",
+					"aksEngineReleaseVersion": "v0.41.2",
 					"clusterDefinitionFileName": "clusterDefinition.json",
 					"kubernetesImageBase": "mcr.microsoft.com/k8s/azurestack/core/"
 				}
