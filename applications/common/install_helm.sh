@@ -6,6 +6,9 @@ NC='\033[0m'        # No color, back to normal
 
 echo "Install Helm to check the health of Kubernete deployment..."
 
+# Adding rbac - required for aks-engine from verison 0.40.0
+kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
+
 # Install helm if it is not available
 helmcmd="$(helm)"
 
@@ -20,14 +23,14 @@ if [[ -z $helmcmd ]]; then
     
     # Download and install helm
     echo "Download installation script..."
-
+    
     HELM_VERSION="2.11.0"
     curl https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-amd64.tar.gz > helm-v${HELM_VERSION}-linux-amd64.tar.gz
     tar -zxvf helm-v${HELM_VERSION}-linux-amd64.tar.gz
     sudo mv linux-amd64/helm /usr/local/bin/helm
     helm version
     helm init || true
-
+    
     #curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh
     #chmod 700 get_helm.sh
     #dir=$(pwd)
