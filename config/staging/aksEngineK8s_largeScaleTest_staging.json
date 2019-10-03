@@ -59,10 +59,6 @@
 				"deployment": {
 					"scriptName": "deploy.sh",
 					"summaryFile": "deploy.json"
-				},
-				"validation": {
-					"scriptName": "validate.sh",
-					"summaryFile": "validate.json"
 				}
 			}
 		]
