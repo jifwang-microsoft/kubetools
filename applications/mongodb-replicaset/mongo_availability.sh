@@ -105,7 +105,7 @@ echo "app-ip:           $APP_IP"
 echo ""
 
 # Define all inner varaibles.
-OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
+OUTPUT_FOLDER=$(dirname $OUTPUT_SUMMARYFILE)
 LOG_FILENAME="$OUTPUT_FOLDER/mongodb.log"
 touch $LOG_FILENAME
 {
