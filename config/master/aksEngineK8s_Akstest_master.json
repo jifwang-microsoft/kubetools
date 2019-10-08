@@ -8,7 +8,7 @@
 			"githubRepo": "Azure/aks-engine",
 			"githubBranch": "master",
 			"apiModel": "https://raw.githubusercontent.com/msazurestackworkloads/azurestack-gallery/aks-e2e-release/AKSEngine-E2E/Template/azurestack_template.json",
-			"upgradeVersion": "1.14.6",
+			"upgradeVersion": "1.15.4",
 			"nodeCount": 5,
 			"upgrade": "true",
 			"scale": "true"
@@ -30,7 +30,7 @@
 				"masterPoolProfileCount": 1,
 				"masterPoolProfilevmSize": "Standard_D2_v2",
 				"storageProfile": "ManagedDisk",
-				"hyperkubeImagesVersion": "1.13",
+				"hyperkubeImagesVersion": "1.14",
 				"networkPlugin": "kubenet",
 				"availabilityProfile": "AvailabilitySet",
 				"windowsAgentPoolProfileCount": "0",
