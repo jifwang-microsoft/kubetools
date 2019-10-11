@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 function printUsage
 {
@@ -95,7 +95,7 @@ echo "identity-file:    $IDENTITYFILE"
 echo "vmd-host:         $DVM_HOST"
 echo ""
 
-OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
+OUTPUT_FOLDER=$(dirname $OUTPUT_SUMMARYFILE)
 LOG_FILENAME="$OUTPUT_FOLDER/mongo_availability.log"
 MONGODB_ERROR_COUNT=10
 

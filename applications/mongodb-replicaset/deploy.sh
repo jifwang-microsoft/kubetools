@@ -2,7 +2,7 @@
 
 FILE_NAME=$0
 
-SCRIPT_FOLDER="$(dirname $FILE_NAME)"
+SCRIPT_FOLDER=$(dirname $FILE_NAME)
 GIT_REPROSITORY="${GIT_REPROSITORY:-msazurestackworkloads/kubetools}"
 GIT_BRANCH="${GIT_BRANCH:-master}"
 COMMON_SCRIPT_FILENAME="common.sh"
@@ -41,7 +41,7 @@ fi
 
 ###########################################################################################################
 # Define all inner varaibles.
-OUTPUT_FOLDER="$(dirname $OUTPUT_SUMMARYFILE)"
+OUTPUT_FOLDER=$(dirname $OUTPUT_SUMMARYFILE)
 LOG_FILENAME="$OUTPUT_FOLDER/deploy.log"
 MONGO_SERVICE="$OUTPUT_FOLDER/mongodb-replicaset-service.txt"
 touch $LOG_FILENAME
