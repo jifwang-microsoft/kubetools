@@ -34,7 +34,9 @@
 				"networkPlugin": "kubenet",
 				"availabilityProfile": "AvailabilitySet",
 				"windowsAgentPoolProfileCount": "0",
-				"windowsAgentPoolProfileVMSize": "Standard_D2_v2"
+				"windowsAgentPoolProfileVMSize": "Standard_D2_v2",
+				"windowsNodeDistroVersion": "17763.737.190923",
+				"windowsNodeDistroSKU": "2019-Datacenter-Core-with-Containers-smalldisk"
 			}
 		]
 	},
