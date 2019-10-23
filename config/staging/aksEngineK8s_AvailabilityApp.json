@@ -25,7 +25,7 @@
 				"windowsNodeDistroSKU": "2019-Datacenter-Core-with-Containers-smalldisk",
 				"aksEngine": {
 					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
-					"aksEngineReleaseVersion": "v0.41.2",
+					"aksEngineReleaseVersion": "v0.41.3",
 					"clusterDefinitionFileName": "clusterDefinition.json",
 					"kubernetesImageBase": "mcr.microsoft.com/k8s/azurestack/core/"
 				}
@@ -41,7 +41,7 @@
 		"githubRepo": "msazurestackworkloads/kubetools",
 		"githubBranch": "master",
 		"folderPath": "operations/aksEngine",
-		"upgradeVersion": "1.14.3"
+		"upgradeVersion": "1.15.4"
 	},
 	"testSuite": {
 		"githubRepo": "msazurestackworkloads/kubetools",
