@@ -21,11 +21,11 @@
 				"availabilityProfile": "AvailabilitySet",
 				"windowsAgentPoolProfileCount": "0",
 				"windowsAgentPoolProfileVMSize": "Standard_D2_v2",
-				"windowsNodeDistroVersion": "17763.737.190923",
+				"windowsNodeDistroVersion": "17763.805.191016",
 				"windowsNodeDistroSKU": "2019-Datacenter-Core-with-Containers-smalldisk",
 				"aksEngine": {
 					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
-					"aksEngineReleaseVersion": "v0.41.2",
+					"aksEngineReleaseVersion": "v0.42.2",
 					"clusterDefinitionFileName": "clusterDefinition.json",
 					"kubernetesImageBase": "mcr.microsoft.com/k8s/azurestack/core/"
 				}
