@@ -110,14 +110,22 @@ touch $LOG_FILENAME
             pathName="${pathName%% }"
             log_level -i "Communicating to service($pathName) using below command."
             log_level -i "curl -key $secretkeyFileName --cacert $certificateFileName -v -k --resolve ${cnName}:443:${ipAddress} https://${cnName}/${pathName}"
-            applicationState=$(curl -key $secretkeyFileName --cacert $certificateFileName -v -k --resolve ${cnName}:443:${ipAddress} https://${cnName}/${pathName}; if [ $? -eq 0 ]; then echo "HTTP OK 200"; fi;)
-            log_level -e "$applicationState"
+            i=0
+            while [ $i -lt 10 ]; do
+                applicationState=$(curl -key $secretkeyFileName --cacert $certificateFileName -v -k --resolve ${cnName}:443:${ipAddress} https://${cnName}/${pathName}; if [ $? -eq 0 ]; then echo "HTTP OK 200"; fi;)
+                log_level -i "Curl reply is: $applicationState"
+                if [ -z "$applicationState" ]; then
+                    log_level -e "Not able to communicate service: $pathName for ingress($ingressName) we will retry again."
+                else
+                    log_level -i "Able to communicate service: ${pathName}"
+                    break
+                fi
+                sleep 15s
+                let i=i+1
+            done
+
             if [ -z "$applicationState" ]; then
-                log_level -e "Not able to communicate service: $pathName for ingress($ingressName)"
                 FAILED_SERVICES="$FAILED_SERVICES,$pathName"
-            else
-                log_level -i "Able to communicate service: ${pathName}"
-                sleep 5s                
             fi
         done
 
