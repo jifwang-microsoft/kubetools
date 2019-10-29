@@ -96,7 +96,7 @@ install_helm_chart() {
     ssh -t -i $identityFile \
     $userName@$connectionIP \
     "sudo chmod 744 $testFolder/$fileName; cd $testFolder; ./$fileName;"
-    helmServerVer=$(ssh -t -i $identityFile $userName@$connectionIP "helm version | grep -o 'Server: \(.*\)[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}'")
+    helmServerVer=$(ssh -i $identityFile $userName@$connectionIP "helm version | grep -o 'Server: \(.*\)[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}'")
     if [ -z "$helmServerVer" ]; then
         log_level -e "Helm install was not successfull."
         return 1
@@ -124,7 +124,7 @@ install_helm_app() {
         $userName@$connectionIP \
         "helm install stable/$appName --namespace $namespace"
     fi
-    appReleaseName=$(ssh -t -i $identityFile $userName@$connectionIP "helm ls -d -r | grep 'DEPLOYED\(.*\)$appName' | grep -Eo '^[a-z,-]+'")
+    appReleaseName=$(ssh -i $identityFile $userName@$connectionIP "helm ls -d -r | grep 'DEPLOYED\(.*\)$appName' | grep -Eo '^[a-z,-]+'")
     if [ -z "$appReleaseName" ]; then
         log_level -e "App($appName) deployment failed using Helm."
         return 1
@@ -145,7 +145,7 @@ check_app_pod_status() {
     log_level -i "Validate if pod for $appName app is created and running."
     i=0
     while [ $i -lt 20 ]; do
-        appPodstatus=$(ssh -t -i $identityFile $userName@$connectionIP "sudo kubectl get pods --selector $appName | grep '$appStatus' || true")
+        appPodstatus=$(ssh -i $identityFile $userName@$connectionIP "sudo kubectl get pods --selector $appName | grep '$appStatus' || true")
         if [ -z "$appPodstatus" ]; then
             log_level -i "Pod is not in expected state($appStatus). We we will retry after some time."
             sleep 30s
@@ -177,9 +177,9 @@ check_app_has_externalip() {
     i=0
     while [ $i -lt 20 ]; do
         if [[ -z $namespace ]]; then
-            IP_ADDRESS=$(ssh -t -i $identityFile $userName@$connectionIP "sudo kubectl get services $serviceName -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}' || true")
+            IP_ADDRESS=$(ssh -i $identityFile $userName@$connectionIP "sudo kubectl get services $serviceName -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}' || true")
         else
-            IP_ADDRESS=$(ssh -t -i $identityFile $userName@$connectionIP "sudo kubectl get services -n $namespace $serviceName -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}' || true")
+            IP_ADDRESS=$(ssh -i $identityFile $userName@$connectionIP "sudo kubectl get services -n $namespace $serviceName -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}' || true")
         fi
         
         log_level -i $IP_ADDRESS
@@ -238,7 +238,7 @@ check_helm_app_release_cleanup() {
     # Rechecking to make sure deployment cleanup done successfully.
     i=0
     while [ $i -lt 20 ]; do
-        releaseName=$(ssh -t -i $identityFile $userName@$connectionIP "helm ls -d -r | grep 'DEPLOYED\(.*\)$appName' | grep -Eo '^[a-z,-]+' || true")
+        releaseName=$(ssh -i $identityFile $userName@$connectionIP "helm ls -d -r | grep 'DEPLOYED\(.*\)$appName' | grep -Eo '^[a-z,-]+' || true")
         if [ ! -z "$releaseName" ]; then
             log_level -i "Removal of app($appName) with release name($releaseName) is in progress."
             sleep 30s

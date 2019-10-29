@@ -60,8 +60,9 @@ touch $LOG_FILENAME
     replicaCount=$(cat $SCRIPT_DIRECTORY/$DEPLOYMENT_ASPNET_PVC_FILE | grep replicas | cut -d':' -f2 | xargs |  cut -d' ' -f1)
     i=0
     while [ $i -lt 20 ]; do
-        pvcPodCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep '$ASPNET_PVC_LABEL*' > $TEST_DIRECTORY/pvc_pods.txt; wc -l $TEST_DIRECTORY/pvc_pods.txt | cut -d' ' -f1")
+        pvcPodCount=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep '$ASPNET_PVC_LABEL*' > $TEST_DIRECTORY/pvc_pods.txt; wc -l $TEST_DIRECTORY/pvc_pods.txt | cut -d' ' -f1")
         if [[ "$pvcPodCount" == "$replicaCount" ]]; then
+            log_level -i "Pods's count($pvcPodCount) matched expected count($replicaCount)."
             break
         else
             log_level -i "Pods running count($pvcPodCount) are not matching the expected count($replicaCount). Trying again."
@@ -77,40 +78,42 @@ touch $LOG_FILENAME
         log_level -i "PVC pods running count($pvcPodCount) matched expected count($replicaCount)."
     fi
     
-    check_app_has_externalip $IDENTITY_FILE \
-    $USER_NAME \
-    $MASTER_IP \
-    $APPLICATION_NAME \
-    $ASPNET_SERVICENAME
-    
-    if [[ $? != 0 ]]; then
-        result="failed"
-        log_level -e "Not able to get public IP address for service($ASPNET_SERVICENAME)."
-    else
-        check_app_listening_at_externalip $IP_ADDRESS
-        if [[ $? != 0 ]]; then
-            result="failed"
-            log_level -e "Not able to communicate to public IP address($IP_ADDRESS) for service($ASPNET_SERVICENAME)."
-        fi
-    fi
-
+    # Validation of IP address and multiple replica count for ASPnet application.
     replicaCount=$(cat $SCRIPT_DIRECTORY/$DEPLOYMENT_ASPNET_FILE | grep replicas | cut -d':' -f2 | xargs |  cut -d' ' -f1)
     i=0
     while [ $i -lt 20 ]; do
-        podCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep '$ASPNET_APPNAME*' > $TEST_DIRECTORY/pods.txt; wc -l $TEST_DIRECTORY/pods.txt | cut -d' ' -f1")
+        podCount=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep '$ASPNET_APPNAME*' > $TEST_DIRECTORY/pods.txt; wc -l $TEST_DIRECTORY/pods.txt | cut -d' ' -f1")
         if [[ "$podCount" == "$replicaCount" ]]; then
+            log_level -i "Pods's count($podCount) matched expected count($replicaCount)."
             break
         else
             log_level -e "Pods's count($podCount) are not matching the expected count($replicaCount). Trying again to validate the count."
         fi
         
-        sleep 30s
+        sleep 60s
         let i=i+1
     done
     
     if [[ "$podCount" != "$replicaCount" ]]; then
         result="failed"
         log_level -e "Pods's count($podCount) didnot matched expected count($replicaCount)."
+    else
+        check_app_has_externalip $IDENTITY_FILE \
+        $USER_NAME \
+        $MASTER_IP \
+        $APPLICATION_NAME \
+        $ASPNET_SERVICENAME
+        
+        if [[ $? != 0 ]]; then
+            result="failed"
+            log_level -e "Not able to get public IP address for service($ASPNET_SERVICENAME)."
+        else
+            check_app_listening_at_externalip $IP_ADDRESS
+            if [[ $? != 0 ]]; then
+                result="failed"
+                log_level -e "Not able to communicate to public IP address($IP_ADDRESS) for service($ASPNET_SERVICENAME)."
+            fi
+        fi
     fi
 
     if [[ "$result" == "failed" ]]; then
