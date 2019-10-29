@@ -52,7 +52,7 @@ touch $LOG_FILENAME
     # Wait for Namespace to be deleted.
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm repo remove azure-samples || true"
     
-    releaseNames=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)$APPLICATION_NAME' | grep -Eo '^[a-z0-9,-]+' || true")
+    releaseNames=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)$APPLICATION_NAME' | grep -Eo '^[a-z0-9,-]+' || true")
     if [ -z "$releaseNames" ]; then
         log_level -w "No deployment found."
     else

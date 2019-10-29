@@ -91,7 +91,7 @@ touch $LOG_FILENAME
     KUBERNETES_MAJOR_VERSION="${KUBERNETES_VERSION%.*}"
     i=0
     while [ $i -lt 10 ];do
-        sonobuoyPod=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --all-namespaces | grep 'sonobuoy' | grep 'Running' || true")
+        sonobuoyPod=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --all-namespaces | grep 'sonobuoy' | grep 'Running' || true")
         if [ -z "$sonobuoyPod" ]; then
             log_level -i "Sonobuoy deployment failed or sonobuoy pod is not running. Will retry to see if it is up."
             sleep 30s

@@ -91,7 +91,7 @@ touch $LOG_FILENAME
     
     i=0
     while [ $i -lt 10 ];do
-        sonobuoyPod=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --all-namespaces | grep 'sonobuoy' || true")
+        sonobuoyPod=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --all-namespaces | grep 'sonobuoy' || true")
         if [ ! -z "$sonobuoyPod" ]; then
             log_level -i "Sonobuoy pods are still up and running($sonobuoyPod)."
             sleep 30s

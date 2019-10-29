@@ -67,7 +67,7 @@ touch $LOG_FILENAME
     if [[ "$NGINX_PVC_TEST" == "true" ]]; then
         expectedNginxPvcPodCount=`cat "$EXPECTED_RESULT_FILE" | jq --arg v "NGINX_PVC_TEST_POD_COUNT" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
         expectedNginxPvcCount=`cat "$EXPECTED_RESULT_FILE" | jq --arg v "NGINX_PVC_TEST_PVC_COUNT" '.testSuite[] | select(.testname == $v) | .value' | sed -e 's/^"//' -e 's/"$//'`
-        nginxPvcPodName=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get pods -o=name | sed 's/^.\{4\}//' | grep web")
+        nginxPvcPodName=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get pods -o=name | sed 's/^.\{4\}//' | grep web")
         
         for pod in $nginxPvcPodName
         do
@@ -76,7 +76,7 @@ touch $LOG_FILENAME
             log_level -i "Write to pvc on pod :$podName"
             ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl exec $podName -- sh -c 'cp /etc/hostname /usr/share/nginx/html/index.html'"
             #validate write operation
-            podHostName=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl exec -it $podName -- curl localhost")
+            podHostName=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl exec -it $podName -- curl localhost")
             if [[ "$podHostName" != "$podName" ]]; then
                 result="failed"
                 log_level -e "Disk write validation failed. Pod Hostname:$podName, disk  Hostname:$podHostName"
@@ -88,7 +88,7 @@ touch $LOG_FILENAME
         # Check if nginx_pvc_test pods are running and up
         i=0
         while [ $i -lt 20 ]; do
-            nginxPvcPodCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep 'web' > $TEST_DIRECTORY/nginx_pvc_pods.txt; wc -l $TEST_DIRECTORY/nginx_pvc_pods.txt | cut -d' ' -f1")
+            nginxPvcPodCount=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep 'web' > $TEST_DIRECTORY/nginx_pvc_pods.txt; wc -l $TEST_DIRECTORY/nginx_pvc_pods.txt | cut -d' ' -f1")
             if [[ "$nginxPvcPodCount" == "$expectedNginxPvcPodCount" ]]; then
                 break
             else
@@ -106,7 +106,7 @@ touch $LOG_FILENAME
         
         i=0
         while [ $i -lt 20 ]; do
-            nginxPvcCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pvc --field-selector metadata.namespace=default | grep 'Bound' | grep 'www-web' > $TEST_DIRECTORY/nginx_pvc.txt; wc -l $TEST_DIRECTORY/nginx_pvc.txt | cut -d' ' -f1")
+            nginxPvcCount=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pvc --field-selector metadata.namespace=default | grep 'Bound' | grep 'www-web' > $TEST_DIRECTORY/nginx_pvc.txt; wc -l $TEST_DIRECTORY/nginx_pvc.txt | cut -d' ' -f1")
             if [[ "$nginxPvcCount" == "$expectedNginxPvcCount" ]]; then
                 break
             else
@@ -126,7 +126,7 @@ touch $LOG_FILENAME
     fi
     
     if [[ "$NGINX_APP_TEST" == "true" ]]; then
-        serviceNames=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get svc -o=name | sed 's/^.\{8\}//' | grep nginxservice*")
+        serviceNames=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get svc -o=name | sed 's/^.\{8\}//' | grep nginxservice*")
         
         for svc in $serviceNames
         do
@@ -156,7 +156,7 @@ touch $LOG_FILENAME
         
         i=0
         while [ $i -lt 20 ]; do
-            nginxPodCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep 'nginx-scale' > $TEST_DIRECTORY/nginx_pods.txt; wc -l $TEST_DIRECTORY/nginx_pods.txt | cut -d' ' -f1")
+            nginxPodCount=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --field-selector status.phase=Running,metadata.namespace=default | grep 'nginx-scale' > $TEST_DIRECTORY/nginx_pods.txt; wc -l $TEST_DIRECTORY/nginx_pods.txt | cut -d' ' -f1")
             if [[ "$nginxPodCount" == "$expectedNginxPodCount" ]]; then
                 break
             else

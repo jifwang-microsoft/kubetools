@@ -154,7 +154,7 @@ touch $LOG_FILENAME
     # INSTALL PREREQUISITE
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo chmod 744 $TEST_DIRECTORY/$INSTALL_PREREQUISITE; "
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $INSTALL_PREREQUISITE; apt_install_important_packages ;"
-    goPath=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "go env | grep GOPATH || true")
+    goPath=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "go env | grep GOPATH || true")
     if [ -z "$goPath" ]; then
         log_level -e "GO is not installed."
         result="failed"

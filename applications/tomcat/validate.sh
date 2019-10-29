@@ -51,7 +51,8 @@ NAMESPACE="ns-tomcat"
     $USER_NAME \
     $MASTER_IP \
     "app=$APPLICATION_NAME" \
-    "Running"
+    "Running" \
+    $NAMESPACE
     
     if [[ $? != 0 ]]; then
         printf '{"result":"%s","error":"%s"}\n' "failed" "Pod related to App($APPLICATION_NAME) was not successfull." >$OUTPUT_SUMMARYFILE

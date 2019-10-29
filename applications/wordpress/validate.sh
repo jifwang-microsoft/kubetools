@@ -92,9 +92,9 @@ touch $LOG_FILENAME
     log_level -i "Get all pods details ."
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get all -o wide"
 
-    wordPressDeploymentName=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+'")
-    mariadbPodstatus=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --selector app=mariadb | grep 'Running'")
-    wdpressPodstatus=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --selector app=${wordPressDeploymentName}-wordpress | grep 'Running'")
+    wordPressDeploymentName=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+'")
+    mariadbPodstatus=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --selector app=mariadb | grep 'Running'")
+    wdpressPodstatus=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get pods --selector app=${wordPressDeploymentName}-wordpress | grep 'Running'")
     failedPods=""
     if [ -z "$mariadbPodstatus" ]; then
         failedPods="mariadb"
@@ -115,7 +115,7 @@ touch $LOG_FILENAME
     
     # Check if App got external IP
     log_level -i "Validate if Pods got external IP address."
-    externalIp=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get services ${wordPressDeploymentName}-wordpress -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
+    externalIp=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get services ${wordPressDeploymentName}-wordpress -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}'")
     if [ -z "$externalIp" ]; then
         log_level -e "External IP not found for wordpress."
         result="failed"

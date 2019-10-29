@@ -25,7 +25,7 @@ rename_and_deploy()
         currentServiceName=$serviceName-$randomName
         currentAppName=$appName-$randomName
         
-        replicaCount=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; cat $TEST_DIRECTORY/$deploymentFileName | grep replicas | cut -d':' -f2 | xargs |  cut -d' ' -f1")
+        replicaCount=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; cat $TEST_DIRECTORY/$deploymentFileName | grep replicas | cut -d':' -f2 | xargs |  cut -d' ' -f1")
         
         tempDeploymentFileName=`echo "$deploymentFileName" | cut -d'.' -f1`
         newDeploymentFileName="${tempDeploymentFileName}_${randomName}.yaml"

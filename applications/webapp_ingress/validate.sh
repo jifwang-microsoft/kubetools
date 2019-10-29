@@ -72,7 +72,7 @@ touch $LOG_FILENAME
 
         certificateFileName=$OUTPUT_FOLDER/$ingressName-$CERT_FILENAME
         secretkeyFileName=$OUTPUT_FOLDER/$ingressName-$SECRETKEY_FILEANME
-        ipAddress=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get services -n $NAMESPACE_NAME -o json | jq --arg release $ingressName --arg component 'controller' '.items[] | select(.spec.selector.component == \$component) | select(.metadata.labels.release == \$release) | .status.loadBalancer.ingress[0].ip' | grep -oP '(\d{1,3}\.){1,3}\d{1,3}' || true")
+        ipAddress=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get services -n $NAMESPACE_NAME -o json | jq --arg release $ingressName --arg component 'controller' '.items[] | select(.spec.selector.component == \$component) | select(.metadata.labels.release == \$release) | .status.loadBalancer.ingress[0].ip' | grep -oP '(\d{1,3}\.){1,3}\d{1,3}' || true")
         if [ -z "$ipAddress" ]; then
             log_level -e "External IP not found for ingress $ingressName."
             FAILED_INGRESS_SERVERS="$FAILED_INGRESS_SERVERS$ingressName,"
@@ -84,7 +84,7 @@ touch $LOG_FILENAME
         ipAddress="${ipAddress%% }"
 
         log_level -i "IP address of $ingressName is $ipAddress"
-        cnName=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cname=\$(kubectl get ingress -n $NAMESPACE_NAME -o json | jq --arg name $ingressName '.items[] | select(.metadata.name == \$name) | .spec.rules[0].host'); echo \$cname")
+        cnName=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cname=\$(kubectl get ingress -n $NAMESPACE_NAME -o json | jq --arg name $ingressName '.items[] | select(.metadata.name == \$name) | .spec.rules[0].host'); echo \$cname")
         if [ -z "$cnName" ]; then
             log_level -e "CN Name can not be found for ingress($ingressName)."
             FAILED_INGRESS_SERVERS="$FAILED_INGRESS_SERVERS$ingressName,"
@@ -95,7 +95,7 @@ touch $LOG_FILENAME
         cnName="${cnName## }"
         cnName="${cnName%% }"
         log_level -i "CN Name of $ingressName is $cnName"
-        serviceNames=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cname=\$(kubectl get ingress -n $NAMESPACE_NAME -o json | jq --arg name $ingressName '.items[] | select(.metadata.name == \$name) | .spec.rules[0].http.paths[] | .backend.serviceName'); echo \$cname")
+        serviceNames=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cname=\$(kubectl get ingress -n $NAMESPACE_NAME -o json | jq --arg name $ingressName '.items[] | select(.metadata.name == \$name) | .spec.rules[0].http.paths[] | .backend.serviceName'); echo \$cname")
         if [ -z "$serviceNames" ]; then
             log_level -e "No services found for ingress($ingressName)."
             FAILED_INGRESS_SERVERS="$FAILED_INGRESS_SERVERS$ingressName,"
@@ -109,10 +109,10 @@ touch $LOG_FILENAME
             pathName="${pathName## }"
             pathName="${pathName%% }"
             log_level -i "Communicating to service($pathName) using below command."
-            log_level -i "curl -key $secretkeyFileName --cacert $certificateFileName -v -k --resolve ${cnName}:443:${ipAddress} https://${cnName}/${pathName}"
+            log_level -i "curl -key $secretkeyFileName --cacert $certificateFileName -k --resolve ${cnName}:443:${ipAddress} https://${cnName}/${pathName}"
             i=0
             while [ $i -lt 10 ]; do
-                applicationState=$(curl -key $secretkeyFileName --cacert $certificateFileName -v -k --resolve ${cnName}:443:${ipAddress} https://${cnName}/${pathName}; if [ $? -eq 0 ]; then echo "HTTP OK 200"; fi;)
+                applicationState=$(curl -key $secretkeyFileName --cacert $certificateFileName -k --resolve ${cnName}:443:${ipAddress} https://${cnName}/${pathName}; if [ $? -eq 0 ]; then echo "HTTP OK 200"; fi;)
                 log_level -i "Curl reply is: $applicationState"
                 if [ -z "$applicationState" ]; then
                     log_level -e "Not able to communicate service: $pathName for ingress($ingressName) we will retry again."
