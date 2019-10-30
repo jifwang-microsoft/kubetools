@@ -140,7 +140,7 @@ check_app_pod_status() {
     local connectionIP=$3
     local appName=$4
     local appStatus=$5
-    local namespace=$5
+    local namespace=$6
     
     # Check if pod is up and running
     log_level -i "Validate if pod for $appName app is created and running."
@@ -149,7 +149,7 @@ check_app_pod_status() {
         if [[ -z $namespace ]]; then
             appPodstatus=$(ssh -i $identityFile $userName@$connectionIP "sudo kubectl get pods --selector $appName | grep '$appStatus' || true")
         else
-            appPodstatus=$(ssh -i $identityFile $userName@$connectionIP "sudo kubectl get pods -n $namespace --selector $appName | grep '$appStatus' || true")
+            appPodstatus=$(ssh -i $identityFile $userName@$connectionIP "sudo kubectl get pods --namespace $namespace | grep '$appStatus' || true")
         fi
 
         if [ -z "$appPodstatus" ]; then
