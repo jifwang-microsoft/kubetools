@@ -199,11 +199,11 @@ check_app_has_externalip() {
     done
     
     if [ -z "$IP_ADDRESS" ]; then
-        log_level -e "External IP not found for $appName."
+        log_level -e "External IP not found for $serviceName."
         return 1
     fi
     
-    log_level -i "Found external IP address($IP_ADDRESS) assign to $appName."
+    log_level -i "Found external IP address($IP_ADDRESS) assign to $serviceName."
     return 0
 }
 
