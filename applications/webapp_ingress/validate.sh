@@ -110,8 +110,8 @@ touch $LOG_FILENAME
             pathName="${pathName%% }"
             log_level -i "Communicating to service($pathName) using below command."
             log_level -i "curl -key $secretkeyFileName --cacert $certificateFileName -k --resolve ${cnName}:443:${ipAddress} https://${cnName}/${pathName}"
-            i=0
-            while [ $i -lt 10 ]; do
+            j=0
+            while [ $j -lt 10 ]; do
                 applicationState=$(curl -key $secretkeyFileName --cacert $certificateFileName -k --resolve ${cnName}:443:${ipAddress} https://${cnName}/${pathName}; if [ $? -eq 0 ]; then echo "HTTP OK 200"; fi;)
                 log_level -i "Curl reply is: $applicationState"
                 if [ -z "$applicationState" ]; then
@@ -121,7 +121,7 @@ touch $LOG_FILENAME
                     break
                 fi
                 sleep 15s
-                let i=i+1
+                let j=j+1
             done
 
             if [ -z "$applicationState" ]; then
