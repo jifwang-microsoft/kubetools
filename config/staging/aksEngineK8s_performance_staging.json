@@ -18,6 +18,7 @@
 				"linuxNodeDistroVersion": "2019.10.24",
 				"linuxNodeDistroSKU": "aks-ubuntu-1604-201910",
 				"networkPlugin": "kubenet",
+				"enableTillerAddOn": "false",
 				"availabilityProfile": "AvailabilitySet",
 				"windowsAgentPoolProfileCount": "0",
 				"windowsAgentPoolProfileVMSize": "Standard_D2_v2",
