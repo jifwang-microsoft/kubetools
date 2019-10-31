@@ -103,7 +103,7 @@ touch $LOG_FILENAME
             result="failed"
             log_level -e "PVC pods's count($nginxPvcPodCount) are not matching expected count($expectedNginxPvcPodCount)."
         else
-            log_level -e "PVC pods's count($nginxPvcPodCount) are matching expected count($expectedNginxPvcPodCount)."
+            log_level -i "PVC pods's count($nginxPvcPodCount) are matching expected count($expectedNginxPvcPodCount)."
         fi
         
         i=0
