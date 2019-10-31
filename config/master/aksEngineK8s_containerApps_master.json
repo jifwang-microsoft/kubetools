@@ -17,6 +17,7 @@
 				"nodeDistro": "ubuntu",
 				"linuxNodeDistroVersion": "2019.08.21",
 				"linuxNodeDistroSKU": "aks-ubuntu-1604-201908",
+				"enableTillerAddOn": "false",
 				"networkPlugin": "kubenet",
 				"availabilityProfile": "AvailabilitySet",
 				"windowsAgentPoolProfileCount": "0",
