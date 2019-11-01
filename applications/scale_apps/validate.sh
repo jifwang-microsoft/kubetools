@@ -73,13 +73,26 @@ touch $LOG_FILENAME
         do
             podName=$(echo $pod|tr -d '\r')
             #write to pvc
-            log_level -i "Write to pvc on pod :$podName"
-            ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl exec $podName -- sh -c 'cp /etc/hostname /usr/share/nginx/html/index.html'"
-            #validate write operation
-            podHostName=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl exec -it $podName -- curl localhost")
+            i=0
+            while [ $i -lt 10 ]; do
+                log_level -i "Write to pvc on pod :$podName"
+                ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl exec $podName -- sh -c 'cp /etc/hostname /usr/share/nginx/html/index.html'"
+                #validate write operation
+                podHostName=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl exec -it $podName -- curl localhost")
+
+                if [[ "$podHostName" != "$podName" ]]; then
+                    log_level -i "Disk write validation failed. Pod Hostname:$podName, disk  Hostname:$podHostName"
+                else
+                    log_level -i "Disk write validation passed for pod Hostname:$podName, disk  Hostname:$podHostName"
+                    break
+                fi
+                sleep 30s
+                let i=i+1
+            done
+
             if [[ "$podHostName" != "$podName" ]]; then
                 result="failed"
-                log_level -e "Disk write validation failed. Pod Hostname:$podName, disk  Hostname:$podHostName"
+                log_level -e "Disk write validation failed for Pod :$podName"
             else
                 log_level -i "Disk write validation passed for pod Hostname:$podName, disk  Hostname:$podHostName"
             fi

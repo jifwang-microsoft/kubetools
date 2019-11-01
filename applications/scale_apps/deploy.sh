@@ -10,7 +10,6 @@ rename_and_deploy()
     local endEventName=$6;
     local numDeployments=$7;
     
-    i=0
     previousName=$deploymentName
     previousServiceName=$serviceName
     previousAppName=$appName
@@ -18,7 +17,8 @@ rename_and_deploy()
     if [[ -z "$numDeployments" ]]; then
         $numDeployments=5
     fi
-    
+	
+    i=0
     while [ $i -lt $numDeployments ];do
         randomName=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 3 | head -n 1)
         currentName=$deploymentName$randomName
@@ -36,7 +36,10 @@ rename_and_deploy()
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; rename_string_infile $TEST_DIRECTORY/$newDeploymentFileName $previousAppName $currentAppName"
         #deploy
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_DIRECTORY; source $COMMON_SCRIPT_FILENAME; deploy_application $newDeploymentFileName $endEventName $currentName $kind $replicaCount"
-        
+		
+		if [[ $i -lt 3 ]]; then
+			sleep 300s
+		fi
         let i=i+1
     done
     return 0
@@ -98,7 +101,7 @@ touch $LOG_FILENAME
     EXPECTED_RESULT_FILE="expectedresults.json"
     LINUX_SCRIPT_PATH="applications/common/deploymentConfig/linux"
     NGINX_APP_NAME="nginxtest"
-    NGINX_NUM_DEPLOYMENTS=90
+    NGINX_NUM_DEPLOYMENTS=50
     NGINX_SERVICE_NAME="nginxservice"
     TEST_DIRECTORY="/home/$USER_NAME/$APPLICATION_NAME"
     POD_KIND="Pod"
