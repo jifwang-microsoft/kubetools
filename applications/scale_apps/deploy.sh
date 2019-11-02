@@ -20,7 +20,7 @@ rename_and_deploy()
 	
     i=0
     while [ $i -lt $numDeployments ];do
-        randomName=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 3 | head -n 1)
+        randomName=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)
         currentName=$deploymentName$randomName
         currentServiceName=$serviceName-$randomName
         currentAppName=$appName-$randomName
@@ -40,6 +40,9 @@ rename_and_deploy()
 		if [[ $i -lt 3 ]]; then
 			sleep 300s
 		fi
+
+        log_level -i "Completed deploy iteration: $i"
+
         let i=i+1
     done
     return 0
@@ -101,7 +104,7 @@ touch $LOG_FILENAME
     EXPECTED_RESULT_FILE="expectedresults.json"
     LINUX_SCRIPT_PATH="applications/common/deploymentConfig/linux"
     NGINX_APP_NAME="nginxtest"
-    NGINX_NUM_DEPLOYMENTS=50
+    NGINX_NUM_DEPLOYMENTS=90
     NGINX_SERVICE_NAME="nginxservice"
     TEST_DIRECTORY="/home/$USER_NAME/$APPLICATION_NAME"
     POD_KIND="Pod"

@@ -10,7 +10,7 @@
 		},
 		{
 			"testname": "NGINX_TEST_POD_COUNT",
-			"value": "1350"
+			"value": "2430"
 		}
 	]
 }
