@@ -216,6 +216,10 @@ touch $LOG_FILENAME
     if [ $deploymentCount -eq $MAX_INGRESS_SERVICE_COUNT ]; then
         printf '{"result":"%s"}\n' "pass" > $OUTPUT_SUMMARYFILE
     else
+        log_level -i "Get all objects from given namespace."
+        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get all -n $NAMESPACE_NAME"
+        log_level -i "Get ingress details."
+        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get ingress -n $NAMESPACE_NAME -o json"
         printf '{"result":"%s","error":"%s"}\n' "failed" "Only $deploymentCount were successful." > $OUTPUT_SUMMARYFILE
     fi
     

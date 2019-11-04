@@ -15,8 +15,8 @@
 				"storageProfile": "ManagedDisk",
 				"hyperkubeImagesVersion": "1.14",
 				"nodeDistro": "ubuntu",
-				"linuxNodeDistroVersion": "2019.08.21",
-				"linuxNodeDistroSKU": "aks-ubuntu-1604-201908",
+				"linuxNodeDistroVersion": "2019.10.24",
+				"linuxNodeDistroSKU": "aks-ubuntu-1604-201910",
 				"enableTillerAddOn": "false",
 				"networkPlugin": "kubenet",
 				"availabilityProfile": "AvailabilitySet",
@@ -26,7 +26,7 @@
 				"windowsNodeDistroSKU": "2019-datacenter-core-smalldisk",
 				"aksEngine": {
 					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
-					"aksEngineReleaseVersion": "v0.42.2",
+					"aksEngineReleaseVersion": "v0.43.0",
 					"clusterDefinitionFileName": "clusterDefinition.json",
 					"kubernetesImageBase": "mcr.microsoft.com/k8s/azurestack/core/"
 				}
@@ -67,10 +67,6 @@
 				"validation": {
 					"scriptName": "validate.sh",
 					"summaryFile": "validate.json"
-				},
-				"cleanup": {
-					"scriptName": "cleanup.sh",
-					"summaryFile": "cleanup.json"
 				}
 			},
 			{
