@@ -149,7 +149,6 @@ touch $LOG_FILENAME
     fi
     
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo rm -rf $TEST_DIRECTORY;"
-    
     # Create result file, even if script ends with an error
     #trap final_changes EXIT
 } 2>&1 | tee $LOG_FILENAME
