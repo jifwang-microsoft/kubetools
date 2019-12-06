@@ -3,7 +3,9 @@
 		"repository": "msazurestackworkloads/azurestack-gallery",
 		"branch": "master",
 		"directory": "registry/DeploymentTemplates",
+		"minNumberofAzsNodes": 4,
 		"removeDeployment": "false",
+		"dockerUserName": "admin",
 		"deployment":{
 			"name" : "registry201909",
 			"virtualMachineSize": "Standard_F8s_v2",
@@ -13,7 +15,6 @@
 			"pipName": "registry",
 			"pipDomainNameLabel" :"registry",
 			"pipAllocationMethod" : "dynamic",
-			"registryTag": "2.7.1",
 			"registryReplicas": "20",
 			"enableValidations": "true"
 		}
