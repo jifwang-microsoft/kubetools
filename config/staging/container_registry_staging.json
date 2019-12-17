@@ -18,5 +18,10 @@
 			"registryReplicas": "20",
 			"enableValidations": "true"
 		}
+	},
+	"diagnosis": {
+		"githubRepo": "msazurestackworkloads/azurestack-gallery",
+		"folderPath": "releases/download/registry-diagnosis-v0.1.1",
+		"filename": "getcontainerregistrylogs.sh"
 	}
 }
