@@ -40,11 +40,6 @@
 			}
 		]
 	},
-	"diagnosis": {
-		"githubRepo": "msazurestackworkloads/azurestack-gallery",
-		"folderPath": "releases/download/diagnosis-v0.1.2",
-		"filename": "getkuberneteslogs.sh"
-	},
 	"testSuite": {
 		"githubRepo": "msazurestackworkloads/kubetools",
 		"githubBranch": "master",
