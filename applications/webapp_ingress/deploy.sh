@@ -72,13 +72,13 @@ touch $LOG_FILENAME
     log_level -i "CERT_FILENAME               : $CERT_FILENAME"
     log_level -i "CN_NAME                     : $CN_NAME"
     log_level -i "HELM_INSTALL_FILENAME       : $HELM_INSTALL_FILENAME"
-    log_level -i "HELM_APPLICATION_NAME       : $HELM_APPLICATION_NAME"    
+    log_level -i "HELM_APPLICATION_NAME       : $HELM_APPLICATION_NAME"
     log_level -i "INGRESS_CONFIG_FILENAME     : $INGRESS_CONFIG_FILENAME"
     log_level -i "GIT_BRANCH                  : $GIT_BRANCH"
     log_level -i "GIT_REPROSITORY             : $GIT_REPROSITORY"
-    log_level -i "NAMESPACE_NAME              : $NAMESPACE_NAME"    
+    log_level -i "NAMESPACE_NAME              : $NAMESPACE_NAME"
     log_level -i "ORGANIZATION_NAME           : $ORGANIZATION_NAME"
-    log_level -i "SECRETKEY_FILEANME          : $SECRETKEY_FILEANME"    
+    log_level -i "SECRETKEY_FILEANME          : $SECRETKEY_FILEANME"
     log_level -i "TEST_FOLDER                 : $TEST_FOLDER"
     log_level -i "------------------------------------------------------------------------"
     
@@ -98,7 +98,7 @@ touch $LOG_FILENAME
     "applications/webapp_$APPLICATION_NAME" \
     $SCRIPT_FOLDER \
     $INGRESS_CONFIG_FILENAME
-
+    
     log_level -i "Create test folder($TEST_FOLDER)"
     ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "mkdir -p $TEST_FOLDER"
     
@@ -111,27 +111,27 @@ touch $LOG_FILENAME
     scp -i $IDENTITY_FILE \
     $SCRIPT_FOLDER/$COMMON_SCRIPT_FILENAME \
     $USER_NAME@$MASTER_IP:$TEST_FOLDER/
-
+    
     # Install Helm chart
     install_helm_chart $IDENTITY_FILE \
-        $USER_NAME \
-        $MASTER_IP \
-        $TEST_FOLDER \
+    $USER_NAME \
+    $MASTER_IP \
+    $TEST_FOLDER \
     $HELM_INSTALL_FILENAME
     
     if [[ $? != 0 ]]; then
         printf '{"result":"%s","error":"%s"}\n' "failed" "Installing Helm was not successfull." > $OUTPUT_SUMMARYFILE
         exit 1
     fi
-
+    
     # Cleanup.
     ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl delete namespace $NAMESPACE_NAME || true"
     sleep 5s
     log_level -i "Create namespace ($NAMESPACE_NAME)."
     ssh -q -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl create namespace $NAMESPACE_NAME"
     sleep 5s
-
-    i=1    
+    
+    i=1
     while [ $i -le $MAX_INGRESS_COUNT ]; do
         ingressName=$APPLICATION_NAME-$i
         ingressFileName=$APPLICATION_NAME-$i.yaml
@@ -139,7 +139,7 @@ touch $LOG_FILENAME
         log_level -i "Copy $SCRIPT_FOLDER/$INGRESS_CONFIG_FILENAME to $OUTPUT_FOLDER/$ingressFileName."
         cp -f $SCRIPT_FOLDER/$INGRESS_CONFIG_FILENAME $OUTPUT_FOLDER/$ingressFileName
         
-        loop=0        
+        loop=0
         while [ $loop -lt 20 ]; do
             IP_ADDRESS=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get services -n $NAMESPACE_NAME -o json | jq --arg release $ingressName --arg component 'controller' '.items[] | select(.spec.selector.component == \$component) | select(.metadata.labels.release == \$release) | .status.loadBalancer.ingress[0].ip' | grep -oP '(\d{1,3}\.){1,3}\d{1,3}' || true")
             if [ -z "$IP_ADDRESS" ]; then
@@ -150,13 +150,13 @@ touch $LOG_FILENAME
             fi
             let loop=loop+1
         done
-    
+        
         if [ -z "$IP_ADDRESS" ]; then
             log_level -e "External IP not found for $ingressName."
             printf '{"result":"%s","error":"%s"}\n' "failed" "External IP not found for $ingressName." > $OUTPUT_SUMMARYFILE
             exit 1
         fi
-
+        
         certificateFileName=$ingressName-$CERT_FILENAME
         secretkeyFileName=$ingressName-$SECRETKEY_FILEANME
         cnName=$ingressName.$CN_NAME
@@ -166,11 +166,11 @@ touch $LOG_FILENAME
         scp -r -i $IDENTITY_FILE $USER_NAME@$MASTER_IP:$TEST_FOLDER/$certificateFileName $OUTPUT_FOLDER/$certificateFileName
         scp -r -i $IDENTITY_FILE $USER_NAME@$MASTER_IP:$TEST_FOLDER/$secretkeyFileName $OUTPUT_FOLDER/$secretkeyFileName
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl create secret tls $organizationName --namespace $NAMESPACE_NAME --key $TEST_FOLDER/$secretkeyFileName --cert $TEST_FOLDER/$certificateFileName"
-
+        
         rename_string_infile $OUTPUT_FOLDER/$ingressFileName $INGRESS_METADATA_NAME $ingressName
         rename_string_infile $OUTPUT_FOLDER/$ingressFileName $CN_NAME $cnName
         rename_string_infile $OUTPUT_FOLDER/$ingressFileName $ORGANIZATION_NAME $organizationName
-
+        
         let i=i+1
     done
     
@@ -183,20 +183,20 @@ touch $LOG_FILENAME
         else
             let ingressCount=ingressCount+1
         fi
-
+        
         ingressConfigFileName=$APPLICATION_NAME-$ingressCount.yaml
         randomName=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 3 | head -n 1)
-        serviceName=$APPLICATION_NAME-$randomName
+        serviceName=$APPLICATION_NAME-$randomName$i
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_FOLDER; source $COMMON_SCRIPT_FILENAME; install_ingress_application $HELM_APPLICATION_NAME $NAMESPACE_NAME $serviceName $serviceName"
         echo "      - backend:
-          serviceName: $serviceName 
+          serviceName: $serviceName
           servicePort: 80
         path: /$serviceName(/|$)(.*)" >> $OUTPUT_FOLDER/$ingressConfigFileName
         dos2unix $OUTPUT_FOLDER/$ingressConfigFileName
-        sleep 15s    
+        sleep 15s
         let i=i+1
     done
-
+    
     log_level -i "Copy ingress deployment files to VM."
     scp -i $IDENTITY_FILE \
     $OUTPUT_FOLDER/$APPLICATION_NAME-*.yaml \
