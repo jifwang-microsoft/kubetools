@@ -6,7 +6,7 @@
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
 		"aksEngine": {
 			"githubRepo": "Azure/aks-engine",
-			"githubBranch": "master",
+			"githubBranch": "patch-release-v0.43.3",
 			"apiModel": "https://raw.githubusercontent.com/msazurestackworkloads/azurestack-gallery/aks-e2e-release/AKSEngine-E2E/Template/azurestack_template.json",
 			"upgradeVersion": "1.15.4",
 			"nodeCount": 5,
