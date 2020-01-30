@@ -33,6 +33,12 @@
 			}
 		]
 	},
+	"diagnosis": {
+		"githubRepo": "msazurestackworkloads/azurestack-gallery",
+		"githubBranch": "addCollectLogsCi",
+		"folderPath": "diagnosis",
+		"filename": "k8sCollectLogsCi.sh"
+	},
 	"testSuite": {
 		"githubRepo": "msazurestackworkloads/kubetools",
 		"githubBranch": "master",
