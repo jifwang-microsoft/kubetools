@@ -14,7 +14,7 @@
 				"masterPoolProfilevmSize": "Standard_D2_v2",
 				"storageProfile": "ManagedDisk",
 				"hyperkubeImagesVersion": "1.14",
-				"nodeDistro": "aks-ubuntu-16.04",
+				"nodeDistro": "ubuntu",
 				"linuxNodeDistroVersion": "2019.10.24",
 				"linuxNodeDistroSKU": "aks-ubuntu-1604-201910",
 				"networkPlugin": "azure",
