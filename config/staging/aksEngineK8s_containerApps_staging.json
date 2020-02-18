@@ -16,7 +16,7 @@
 				"hyperkubeImagesVersion": "1.15",
 				"nodeDistro": "ubuntu",
 				"linuxNodeDistroVersion": "2019.10.24",
-				"linuxNodeDistroSKU": "aks-ubuntu-1604-201910",
+				"linuxNodeDistroSKU": "ubuntu",
 				"networkPlugin": "kubenet",
 				"availabilityProfile": "AvailabilitySet",
 				"enableTillerAddOn": "false",
@@ -26,8 +26,8 @@
 				"windowsNodeDistroSKU": "2019-datacenter-core-smalldisk",
 				"containerRuntime": "docker",
 				"aksEngine": {
-					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
-					"aksEngineReleaseVersion": "v0.46.1",
+					"aksEngineBaseURL": "https://github.com/jadarsie/aks-engine/releases/download",
+					"aksEngineReleaseVersion": "dfb3f81ff",
 					"clusterDefinitionFileName": "clusterDefinition.json",
 					"kubernetesImageBase": "mcr.microsoft.com/k8s/azurestack/core/"
 				}
@@ -41,7 +41,7 @@
 				"hyperkubeImagesVersion": "1.16",
 				"nodeDistro": "aks-ubuntu-16.04",
 				"linuxNodeDistroVersion": "2019.10.24",
-				"linuxNodeDistroSKU": "aks-ubuntu-1604-201910",
+				"linuxNodeDistroSKU": "ubuntu",
 				"networkPlugin": "kubenet",
 				"availabilityProfile": "AvailabilitySet",
 				"enableTillerAddOn": "true",
@@ -51,8 +51,8 @@
 				"windowsNodeDistroSKU": "2019-datacenter-core-smalldisk",
 				"containerRuntime": "docker",
 				"aksEngine": {
-					"aksEngineBaseURL": "https://github.com/Azure/aks-engine/releases/download",
-					"aksEngineReleaseVersion": "v0.43.1",
+					"aksEngineBaseURL": "https://github.com/jadarsie/aks-engine/releases/download",
+					"aksEngineReleaseVersion": "dfb3f81ff",
 					"clusterDefinitionFileName": "clusterDefinition.json",
 					"kubernetesImageBase": "msazurestackqa/"
 				}
