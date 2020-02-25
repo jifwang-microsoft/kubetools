@@ -18,6 +18,20 @@ log_level() {
     esac
 }
 
+wait_for_apt_locks() {
+    i=0
+    while fuser /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock >/dev/null 2>&1; do
+        if [ $i -lt 200 ]; then
+            echo 'Waiting for release of apt locks timedout with maximum retries'
+            exit 1
+        else
+            echo 'Waiting for release of apt locks'
+            sleep 3
+        fi
+        let i=i+1
+    done
+}
+
 FILENAME=$0
 
 while [[ "$#" -gt 0 ]]; do
@@ -52,7 +66,9 @@ echo 'deb https://apt.kubernetes.io/ kubernetes-xenial main' | sudo tee -a /etc/
 
 log_level -i "Install Kubectl"
 sudo apt-get update -y
+wait_for_apt_locks
 sudo apt-get install -y kubectl
+wait_for_apt_locks
 
 log_level -i "Finding KUBECONFIG_LOCATION"
 KUBE_CONFIG_LOCATION=$(sudo find /var/lib/waagent/custom-script/download/0/_output -type f -iname 'kubeconfig*')
