@@ -61,11 +61,11 @@ done
 # Test fail if the either pod is not running
 failedPods=""
 if [[ -z "$mariadbPodstatus" ]]; then
-    $failedPods="mariadb"
+    failedPods="mariadb"
 fi
 
 if [[ -z "$wdpressPodstatus" ]]; then
-    $failedPods="wordpress, "$failedPods
+    failedPods="wordpress, ${failedPods}"
 fi
 
 if [[ ! -z "$failedPods" ]]; then
