@@ -21,12 +21,12 @@ log_level() {
 wait_for_apt_locks() {
     i=0
     while fuser /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock >/dev/null 2>&1; do
-        if [ $i -lt 200 ]; then
-            echo 'Waiting for release of apt locks timedout with maximum retries'
+        if [ $i -gt 20 ]; then
+            log_level -i 'Waiting for release of apt locks timedout with maximum retries'
             exit 1
         else
-            echo 'Waiting for release of apt locks'
-            sleep 3
+            log_level -i 'Waiting for release of apt locks'
+            sleep 30
         fi
         let i=i+1
     done
