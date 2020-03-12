@@ -122,14 +122,14 @@ touch $LOG_FILENAME
         printf '{"result":"%s"}\n' "pass" > $OUTPUT_SUMMARYFILE
     fi
 
-    ssh -t -i $IDENTITY_FILE \
-    $USER_NAME@$MASTER_IP \
-    "sudo chmod 744 $TEST_FOLDER/$MONGODB_SERVICE_FILENAME; cd $TEST_FOLDER;"
-
     scp -i $IDENTITY_FILE \
     $OUTPUT_FOLDER/$MONGODB_SERVICE_FILENAME \
     $USER_NAME@$MASTER_IP:$TEST_FOLDER/
 
+    ssh -t -i $IDENTITY_FILE \
+    $USER_NAME@$MASTER_IP \
+    "sudo chmod 744 $TEST_FOLDER/$MONGODB_SERVICE_FILENAME"
+    
     MONGORELEASE=$(ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)mongodb-replicaset' | grep -Eo '^[a-z,-]+'")
     ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sed -e 's,RELEASE-NAME,$MONGORELEASE,g' < $TEST_FOLDER/$MONGODB_SERVICE_FILENAME > $TEST_FOLDER/mongodb-service.yaml;sudo chmod +x $TEST_FOLDER/mongodb-service.yaml"
     
