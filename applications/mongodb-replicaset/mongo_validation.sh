@@ -96,16 +96,17 @@ echo "vmd-host:         $DVM_HOST"
 echo ""
 
 OUTPUT_FOLDER=$(dirname $OUTPUT_SUMMARYFILE)
-LOG_FILENAME="$OUTPUT_FOLDER/mongo_availability.log"
+LOG_FILENAME="$OUTPUT_FOLDER/mongo_availability_validation.log"
+AVAILABILITY_FILENAME="$OUTPUT_FOLDER/mongo_availability.log"
 MONGODB_ERROR_COUNT=10
 
 {
     ROOT_PATH=/home/$USER
     
-    scp -q -i $IDENTITYFILE $USER@$DVM_HOST:$ROOT_PATH/mongo_availability_logs $LOG_FILENAME
+    scp -q -i $IDENTITYFILE $USER@$DVM_HOST:$ROOT_PATH/mongo_availability_logs $AVAILABILITY_FILENAME
     MONGO_CONNECTIVITY_ERROR=$(ssh -t -i $IDENTITYFILE $USER@$DVM_HOST "grep -c \"Error: couldn't connect to server\" $ROOT_PATH/mongo_availability_logs")
     if [[ "$MONGO_CONNECTIVITY_ERROR" -gt "$MONGODB_ERROR_COUNT" ]]; then
-        printf '{"result":"%s"}\n' "fail" > $OUTPUT_SUMMARYFILE
+        printf '{"result":"fail","error":"%s"}\n' "$MONGO_CONNECTIVITY_ERROR is greater than $MONGODB_ERROR_COUNT threshold."> $OUTPUT_SUMMARYFILE
     else
         printf '{"result":"%s"}\n' "pass" > $OUTPUT_SUMMARYFILE
     fi
