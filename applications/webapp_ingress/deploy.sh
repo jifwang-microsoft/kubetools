@@ -141,7 +141,7 @@ touch $LOG_FILENAME
         
         loop=0
         while [ $loop -lt 20 ]; do
-            IP_ADDRESS=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get services -n $NAMESPACE_NAME -o json | jq --arg release $ingressName --arg component 'controller' '.items[] | select(.spec.selector.component == \$component) | select(.metadata.labels.release == \$release) | .status.loadBalancer.ingress[0].ip' | grep -oP '(\d{1,3}\.){1,3}\d{1,3}' || true")
+            IP_ADDRESS=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get services -n $NAMESPACE_NAME -o json | jq --arg release $ingressName --arg component 'controller' '.items[] | select(.metadata.labels.component == \$component) | select(.metadata.labels.release == \$release) | .status.loadBalancer.ingress[0].ip' | grep -oP '(\d{1,3}\.){1,3}\d{1,3}' || true")
             if [ -z "$IP_ADDRESS" ]; then
                 log_level -i "External IP is not assigned. We we will retry after some time."
                 sleep 30s
@@ -210,7 +210,7 @@ touch $LOG_FILENAME
         let i=i+1
     done
     
-    deploymentNames=($(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get services -n $NAMESPACE_NAME -o json | jq --arg type 'ClusterIP' '.items[] | select(.spec.type == \$type) | select(.spec.selector.component == null) | .metadata.name'"))
+    deploymentNames=($(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get services -n $NAMESPACE_NAME -o json | jq --arg type 'ClusterIP' '.items[] | select(.spec.type == \$type) | select(.metadata.labels.component == null) | .metadata.name'"))
     deploymentCount="${#deploymentNames[@]}"
     log_level -i "App Deployment count is $deploymentCount"
     if [ $deploymentCount -eq $MAX_INGRESS_SERVICE_COUNT ]; then

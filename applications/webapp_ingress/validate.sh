@@ -72,7 +72,7 @@ touch $LOG_FILENAME
 
         certificateFileName=$OUTPUT_FOLDER/$ingressName-$CERT_FILENAME
         secretkeyFileName=$OUTPUT_FOLDER/$ingressName-$SECRETKEY_FILEANME
-        ipAddress=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get services -n $NAMESPACE_NAME -o json | jq --arg release $ingressName --arg component 'controller' '.items[] | select(.spec.selector.component == \$component) | select(.metadata.labels.release == \$release) | .status.loadBalancer.ingress[0].ip' | grep -oP '(\d{1,3}\.){1,3}\d{1,3}' || true")
+        ipAddress=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "kubectl get services -n $NAMESPACE_NAME -o json | jq --arg release $ingressName --arg component 'controller' '.items[] | select(.metadata.labels.component == \$component) | select(.metadata.labels.release == \$release) | .status.loadBalancer.ingress[0].ip' | grep -oP '(\d{1,3}\.){1,3}\d{1,3}' || true")
         if [ -z "$ipAddress" ]; then
             log_level -e "External IP not found for ingress $ingressName."
             FAILED_INGRESS_SERVERS="$FAILED_INGRESS_SERVERS$ingressName,"
