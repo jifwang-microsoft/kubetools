@@ -123,7 +123,7 @@ touch $LOG_FILENAME
     ssh -t -i $IDENTITY_FILE \
     $USER_NAME@$MASTER_IP \
     "sudo chmod 744 $TEST_FOLDER/$WORDPRESS_INSTALL_FILENAME; cd $TEST_FOLDER; ./$WORDPRESS_INSTALL_FILENAME;"
-    wpRelease=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+'")
+    wpRelease=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r --all-namespaces | grep 'deployed\(.*\)wordpress' | grep -Eo '^[a-z,-]+\w+'")
     if [ -z "$wpRelease" ]; then
         log_level -e "Wordpress deployment failed using Helm."
         ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "sudo kubectl get all -o wide"

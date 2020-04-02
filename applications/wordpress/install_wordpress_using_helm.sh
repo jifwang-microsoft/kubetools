@@ -14,10 +14,9 @@ echo "Deploy wordpress on Kubernete cluster through helm to check the health of 
 echo "Check prerequisite: helm..."
 
 # Check healm status
-helmClientVer="$(helm version | grep -o 'Client: \(.*\)[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}')"
-helmServerVer="$(helm version | grep -o 'Server: \(.*\)[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}')"
+helmVersion="$(helm version )"
 
-if [[ -z $helmClientVer ]] || [[ -z $helmServerVer ]]; then
+if [[ -z $helmVersion ]]; then
     echo  -e "${RED}Validation failed. Helm is not ready. Please install and initial helm before run this validation script.${NC}"
     exit 1
 fi
@@ -29,10 +28,10 @@ echo "Update helm repository..."
 helm repo update
 
 echo "Install wordpress..."
-helm install stable/wordpress --set wordpressSkipInstall=false
+helm install azs-ecs/wordpress --generate-name --set wordpressSkipInstall=false
 
 echo "Done with installation, checking release status..."
-wpRelease=$(helm ls -d -r | grep -i 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+')
+wpRelease=$(helm ls -d -r --all-namespaces | grep -i 'deployed\(.*\)wordpress' | grep -Eo '^[a-z,-]+\w+')
 
 if [[ -z $wpRelease ]]; then
     echo  -e "${RED}Validation failed. Helm release for wordpress not found.${NC}"
@@ -76,7 +75,7 @@ fi
 # Check external IP for wordpress
 i=0
 while [ $i -lt 20 ];do
-    externalIp=$(sudo kubectl get services ${wpRelease}-wordpress -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}')
+    externalIp=$(sudo kubectl get services ${wpRelease} -o=custom-columns=NAME:.status.loadBalancer.ingress[0].ip | grep -oP '(\d{1,3}\.){1,3}\d{1,3}')
     
     if [[ -z "$externalIp" ]]; then
         echo "Tracking wordpress external IP status..."

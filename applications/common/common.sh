@@ -96,13 +96,18 @@ install_helm_chart() {
     ssh -t -i $identityFile \
     $userName@$connectionIP \
     "sudo chmod 744 $testFolder/$fileName; cd $testFolder; ./$fileName;"
-    helmServerVer=$(ssh -i $identityFile $userName@$connectionIP "helm version | grep -o 'Server: \(.*\)[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}'")
-    if [ -z "$helmServerVer" ]; then
+    helmVersion=$(ssh -i $identityFile $userName@$connectionIP "helm version")
+    if [ -z "$helmVersion" ]; then
         log_level -e "Helm install was not successfull."
         return 1
     fi
     
-    log_level -i "Helm got installed successfully. Helm version is: $helmServerVer"
+    log_level -i "Helm got installed successfully. Helm version is: $helmVersion"
+
+    log_level -i "Adding azs-ecs repo to helm."
+    ssh -t -i $identityFile $userName@$connectionIP "helm repo add azs-ecs https://raw.githubusercontent.com/msazurestackworkloads/helm-charts/master/repo/"
+    log_level -i "azs-ecs repo added to helm."
+
     return 0
 }
 
@@ -118,13 +123,13 @@ install_helm_app() {
     if [[ -z $namespace ]]; then
         ssh -t -i $identityFile \
         $userName@$connectionIP \
-        "helm install stable/$appName"
+        "helm install azs-ecs/$appName --generate-name"
     else
         ssh -t -i $identityFile \
         $userName@$connectionIP \
-        "helm install stable/$appName --namespace $namespace"
+        "helm install azs-ecs/$appName --namespace $namespace --generate-name"
     fi
-    appReleaseName=$(ssh -i $identityFile $userName@$connectionIP "helm ls -d -r | grep 'DEPLOYED\(.*\)$appName' | grep -Eo '^[a-z,-]+'")
+    appReleaseName=$(ssh -i $identityFile $userName@$connectionIP "helm ls -d -r --all-namespaces | grep 'deployed\(.*\)$appName' | grep -Eo '^[a-z,-]+\w+'")
     if [ -z "$appReleaseName" ]; then
         log_level -e "App($appName) deployment failed using Helm."
         return 1
@@ -244,7 +249,7 @@ check_helm_app_release_cleanup() {
     # Rechecking to make sure deployment cleanup done successfully.
     i=0
     while [ $i -lt 20 ]; do
-        releaseName=$(ssh -i $identityFile $userName@$connectionIP "helm ls -d -r | grep 'DEPLOYED\(.*\)$appName' | grep -Eo '^[a-z,-]+' || true")
+        releaseName=$(ssh -i $identityFile $userName@$connectionIP "helm ls -d -r --all-namespaces | grep 'deployed\(.*\)$appName' | grep -Eo '^[a-z,-]+\w+' || true")
         if [ ! -z "$releaseName" ]; then
             log_level -i "Removal of app($appName) with release name($releaseName) is in progress."
             sleep 30s
@@ -524,13 +529,4 @@ create_cert() {
     local cnName=$3
     local organizationName=$4
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out $crtFileName -keyout $keyFileName -subj "/CN=$cnName/O=$organizationName"
-}
-
-install_ingress_application() {
-    local helmApplicationName=$1
-    local namespaceName=$2
-    local title=$3
-    local serviceName=$4
-    
-    helm install $helmApplicationName --namespace $namespaceName --set title="$title" --set serviceName="$serviceName"
 }

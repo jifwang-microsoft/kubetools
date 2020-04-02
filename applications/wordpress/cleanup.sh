@@ -96,7 +96,7 @@ touch $LOG_FILENAME
     log_level -i "------------------------------------------------------------------------"
     
     # Cleanup Word press app.
-    wordPressDeploymentName=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+' || true")
+    wordPressDeploymentName=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r --all-namespaces | grep 'deployed\(.*\)wordpress' | grep -Eo '^[a-z,-]+\w+' || true")
     if [ -z "$wordPressDeploymentName" ]; then
         log_level -w "No deployment found."
     else
@@ -128,7 +128,7 @@ touch $LOG_FILENAME
     # Rechecking to make sure deployment cleanup done successfully.
     i=0
     while [ $i -lt 20 ];do
-        wpRelease=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)wordpress' | grep -Eo '^[a-z,-]+' || true")
+        wpRelease=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r --all-namespaces | grep 'deployed\(.*\)wordpress' | grep -Eo '^[a-z,-]+\w+' || true")
         if [ ! -z "$wpRelease" ]; then
             log_level -i "Removal of wordpress app in progress($wpRelease)."
             sleep 30s

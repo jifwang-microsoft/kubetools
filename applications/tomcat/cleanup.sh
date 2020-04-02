@@ -48,7 +48,7 @@ NAMESPACE="ns-tomcat"
     log_level -i "------------------------------------------------------------------------"
     
     # Cleanup Tomcat app.
-    tomcatReleaseName=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r | grep 'DEPLOYED\(.*\)$APPLICATION_NAME' | grep -Eo '^[a-z,-]+' || true")
+    tomcatReleaseName=$(ssh -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm ls -d -r --all-namespaces | grep 'deployed\(.*\)$APPLICATION_NAME' | grep -Eo '^[a-z,-]+\w+' || true")
     if [ -z "$tomcatReleaseName" ]; then
         log_level -w "No deployment found."
     else

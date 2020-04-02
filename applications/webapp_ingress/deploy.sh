@@ -61,7 +61,6 @@ touch $LOG_FILENAME
     SECRETKEY_FILEANME="azs-ingress-tls.key"
     CN_NAME="test.azurestack.com"
     ORGANIZATION_NAME="azs-ingress-tls"
-    HELM_APPLICATION_NAME="azure-samples/aks-helloworld"
     MAX_INGRESS_COUNT=2
     MAX_INGRESS_SERVICE_COUNT=8
     log_level -i "------------------------------------------------------------------------"
@@ -72,7 +71,6 @@ touch $LOG_FILENAME
     log_level -i "CERT_FILENAME               : $CERT_FILENAME"
     log_level -i "CN_NAME                     : $CN_NAME"
     log_level -i "HELM_INSTALL_FILENAME       : $HELM_INSTALL_FILENAME"
-    log_level -i "HELM_APPLICATION_NAME       : $HELM_APPLICATION_NAME"
     log_level -i "INGRESS_CONFIG_FILENAME     : $INGRESS_CONFIG_FILENAME"
     log_level -i "GIT_BRANCH                  : $GIT_BRANCH"
     log_level -i "GIT_REPROSITORY             : $GIT_REPROSITORY"
@@ -135,7 +133,7 @@ touch $LOG_FILENAME
     while [ $i -le $MAX_INGRESS_COUNT ]; do
         ingressName=$APPLICATION_NAME-$i
         ingressFileName=$APPLICATION_NAME-$i.yaml
-        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm install stable/nginx-ingress --namespace $NAMESPACE_NAME --set controller.replicaCount=2 --name $ingressName || true"
+        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm install $ingressName azs-ecs/nginx-ingress --namespace $NAMESPACE_NAME --set controller.replicaCount=2 || true"
         log_level -i "Copy $SCRIPT_FOLDER/$INGRESS_CONFIG_FILENAME to $OUTPUT_FOLDER/$ingressFileName."
         cp -f $SCRIPT_FOLDER/$INGRESS_CONFIG_FILENAME $OUTPUT_FOLDER/$ingressFileName
         
@@ -174,7 +172,6 @@ touch $LOG_FILENAME
         let i=i+1
     done
     
-    ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm repo add azure-samples https://raw.githubusercontent.com/jadarsie/helm-charts/master/docs/"
     i=1
     ingressCount=0
     while [ $i -le $MAX_INGRESS_SERVICE_COUNT ]; do
@@ -187,7 +184,7 @@ touch $LOG_FILENAME
         ingressConfigFileName=$APPLICATION_NAME-$ingressCount.yaml
         randomName=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 3 | head -n 1)
         serviceName=$APPLICATION_NAME-$randomName$i
-        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "cd $TEST_FOLDER; source $COMMON_SCRIPT_FILENAME; install_ingress_application $HELM_APPLICATION_NAME $NAMESPACE_NAME $serviceName $serviceName"
+        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm install $randomName azs-ecs/aks-helloworld --namespace $NAMESPACE_NAME --set title='$serviceName',serviceName='$serviceName'"
         echo "      - backend:
           serviceName: $serviceName
           servicePort: 80

@@ -24,18 +24,16 @@ if [[ -z $helmcmd ]]; then
     # Download and install helm
     echo "Download installation script..."
     
-    HELM_VERSION="2.11.0"
-    curl https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-amd64.tar.gz > helm-v${HELM_VERSION}-linux-amd64.tar.gz
-    tar -zxvf helm-v${HELM_VERSION}-linux-amd64.tar.gz
-    sudo mv linux-amd64/helm /usr/local/bin/helm
-    helm version
-    helm init || true
+    HELM_VERSION="v3.1.0"
+    #curl https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-amd64.tar.gz > helm-v${HELM_VERSION}-linux-amd64.tar.gz
+    #tar -zxvf helm-v${HELM_VERSION}-linux-amd64.tar.gz
+    #sudo mv linux-amd64/helm /usr/local/bin/helm
+    #helm version
+    #helm init || true
     
-    #curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh
-    #chmod 700 get_helm.sh
-    #dir=$(pwd)
-    #cd dir
-    #./get_helm.sh
+    curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+    chmod 700 get_helm.sh
+    ./get_helm.sh --version ${HELM_VERSION}
     
     # Check again, if still not available, test fail
     helmcmd="$(helm)"
@@ -53,19 +51,17 @@ echo -e "${GREEN}Helm client is ready.${NC}"
 echo "Initial helm..."
 #helm init --upgrade
 
-# Wait for Tiller ready
-echo "Check Helm client and Tiller availability..."
+echo "Check Helm client availability..."
 sleep 10s
 
-# Check helm client and tiller status
+# Check helm status
 echo "Monitoring helm status..."
 i=0
 isHelmReady=0
 while [ $i -lt 20 ]; do
-    helmClientVer="$(helm version | grep -o 'Client: \(.*\)[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}')"
-    helmServerVer="$(helm version | grep -o 'Server: \(.*\)[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}')"
+    helmVersion="$(helm version)"
     
-    if [[ -z "$helmClientVer" ]] || [[ -z "$helmServerVer" ]]; then
+    if [[ -z "$helmVersion" ]]; then
         echo "Tracking helm status ..."
         sleep 10s
     else
