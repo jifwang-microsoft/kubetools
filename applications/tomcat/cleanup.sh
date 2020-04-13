@@ -53,7 +53,7 @@ NAMESPACE="ns-tomcat"
         log_level -w "No deployment found."
     else
         log_level -i "Removing helm deployment($tomcatReleaseName)"
-        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm delete --purge $tomcatReleaseName"
+        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm delete $tomcatReleaseName"
         log_level -i "Wait for 30s for all pods to be deleted and removed."
         sleep 30s
     fi

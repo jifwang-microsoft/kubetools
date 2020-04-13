@@ -59,7 +59,7 @@ touch $LOG_FILENAME
         do
             releaseName=$(echo "$releaseName" | tr -d '"')
             log_level -i "Removing helm deployment($releaseName)"
-            ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm delete --purge $releaseName"
+            ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm delete $releaseName"
         done 
         log_level -i "Wait for 30s for all pods to be deleted and removed."
         sleep 30s

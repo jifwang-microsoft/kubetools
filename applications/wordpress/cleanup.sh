@@ -101,7 +101,7 @@ touch $LOG_FILENAME
         log_level -w "No deployment found."
     else
         log_level -i "Removing helm deployment($wordPressDeploymentName)"
-        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm delete --purge $wordPressDeploymentName"
+        ssh -t -i $IDENTITY_FILE $USER_NAME@$MASTER_IP "helm delete $wordPressDeploymentName"
         log_level -i "Wait for 30s for all pods to be deleted and removed."
         sleep 30s
     fi
