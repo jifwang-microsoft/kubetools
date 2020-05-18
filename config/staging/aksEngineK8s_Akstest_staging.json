@@ -1,7 +1,7 @@
 {
 	"clusterARMTemplate": {
 		"githubRepo": "msazurestackworkloads/azurestack-gallery",
-		"githubBranch": "master",
+		"githubBranch": "stable-master",
 		"folderPath": "AKSEngine-E2E/Template",
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
 		"aksEngine": {
@@ -15,7 +15,7 @@
 		},
 		"ScaleandUpgrade": {
 			"githubRepo": "msazurestackworkloads/azurestack-gallery",
-			"githubBranch": "master",
+			"githubBranch": "stable-master",
 			"folderPath": "AKSEngine-E2E/AksTest-Scripts",
 			"fileName": "runAksScript.sh",
 			"scaleScript": "aksEngineScale.sh",
@@ -53,7 +53,7 @@
 	},
 	"testSuite": {
 		"githubRepo": "msazurestackworkloads/kubetools",
-		"githubBranch": "master",
+		"githubBranch": "stable-master",
 		"applications": [
 			{
 				"name": "wordpress",
