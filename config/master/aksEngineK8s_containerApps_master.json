@@ -1,7 +1,7 @@
 {
 	"clusterARMTemplate": {
 		"galleryRepository": "msazurestackworkloads/azurestack-gallery",
-		"galleryBranch": "ci-master",
+		"galleryBranch": "master",
 		"folderPath": "kubernetes/template/DeploymentTemplates",
 		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
 		"minNumberofAzsNodes": 4,
