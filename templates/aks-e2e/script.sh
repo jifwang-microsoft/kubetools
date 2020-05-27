@@ -276,4 +276,4 @@ sudo chmod +x ./scripts/setup-dvm.sh
 
 ./scripts/setup-dvm.sh
 
-make run-local INPUT=env/sample.env
+make run-local results INPUT=env/sample.env
