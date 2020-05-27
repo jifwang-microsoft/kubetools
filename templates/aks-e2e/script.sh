@@ -269,6 +269,7 @@ export AZURE_CLIENT_ID="${SPN_CLIENT_ID}"
 export AZURE_CLIENT_SECRET="${SPN_CLIENT_SECRET}"
 export AZURE_SUBSCRIPTION_ID="${TENANT_SUBSCRIPTION_ID}"
 export AZURE_TENANT_ID="${TENANT_ID}"
+export CLUSTER_DEFINITION="test_clusters/sample.json"
 EOL
 
 sudo chmod +x ./scripts/setup-dvm.sh
