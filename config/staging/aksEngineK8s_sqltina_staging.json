@@ -1,0 +1,62 @@
+{
+	"clusterARMTemplate": {
+		"galleryRepository": "msazurestackworkloads/azurestack-gallery",
+		"galleryBranch": "master",
+		"folderPath": "kubernetes/template/DeploymentTemplates",
+		"dvmLogFilePath": "/var/log/azure/deploy-script-dvm.log",
+		"minNumberofAzsNodes": 4,
+		"removeDeployment": "true",
+		"deploymentMatrix": [
+			{
+				"agentPoolProfileCount": 3,
+				"agentPoolProfilevmSize": "Standard_DS5_v2",
+				"masterPoolProfileCount": 1,
+				"masterPoolProfilevmSize": "Standard_DS5_v2",
+				"storageProfile": "ManagedDisk",
+				"hyperkubeImagesVersion": "1.15",
+				"nodeDistro": "aks-ubuntu-16.04",
+				"linuxNodeDistroVersion": "2020.03.19",
+				"linuxNodeDistroSKU": "aks-engine-ubuntu-1604-202003",
+				"networkPlugin": "kubenet",
+				"availabilityProfile": "AvailabilitySet",
+				"enableTillerAddOn": "false",
+				"windowsAgentPoolProfileCount": "0",
+				"windowsAgentPoolProfileVMSize": "Standard_D2_v2",
+				"windowsNodeDistroVersion": "17763.805.191024",
+				"windowsNodeDistroSKU": "2019-datacenter-core-smalldisk",
+				"containerRuntime": "docker",
+				"aksEngine": {
+					"aksEngineBaseURL": "https://github.com/azure/aks-engine/releases/download",
+					"aksEngineReleaseVersion": "v0.48.0",
+					"clusterDefinitionFileName": "clusterDefinition.json",
+					"kubernetesImageBase": ""
+				}
+			}
+		]
+	},
+	"diagnosis": {
+		"githubRepo": "msazurestackworkloads/azurestack-gallery",
+		"githubBranch": "addCollectLogsCi",
+		"folderPath": "diagnosis",
+		"filename": "k8sCollectLogsCi.sh"
+	},
+	"testSuite": {
+		"githubRepo": "msazurestackworkloads/kubetools",
+		"githubBranch": "master",
+		"applications": [
+			{
+				"name": "sqltina",
+				"deploymentVMType": "dvm",
+				"junitFile": "results.xml",
+				"deployment": {
+					"scriptName": "run_deploy.sh",
+					"summaryFile": "deploy.json"
+				},
+				"validation": {
+					"scriptName": "run_parse.sh",
+					"summaryFile": "validate.json"
+				}
+			}
+		]
+	}
+}
